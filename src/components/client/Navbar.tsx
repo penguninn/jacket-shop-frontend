@@ -49,7 +49,7 @@ export default function Navbar() {
 
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem asChild>
-                <Link to="/profile">My account</Link>
+                <Link to="/user/account/profile">My account</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/orders">My purchase</Link>

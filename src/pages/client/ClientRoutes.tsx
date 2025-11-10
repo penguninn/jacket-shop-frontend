@@ -3,16 +3,15 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "./Home";
 import Products from "./Products";
 import ProductDetail from "./ProductDetail";
-import Orders from "./Orders";
 import Profile from "./Profile";
 import Coupons from "./Coupons";
 import Cart from "./Cart";
-import OrderDetail from "./OrderDetail";
 import SignIn from "./SignIn";
 import SignUp from "./SignUp";
 import RequireAuth from "@/routes/RequireAuth";
 import Forbidden from "../Forbidden";
 import NotFound from "../NotFound";
+import UserLayout from "@/layouts/UserLayout";
 
 export default function ClientRoutes() {
   return (
@@ -30,32 +29,30 @@ export default function ClientRoutes() {
             </RequireAuth>
           }
         />
-        <Route path="coupons" element={<Coupons />} />
 
         <Route
-          path="orders"
+          path="user"
           element={
             <RequireAuth>
-              <Orders />
+              <UserLayout />
             </RequireAuth>
           }
-        />
-        <Route
-          path="orders/:id"
-          element={
-            <RequireAuth>
-              <OrderDetail />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="profile"
-          element={
-            <RequireAuth>
-              <Profile />
-            </RequireAuth>
-          }
-        />
+        >
+          <Route path="account/profile" element={<Profile />} />
+          {/* 
+          <Route path="account/address" element={<Address />} />
+          <Route path="account/change-password" element={<ChangePassword />} />
+          <Route path="account/payment" element={<PaymentMethods />} />
+          <Route
+            path="account/notifications"
+            element={<NotificationSettings />}
+          />
+          <Route path="purchase" element={<MyPurchase />} />
+          <Route path="purchase/:id" element={<PurchaseDetail />} />
+          */}
+          <Route path="coupons" element={<Coupons />} />
+          <Route index element={<Navigate to="account/profile" replace />} />
+        </Route>
 
         <Route
           path="signin"
