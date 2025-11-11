@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { signInSchema, type SignInForm } from "@/schema/signin";
+import { signInSchema, type SignInInput } from "@/schema/auth";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
   if (err.errors) {
@@ -35,14 +35,14 @@ export default function SignInForm() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<SignInForm>({
+  } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: { username: "", password: "" },
   });
 
   const { mutate: doSignIn, isPending } = useSignInMutation();
   const busy = isSubmitting || isPending;
-  
+
   return (
     <div className="min-h-[calc(100vh-400px)] flex items-center justify-center py-12">
       <Card className="w-full max-w-md">

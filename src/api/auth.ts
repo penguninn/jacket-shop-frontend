@@ -1,21 +1,16 @@
-import { z } from "zod";
 import { httpPublicTyped } from "@/lib/api/http-typed";
 import { authStore, useAuthStore } from "@/store/auth";
+import {
+  logoutResSchema,
+  signInResSchema,
+  signUpResSchema,
+} from "@/schema/auth";
 
-export const SignInResSchema = z.object({
-  accessToken: z.string().min(10),
-  refreshToken: z.string().min(10),
-  user: z.object({
-    id: z.number(),
-    fullName: z.string(),
-    roles: z.array(z.string()),
-  }),
-});
 export async function signin(payload: { username: string; password: string }) {
   const res = await httpPublicTyped.post(
     "/auth/login",
     payload,
-    SignInResSchema,
+    signInResSchema,
   );
   authStore.setAccess(res.accessToken);
   authStore.setRefresh(res.refreshToken);
@@ -27,7 +22,6 @@ export async function signin(payload: { username: string; password: string }) {
   return res;
 }
 
-export const SignUpResSchema = z.null().optional();
 export async function signup(payload: {
   username: string;
   fullName: string;
@@ -37,17 +31,16 @@ export async function signup(payload: {
   const res = await httpPublicTyped.post(
     "/auth/register",
     payload,
-    SignUpResSchema,
+    signUpResSchema,
   );
   return res;
 }
 
-export const LogoutResSchema = z.null().optional();
 export async function logout(payload: { token: string }) {
   const res = await httpPublicTyped.post(
     "/auth/logout",
     payload,
-    LogoutResSchema,
+    logoutResSchema,
   );
   return res;
 }

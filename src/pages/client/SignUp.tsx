@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import type { Problem } from "@/lib/api/error";
 
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useSignUpMuatation } from "@/hooks/auth";
-import { signUpSchema, type SignUpForm } from "@/schema/signup";
+import { useSignUpMutation } from "@/hooks/auth";
+import { signUpSchema, type SignUpInput } from "@/schema/auth";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
   if (err.errors) {
@@ -23,19 +23,16 @@ function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
   setError("password", { message: msg });
 }
 
-export default function SignInForm() {
+export default function SignUpForm() {
   const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const redirectTo =
-    new URLSearchParams(location.search).get("redirectTo") || "/";
 
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<SignUpForm>({
+  } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       username: "",
@@ -45,7 +42,7 @@ export default function SignInForm() {
     },
   });
 
-  const { mutate: doSignUp, isPending } = useSignUpMuatation();
+  const { mutate: doSignUp, isPending } = useSignUpMutation();
   const busy = isSubmitting || isPending;
 
   return (
@@ -68,7 +65,7 @@ export default function SignInForm() {
                   password: v.password,
                 },
                 {
-                  onSuccess: () => navigate(redirectTo, { replace: true }),
+                  onSuccess: () => navigate("/signin", { replace: true }),
                   onError: (e: any) => mapProblemToForm(e, setError),
                 },
               ),
@@ -104,7 +101,7 @@ export default function SignInForm() {
                   id="fullName"
                   type="text"
                   className="pl-9"
-                  autoComplete="fullName"
+                  autoComplete="name"
                   {...register("fullName")}
                 />
               </div>
@@ -124,7 +121,7 @@ export default function SignInForm() {
                   id="phoneNumber"
                   type="text"
                   className="pl-9"
-                  autoComplete="phoneNumber"
+                  autoComplete="tel"
                   {...register("phoneNumber")}
                 />
               </div>
@@ -144,7 +141,7 @@ export default function SignInForm() {
                   id="password"
                   type={showPwd ? "text" : "password"}
                   className="pl-9 pr-9"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   {...register("password")}
                 />
                 <button
