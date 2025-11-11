@@ -12,13 +12,12 @@ export function useSignInMutation() {
   });
 }
 
-export function useSignUpMuatation() {
+export function useSignUpMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: signup,
     onSuccess: () => {
       qc.clear();
-      window.location.href = "/signin";
     },
   });
 }
