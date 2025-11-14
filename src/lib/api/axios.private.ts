@@ -37,12 +37,12 @@ function addSubscriber(cb: (token: string) => void) {
   subscribers.push(cb);
 }
 
-const raw = axios.create({ baseURL: BASE_URL, timeout: TIMEOUT });
+const raw = axios.create({ baseURL: `${BASE_URL}/api`, timeout: TIMEOUT });
 
 async function refreshTokenRequest() {
-  const refreshToken = authStore.getRefresh();
-  if (!refreshToken) throw new Error("No refresh token");
-  const res = await raw.post("/auth/refresh", { refreshToken });
+  const token = authStore.getRefresh();
+  if (!token) throw new Error("No refresh token");
+  const res = await raw.post("/auth/refresh", { token });
   const { accessToken, refreshToken: newRefresh } = res.data.data || {};
   if (!accessToken) throw new Error("Invalid refresh response");
   authStore.setAccess(accessToken);

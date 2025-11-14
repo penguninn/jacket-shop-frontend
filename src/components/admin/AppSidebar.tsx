@@ -176,9 +176,9 @@ export default function AppSidebar() {
       <SidebarHeader className="py-5">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={false}>
+            <SidebarMenuButton asChild isActive={false} className="w-full flex justify-center">
               <Link to="/admin">
-                <img src="/logo.png" alt="Clothing" className="w-fit" />
+                <img src="/logo.png" alt="Clothing" className="w-3/4" />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -1,17 +1,12 @@
+import type { ProfileRes } from "@/schema/user";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-type User = {
-  id: number;
-  fullName: string;
-  role?: string;
-};
 
 type AuthState = {
-  user?: User;
-  setUser: (u?: User) => void;
+  user?: ProfileRes;
+  setUser: (u?: ProfileRes) => void;
 };
 
-const KEY = "me";
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -19,7 +14,7 @@ export const useAuthStore = create<AuthState>()(
       setUser: (u) => set({ user: u }),
     }),
     {
-      name: KEY,
+      name: "me",
     },
   ),
 );
