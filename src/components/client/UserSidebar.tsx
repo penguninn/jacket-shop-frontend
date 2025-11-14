@@ -42,12 +42,6 @@ export function UserSidebar() {
           label="Change Password"
           icon={<Lock className="h-4 w-4" />}
         />
-        <SidebarItem
-          to="/user/account/privacy"
-          label="Privacy Settings"
-          icon={<Shield className="h-4 w-4" />}
-        />
-
         <Section title="Purchases" />
         <SidebarItem
           to="/user/purchase"

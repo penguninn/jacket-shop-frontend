@@ -14,11 +14,7 @@ export async function signin(payload: { username: string; password: string }) {
   );
   authStore.setAccess(res.accessToken);
   authStore.setRefresh(res.refreshToken);
-  useAuthStore.getState().setUser({
-    id: res.user.id,
-    fullName: res.user.fullName,
-    role: res.user.roles[0],
-  });
+  useAuthStore.getState().setUser(res.user);
   return res;
 }
 

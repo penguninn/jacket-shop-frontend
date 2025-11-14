@@ -17,8 +17,12 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user);
   const { mutate: doLogout } = useLogoutMutation();
 
+  const hasRole = (role: string) => {
+    return user?.roles?.includes(role) ?? false;
+  };
+
   return (
-    <nav className="container mx-auto py-4 flex items-center justify-between border-b border-gray-200 px-2">
+    <nav className="container mx-auto flex items-center justify-between border-b border-gray-200 px-2 py-4">
       {/* LEFT */}
       <Link to="/" className="flex items-center">
         <img src="/logo.png" alt="Clothing" className="h-8 w-auto" />
@@ -29,22 +33,24 @@ export default function Navbar() {
         <SearchBar />
 
         <Link to="/" aria-label="Home">
-          <Home className="w-5 h-5 text-gray-600" />
+          <Home className="h-5 w-5 text-gray-600" />
         </Link>
 
         <button aria-label="Notifications">
-          <Bell className="w-5 h-5 text-gray-600" />
+          <Bell className="h-5 w-5 text-gray-600" />
         </button>
 
         <Link to="/cart" aria-label="Cart">
-          <ShoppingCart className="w-5 h-5 text-gray-600" />
+          <ShoppingCart className="h-5 w-5 text-gray-600" />
         </Link>
 
         {/* Auth area */}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <User className="w-5 h-5 text-gray-600 cursor-pointer" />
+              <button className="cursor-pointer" aria-label="User menu">
+                <User className="h-5 w-5 text-gray-600" />
+              </button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56">
@@ -54,12 +60,15 @@ export default function Navbar() {
               <DropdownMenuItem asChild>
                 <Link to="/orders">My purchase</Link>
               </DropdownMenuItem>
-              {user.role === "ADMIN" && (
+
+              {hasRole("ADMIN") && (
                 <DropdownMenuItem asChild>
                   <Link to="/admin">Management Dashboard</Link>
                 </DropdownMenuItem>
               )}
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem
                 onClick={() =>
                   doLogout({

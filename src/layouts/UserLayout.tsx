@@ -1,10 +1,13 @@
 import { UserSidebar } from "@/components/client/UserSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore } from "@/store/auth";
 import { Link } from "react-router-dom";
 
 import { Outlet } from "react-router-dom";
 
 export default function UserLayout() {
+  const user = useAuthStore((s) => s.user);
+
   return (
     <div className="container mx-auto min-h-[calc(100vh-140px)]">
       <div className="mx-auto grid w-full grid-cols-12 grid-rows-[auto_1fr] px-4 py-8">
@@ -17,7 +20,7 @@ export default function UserLayout() {
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className="text-sm">
-                <div className="font-medium leading-none">shoplinhkien05</div>
+                <div className="font-medium leading-none">{user?.fullName}</div>
                 <Link
                   to="/user/account/profile"
                   className="text-xs text-muted-foreground hover:underline"
