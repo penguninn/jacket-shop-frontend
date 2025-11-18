@@ -11,7 +11,7 @@ type Props = {
 export default function RequireAuth({
   children,
   roles,
-  guestOnly,
+  guestOnly = false,
   redirectTo = "/signin",
 }: Props) {
   const location = useLocation();
@@ -19,7 +19,7 @@ export default function RequireAuth({
 
   if (guestOnly) {
     if (user) {
-      return <Navigate to={"/"} replace />;
+      return <Navigate to="/" replace />;
     }
     return <>{children}</>;
   }
@@ -30,8 +30,14 @@ export default function RequireAuth({
   }
 
   if (roles && roles.length > 0) {
-    const allowed = roles.includes(user.role ?? "CUSTOMER");
-    if (!allowed) return <Navigate to="/forbidden" replace />;
+    // Check if user has at least one of the required roles
+    const hasRequiredRole = user.roles?.some((userRole) =>
+      roles.includes(userRole),
+    );
+
+    if (!hasRequiredRole) {
+      return <Navigate to="/forbidden" replace />;
+    }
   }
 
   return <>{children}</>;

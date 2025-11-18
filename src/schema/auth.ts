@@ -1,15 +1,12 @@
 import z from "zod";
+import { profileResSchema } from "./user";
 
 export const logoutResSchema = z.null().optional();
 export const signUpResSchema = z.null().optional();
 export const signInResSchema = z.object({
   accessToken: z.string().min(10),
   refreshToken: z.string().min(10),
-  user: z.object({
-    id: z.number(),
-    fullName: z.string(),
-    roles: z.array(z.string()),
-  }),
+  user: profileResSchema
 });
 
 export const signInSchema = z.object({
