@@ -1,9 +1,11 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Product } from "@/schema/product";
+import { ProductTableRowActions } from "./ProductTableRowActions";
 
 export const columns: ColumnDef<Product>[] = [
   {
@@ -50,27 +52,30 @@ export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "brand",
     header: "Brand",
-    cell: ({ row }) => <div>{row.getValue("brand")}</div>,
+    cell: ({ row }) => {
+      const brand = row.original.brand;
+      return <div>{brand?.name || "N/A"}</div>;
+    },
   },
   {
     accessorKey: "category",
     header: "Category",
-    cell: ({ row }) => <div>{row.getValue("category")}</div>,
-  },
-  {
-    accessorKey: "price",
-    header: "Price",
-    cell: ({ row }) => <div>${row.getValue("price")}</div>,
-  },
-  {
-    accessorKey: "stock",
-    header: "Stock",
-    cell: ({ row }) => <div>{row.getValue("stock")}</div>,
+    cell: ({ row }) => {
+      const category = row.original.category;
+      return <div>{category?.name || "N/A"}</div>;
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <div>{row.getValue("status")}</div>,
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      return (
+        <Badge variant={status === "ACTIVE" ? "default" : "secondary"}>
+          {status}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: "createdAt",
@@ -82,5 +87,9 @@ export const columns: ColumnDef<Product>[] = [
         })}
       </span>
     ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <ProductTableRowActions product={row.original} />,
   },
 ];

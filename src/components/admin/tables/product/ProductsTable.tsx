@@ -65,15 +65,15 @@ export function ProductsTable() {
   const selectedRows = table.getFilteredSelectedRowModel().rows;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      <ProductTableToolbar table={table} />
       {selectedRows.length > 0 && (
         <BulkActionsBar
           selectedCount={selectedRows.length}
           selectedRows={selectedRows}
-          onClearSelection={() => table.resetRowSelection()}
+          onClearSelection={() => setRowSelection({})}
         />
       )}
-      <ProductTableToolbar table={table} />
       <DataTable table={table} columns={columns} isLoading={isLoading} />
       <DataTablePagination table={table} />
     </div>
