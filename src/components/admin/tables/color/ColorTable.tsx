@@ -16,6 +16,7 @@ import { useColors } from "@/hooks/attribute";
 import { ColorTableToolbar } from "./ColorTableToolbar";
 import { DataTable } from "../DataTable";
 import { DataTablePagination } from "../DataTablePagination";
+import { BulkActionsBar } from "./BulkActionsBar";
 
 export function ColorTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -28,7 +29,7 @@ export function ColorTable() {
     page: pagination.pageIndex,
     size: pagination.pageSize,
     sortBy: sorting[0]?.id,
-    sortOrder: sorting[0]?.desc ? "desc" : "asc",
+    sortDir: sorting[0]?.desc ? "desc" : "asc",
     search: columnFilters.find(f => f.id === "name")?.value as string,
     status: columnFilters.find(f => f.id === "status")?.value as string[],
   });
@@ -54,9 +55,18 @@ export function ColorTable() {
     manualFiltering: true,
   });
 
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+
   return (
     <div className="space-y-4">
       <ColorTableToolbar table={table} />
+      {selectedRows.length > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedRows.length}
+          selectedRows={selectedRows}
+          onClearSelection={() => setRowSelection({})}
+        />
+      )}
       <DataTable table={table} columns={columns} isLoading={isLoading} />
       <DataTablePagination table={table} />
     </div>

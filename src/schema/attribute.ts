@@ -9,23 +9,12 @@ export const colorSchema = z.object({
   id: z.number(),
   name: z.string(),
   hexCode: z.string(),
-  status: z.enum(statusEnum),
-  createdAt: z.string().nullable().optional(),
-  updatedAt: z.string().nullable().optional(),
-});
-
-// Backend response wrapper for a single color
-export const colorResponseSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  hexCode: z.string(),
   description: z.string().nullable(),
   status: z.enum(statusEnum),
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
 });
 
-// Paginated colors response
 export const colorsResponseSchema = z.object({
   contents: z.array(colorSchema),
   page: z.number(),
@@ -34,7 +23,6 @@ export const colorsResponseSchema = z.object({
   totalElements: z.number(),
 });
 
-// Create / Update input schemas
 export const createColorSchema = z.object({
   name: z.string().min(1, "Name is required"),
   hexCode: z.string().min(1, "Hex code is required"),
@@ -58,7 +46,6 @@ export const sizeSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-// Paginated sizes response
 export const sizesResponseSchema = z.object({
   contents: z.array(sizeSchema),
   page: z.number(),
@@ -67,7 +54,6 @@ export const sizesResponseSchema = z.object({
   totalElements: z.number(),
 });
 
-// Create / Update input schemas
 export const createSizeSchema = z.object({
   name: z.string().min(1, "Name is required"),
   status: z.enum(statusEnum),

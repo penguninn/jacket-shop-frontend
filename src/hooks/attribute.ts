@@ -1,5 +1,6 @@
 
-import { createColor, createSize, deleteColor, deleteSize, getColors, updateColor, updateSize, type GetColorsParams } from "../api/attribute";
+
+import { bulkDeleteColors, bulkDeleteSizes, bulkUpdateStatusColors, bulkUpdateStatusSizes, createColor, createSize, deleteColor, deleteSize, getColors, updateColor, updateSize, type GetColorsParams } from "../api/attribute";
 
 import type { CreateColorInput, CreateSizeInput, UpdateColorInput, UpdateSizeInput } from "@/schema/attribute";
 
@@ -82,6 +83,48 @@ export function useDeleteSize() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteSize(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sizes"] });
+    },
+  });
+}
+
+export function useBulkDeleteColors() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => bulkDeleteColors(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["colors"] });
+    },
+  });
+}
+
+export function useBulkDeleteSizes() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => bulkDeleteSizes(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sizes"] });
+    },
+  });
+}
+
+export function useBulkUpdateStatusColors() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
+      bulkUpdateStatusColors(ids, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["colors"] });
+    },
+  });
+}
+
+export function useBulkUpdateStatusSizes() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
+      bulkUpdateStatusSizes(ids, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sizes"] });
     },
