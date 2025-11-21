@@ -12,11 +12,11 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { ProductVariantTableToolbar } from "./ProductVariantTableToolbar";
-import { BulkActionsBar } from "./BulkActionsBar";
 import { columns } from "./ProductVariantTableColumns";
-import { useProductVariants } from "../hooks";
+import { useProductVariants, useBulkUpdateProductVariantStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
+import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
 
 interface ProductVariantsTableProps {
   productId?: number;
@@ -29,6 +29,8 @@ export function ProductVariantsTable({ productId }: ProductVariantsTableProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const primarySort = sorting[0];
+
+  const bulkUpdateStatus = useBulkUpdateProductVariantStatus();
 
   const { data, isLoading } = useProductVariants({
     page: pagination.pageIndex,
@@ -72,10 +74,21 @@ export function ProductVariantsTable({ productId }: ProductVariantsTableProps) {
   return (
     <div className="space-y-2">
       {selectedRows.length > 0 && (
-        <BulkActionsBar
+        <DataTableBulkActions
           selectedCount={selectedRows.length}
-          selectedRows={selectedRows}
           onClearSelection={() => table.resetRowSelection()}
+          onActivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "ACTIVE" });
+            setRowSelection({});
+          }}
+          onDeactivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "INACTIVE" });
+            setRowSelection({});
+          }}
+          isLoading={bulkUpdateStatus.isPending}
+          deactivateLabel="Deactivate"
         />
       )}
       <ProductVariantTableToolbar table={table} />

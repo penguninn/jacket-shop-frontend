@@ -5,12 +5,8 @@ import { colorSchema, sizeSchema } from "@/entities";
 import {
   colorsResponseSchema,
   sizesResponseSchema,
-  type Color,
-  type ColorsResponse,
   type CreateColorInput,
   type UpdateColorInput,
-  type Size,
-  type SizesResponse,
   type CreateSizeInput,
   type UpdateSizeInput,
 } from "../model/schemas";

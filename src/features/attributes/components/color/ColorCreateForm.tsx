@@ -14,6 +14,14 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
+import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import type { Problem } from "@/shared/api/error";
 import { useCreateColor } from "../../hooks";
@@ -38,11 +46,16 @@ export function ColorCreateForm() {
     register,
     handleSubmit,
     setError,
+    setValue,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateColorInput>({
     resolver: zodResolver(createColorSchema),
-    defaultValues: { name: "", hexCode: "#000000", status: "ACTIVE" },
+    defaultValues: {
+      name: "",
+      description: "",
+      status: "ACTIVE",
+    },
   });
 
   const busy = isSubmitting || isPending;
@@ -72,31 +85,77 @@ export function ColorCreateForm() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Color</DialogTitle>
-          <DialogDescription>Add a new color</DialogDescription>
+          <DialogTitle>Create New Color</DialogTitle>
+          <DialogDescription>
+            Add a new color to the system. Fill in all required fields.
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+            {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" placeholder="Color name" {...register("name")} autoFocus />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+              <Input
+                id="name"
+                placeholder="Enter color name"
+                {...register("name")}
+                autoFocus
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
             </div>
+
+            {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="hexCode">Hex Code *</Label>
-              <Input id="hexCode" type="color" {...register("hexCode")} />
-              {errors.hexCode && <p className="text-xs text-red-500">{errors.hexCode.message}</p>}
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter color description"
+                {...register("description")}
+                rows={3}
+              />
+              {errors.description && (
+                <p className="text-xs text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                defaultValue="ACTIVE"
+                onValueChange={(value) => setValue("status", value as any)}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.status && (
+                <p className="text-xs text-red-500">{errors.status.message}</p>
+              )}
             </div>
           </form>
         </ScrollArea>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
-            {busy ? "Creating..." : "Create"}
+            {busy ? "Creating..." : "Create Color"}
           </Button>
         </DialogFooter>
       </DialogContent>

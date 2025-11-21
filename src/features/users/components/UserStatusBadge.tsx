@@ -1,22 +1,21 @@
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
-import type { UserStatus } from "@/features/users/model/schemas";
 
 interface Props {
-  status: UserStatus;
+    status: string;
 }
 
 export function UserStatusBadge({ status }: Props) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "font-medium",
-        status === "ACTIVE" && "border-green-600 bg-green-50 text-green-700",
-        status === "INACTIVE" && "border-gray-600 bg-gray-50 text-gray-700",
-      )}
-    >
-      {status}
-    </Badge>
-  );
+    return (
+        <Badge
+            variant="secondary"
+            className={cn(
+                "text-xs",
+                status === "ACTIVE" && "bg-green-100 text-green-800",
+                status === "INACTIVE" && "bg-slate-100 text-slate-800",
+            )}
+        >
+            {status}
+        </Badge>
+    );
 }

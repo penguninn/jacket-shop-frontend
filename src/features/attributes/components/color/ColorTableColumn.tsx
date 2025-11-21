@@ -35,17 +35,12 @@ export const columns: ColumnDef<Color>[] = [
     cell: (info) => <span>{info.getValue<string>()}</span>,
   },
   {
-    accessorKey: "hexCode",
-    header: "Hex Code",
-    cell: (info) => (
-      <div className="flex items-center gap-2">
-        <div
-          className="h-4 w-4 rounded-full border"
-          style={{ backgroundColor: info.getValue<string>() }}
-        />
-        <span className="font-mono">{info.getValue<string>()}</span>
-      </div>
-    ),
+    accessorKey: "description",
+    header: "Description",
+    cell: (info) => {
+      const description = info.getValue<string | null>();
+      return <span className="text-muted-foreground">{description || "—"}</span>;
+    },
   },
   {
     accessorKey: "status",

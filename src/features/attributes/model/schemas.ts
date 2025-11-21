@@ -14,13 +14,13 @@ export const colorsResponseSchema = z.object({
 
 export const createColorSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  hexCode: z.string().min(1, "Hex code is required"),
+  description: z.string().optional(),
   status: z.enum(colorStatusEnum),
 });
 
 export const updateColorSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  hexCode: z.string().min(1, "Hex code is required"),
+  description: z.string().optional(),
   status: z.enum(colorStatusEnum),
 });
 
@@ -37,11 +37,13 @@ export const sizesResponseSchema = z.object({
 
 export const createSizeSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
   status: z.enum(sizeStatusEnum),
 });
 
 export const updateSizeSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
   status: z.enum(sizeStatusEnum),
 });
 

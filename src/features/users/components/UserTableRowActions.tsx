@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { type Row } from "@tanstack/react-table";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import {
   MoreHorizontal,
   Edit,
@@ -30,6 +32,8 @@ export function UserTableRowActions({ row }: Props) {
   const deleteUserMutation = useDeleteUser();
   const navigate = useNavigate();
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const handleToggleStatus = () => {
     const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     const payload: UpdateUserStatusInput = {
@@ -42,48 +46,67 @@ export function UserTableRowActions({ row }: Props) {
   };
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete user "${user.username}"?`)) {
-      deleteUserMutation.mutate(user.id);
-    }
+    deleteUserMutation.mutate(user.id, {
+      onSuccess: () => setShowDeleteDialog(false),
+    });
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
-          <Eye className="mr-2 h-4 w-4" />
-          View Details
-        </DropdownMenuItem>
-        <UserEditForm user={user}>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
+    <>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete User"
+        description={
+          <span>
+            Are you sure you want to delete user <strong>{user.username}</strong>? This action cannot be undone.
+          </span>
+        }
+        onConfirm={handleDelete}
+        confirmText="Delete"
+        variant="destructive"
+        isLoading={deleteUserMutation.isPending}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
           </DropdownMenuItem>
-        </UserEditForm>
-        <DropdownMenuItem onClick={handleToggleStatus}>
-          {user.status === "ACTIVE" ? (
-            <>
-              <UserX className="mr-2 h-4 w-4" />
-              Deactivate
-            </>
-          ) : (
-            <>
-              <UserCheck className="mr-2 h-4 w-4" />
-              Activate
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-          <Trash className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <UserEditForm user={user}>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+          </UserEditForm>
+          <DropdownMenuItem onClick={handleToggleStatus}>
+            {user.status === "ACTIVE" ? (
+              <>
+                <UserX className="mr-2 h-4 w-4" />
+                Deactivate
+              </>
+            ) : (
+              <>
+                <UserCheck className="mr-2 h-4 w-4" />
+                Activate
+              </>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => setShowDeleteDialog(true)}
+            className="text-red-600"
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

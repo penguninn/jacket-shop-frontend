@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { type Row } from "@tanstack/react-table";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import {
     MoreHorizontal,
     Edit,
@@ -27,6 +29,8 @@ export function SizeTableRowActions({ row }: Props) {
     const updateSizeMutation = useUpdateSize();
     const deleteSizeMutation = useDeleteSize();
 
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
     const handleToggleStatus = () => {
         const newStatus = size.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
         updateSizeMutation.mutate({
@@ -39,44 +43,63 @@ export function SizeTableRowActions({ row }: Props) {
     };
 
     const handleDelete = () => {
-        if (confirm(`Are you sure you want to delete size "${size.name}"?`)) {
-            deleteSizeMutation.mutate(size.id);
-        }
+        deleteSizeMutation.mutate(size.id, {
+            onSuccess: () => setShowDeleteDialog(false),
+        });
     };
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <SizeEditForm size={size}>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
+        <>
+            <ConfirmDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                title="Delete Size"
+                description={
+                    <span>
+                        Are you sure you want to delete size <strong>{size.name}</strong>? This action cannot be undone.
+                    </span>
+                }
+                onConfirm={handleDelete}
+                confirmText="Delete"
+                variant="destructive"
+                isLoading={deleteSizeMutation.isPending}
+            />
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <SizeEditForm size={size}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
+                    </SizeEditForm>
+                    <DropdownMenuItem onClick={handleToggleStatus}>
+                        {size.status === "ACTIVE" ? (
+                            <>
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Deactivate
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Activate
+                            </>
+                        )}
                     </DropdownMenuItem>
-                </SizeEditForm>
-                <DropdownMenuItem onClick={handleToggleStatus}>
-                    {size.status === "ACTIVE" ? (
-                        <>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Deactivate
-                        </>
-                    ) : (
-                        <>
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Activate
-                        </>
-                    )}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="text-red-600"
+                    >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Delete
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     );
 }

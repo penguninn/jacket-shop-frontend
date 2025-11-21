@@ -20,8 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateSizeSchema, type UpdateSizeInput, type Size } from "../../model/schemas";
+import {
+  updateSizeSchema,
+  type UpdateSizeInput,
+  type Size,
+} from "../../model/schemas";
 import type { Problem } from "@/shared/api/error";
 import { useUpdateSize } from "../../hooks";
 
@@ -57,6 +62,7 @@ export function SizeEditForm({ size, children }: Props) {
     resolver: zodResolver(updateSizeSchema),
     defaultValues: {
       name: "",
+      description: "",
       status: "ACTIVE",
     },
   });
@@ -68,6 +74,7 @@ export function SizeEditForm({ size, children }: Props) {
     if (open && size) {
       reset({
         name: size.name,
+        description: size.description || "",
         status: size.status,
       });
     }
@@ -91,22 +98,50 @@ export function SizeEditForm({ size, children }: Props) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Size: {size.name}</DialogTitle>
-          <DialogDescription>Update size details.</DialogDescription>
+          <DialogDescription>
+            Update size information and status.
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+            {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" {...register("name")} />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+              <Input
+                id="name"
+                placeholder="Enter size name"
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
             </div>
 
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter size description"
+                {...register("description")}
+                rows={3}
+              />
+              {errors.description && (
+                <p className="text-xs text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            {/* Status */}
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={currentStatus}
-                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                onValueChange={(value) =>
+                  setValue("status", value as any, { shouldDirty: true })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -116,16 +151,26 @@ export function SizeEditForm({ size, children }: Props) {
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.status && <p className="text-xs text-red-500">{errors.status.message}</p>}
+              {errors.status && (
+                <p className="text-xs text-red-500">{errors.status.message}</p>
+              )}
             </div>
           </form>
         </ScrollArea>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy || !isDirty}>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            disabled={busy || !isDirty}
+          >
             {busy ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>

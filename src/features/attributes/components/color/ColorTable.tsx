@@ -12,11 +12,11 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { columns } from "./ColorTableColumn";
-import { useColors } from "../../hooks";
+import { useColors, useBulkUpdateStatusColors } from "../../hooks";
 import { ColorTableToolbar } from "./ColorTableToolbar";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
-import { BulkActionsBar } from "./BulkActionsBar";
+import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
 
 export function ColorTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -24,6 +24,8 @@ export function ColorTable() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+
+  const bulkUpdateStatus = useBulkUpdateStatusColors();
 
   const { data, isLoading } = useColors({
     page: pagination.pageIndex,
@@ -61,10 +63,21 @@ export function ColorTable() {
     <div className="space-y-4">
       <ColorTableToolbar table={table} />
       {selectedRows.length > 0 && (
-        <BulkActionsBar
+        <DataTableBulkActions
           selectedCount={selectedRows.length}
-          selectedRows={selectedRows}
           onClearSelection={() => setRowSelection({})}
+          onActivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "ACTIVE" });
+            setRowSelection({});
+          }}
+          onDeactivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "INACTIVE" });
+            setRowSelection({});
+          }}
+          isLoading={bulkUpdateStatus.isPending}
+          deactivateLabel="Deactivate"
         />
       )}
       <DataTable table={table} columns={columns} isLoading={isLoading} />

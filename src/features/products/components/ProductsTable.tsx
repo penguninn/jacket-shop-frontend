@@ -12,11 +12,12 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { ProductTableToolbar } from "./ProductTableToolbar";
-import { BulkActionsBar } from "./BulkActionsBar";
 import { columns } from "./ProductTableColumns";
 import { useProducts } from "../hooks/use-products";
+import { useBulkUpdateProductStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
+import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
 
 export function ProductsTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -25,6 +26,8 @@ export function ProductsTable() {
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const primarySort = sorting[0];
+
+  const bulkUpdateStatus = useBulkUpdateProductStatus();
 
   const { data, isLoading } = useProducts({
     page: pagination.pageIndex,
@@ -68,10 +71,21 @@ export function ProductsTable() {
     <div className="space-y-4">
       <ProductTableToolbar table={table} />
       {selectedRows.length > 0 && (
-        <BulkActionsBar
+        <DataTableBulkActions
           selectedCount={selectedRows.length}
-          selectedRows={selectedRows}
           onClearSelection={() => setRowSelection({})}
+          onActivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "ACTIVE" });
+            setRowSelection({});
+          }}
+          onDeactivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "INACTIVE" });
+            setRowSelection({});
+          }}
+          isLoading={bulkUpdateStatus.isPending}
+          deactivateLabel="Deactivate"
         />
       )}
       <DataTable table={table} columns={columns} isLoading={isLoading} />

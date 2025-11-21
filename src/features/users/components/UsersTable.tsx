@@ -12,11 +12,11 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { UserTableToolbar } from "./UserTableToolbar";
-import { BulkActionsBar } from "./BulkActionsBar";
 import { columns } from "./UserTableColumns";
-import { useUsers } from "../hooks";
+import { useUsers, useBulkUpdateStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
+import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
 
 export function UsersTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -24,13 +24,14 @@ export function UsersTable() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const primarySort = sorting[0];
+
+  const bulkUpdateStatus = useBulkUpdateStatus();
 
   const { data, isLoading } = useUsers({
     page: pagination.pageIndex,
     size: pagination.pageSize,
-    sortBy: primarySort?.id,
-    sortDir: primarySort ? (primarySort.desc ? "desc" : "asc") : undefined,
+    sortBy: sorting[0]?.id,
+    sortDir: sorting[0]?.desc ? "desc" : "asc",
     status: columnFilters.find((f) => f.id === "status")?.value as string[],
     roles: columnFilters.find((f) => f.id === "roles")?.value as string[],
     search: columnFilters.find((f) => f.id === "username")?.value as string,
@@ -63,10 +64,21 @@ export function UsersTable() {
     <div className="space-y-4">
       <UserTableToolbar table={table} />
       {selectedRows.length > 0 && (
-        <BulkActionsBar
+        <DataTableBulkActions
           selectedCount={selectedRows.length}
-          selectedRows={selectedRows}
           onClearSelection={() => setRowSelection({})}
+          onActivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "ACTIVE" });
+            setRowSelection({});
+          }}
+          onDeactivate={() => {
+            const selectedIds = selectedRows.map((row) => row.original.id);
+            bulkUpdateStatus.mutate({ ids: selectedIds, status: "INACTIVE" });
+            setRowSelection({});
+          }}
+          isLoading={bulkUpdateStatus.isPending}
+          deactivateLabel="Deactivate"
         />
       )}
       <DataTable table={table} columns={columns} isLoading={isLoading} />

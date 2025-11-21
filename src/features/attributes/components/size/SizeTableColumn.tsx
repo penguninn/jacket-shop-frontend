@@ -35,6 +35,14 @@ export const columns: ColumnDef<Size>[] = [
     cell: (info) => <span>{info.getValue<string>()}</span>,
   },
   {
+    accessorKey: "description",
+    header: "Description",
+    cell: (info) => {
+      const description = info.getValue<string | null>();
+      return <span className="text-muted-foreground">{description || "—"}</span>;
+    },
+  },
+  {
     accessorKey: "status",
     header: "Status",
     cell: (info) => {
