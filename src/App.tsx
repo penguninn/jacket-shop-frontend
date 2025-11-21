@@ -1,16 +1,14 @@
-import { BrowserRouter, useRoutes } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { routes } from "@/routes/AppRoutes";
+import { AppProvider } from "@/app/providers/AppProvider";
+import { routes } from "@/app/routes/AppRoutes";
+import { useRoutes } from "react-router-dom";
 
 const AppRoutes = () => useRoutes(routes);
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </ThemeProvider>
+    <AppProvider>
+      <AppRoutes />
+    </AppProvider>
   );
 }
 
