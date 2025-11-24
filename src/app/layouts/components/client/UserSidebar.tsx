@@ -5,7 +5,6 @@ import {
   CreditCard,
   MapPin,
   Lock,
-  Shield,
   ShoppingBag,
   Ticket,
 } from "lucide-react";

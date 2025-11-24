@@ -1,7 +1,7 @@
 // src/api/attribute.ts
 import { z } from "zod";
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import { colorSchema, sizeSchema } from "@/entities";
+import { colorSchema, sizeSchema } from "@/features/attributes/model";
 import {
   colorsResponseSchema,
   sizesResponseSchema,

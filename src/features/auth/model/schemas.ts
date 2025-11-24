@@ -1,5 +1,5 @@
 import z from "zod";
-import { userSchema } from "@/entities/user";
+import { userSchema } from "@/features/users/model";
 
 export const logoutResSchema = z.null().optional();
 export const signUpResSchema = z.null().optional();

@@ -1,5 +1,5 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import { userSchema } from "@/entities/user";
+import { userSchema } from "@/features/users/model";
 import { useAuthStore } from "@/app/store/auth";
 import type { UpdateProfileInput } from "../model/types";
 

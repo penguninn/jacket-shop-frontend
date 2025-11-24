@@ -1,5 +1,32 @@
-import { z } from "zod";
-import { colorSchema, colorStatusEnum, sizeSchema, sizeStatusEnum } from "@/entities";
+import z from "zod";
+
+export const colorStatusEnum = ["ACTIVE", "INACTIVE"] as const;
+
+export const colorSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(colorStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export type Color = z.infer<typeof colorSchema>;
+export type ColorStatus = typeof colorStatusEnum[number];
+
+export const sizeStatusEnum = ["ACTIVE", "INACTIVE"] as const;
+
+export const sizeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(sizeStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export type Size = z.infer<typeof sizeSchema>;
+export type SizeStatus = typeof sizeStatusEnum[number];
 
 // -----------------
 // Color Response & Input Schemas
@@ -46,11 +73,6 @@ export const updateSizeSchema = z.object({
   description: z.string().optional(),
   status: z.enum(sizeStatusEnum),
 });
-
-// -----------------
-// Re-export Types from Entities
-// -----------------
-export type { Color, ColorStatus, Size, SizeStatus } from "@/entities";
 
 // -----------------
 // Feature-specific Types

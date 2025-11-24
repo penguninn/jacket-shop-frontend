@@ -1,5 +1,20 @@
 import z from "zod";
-import { userSchema, userStatusEnum } from "@/entities/user";
+
+export const userStatusEnum = ["ACTIVE", "INACTIVE"] as const;
+
+export const userSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  fullName: z.string(),
+  phone: z.string().nullable(),
+  status: z.enum(userStatusEnum),
+  roles: z.array(z.string()),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export type User = z.infer<typeof userSchema>;
+export type UserStatus = typeof userStatusEnum[number];
 
 export const usersResponseSchema = z.object({
   contents: z.array(userSchema),
@@ -52,9 +67,6 @@ export const updateUserSchema = z.object({
 export const updateUserStatusSchema = z.object({
   status: z.string().min(2, "Status is required"),
 });
-
-// Re-export types from entities
-export type { User, UserStatus } from "@/entities/user";
 
 // Feature-specific types
 export type UsersResponse = z.infer<typeof usersResponseSchema>;

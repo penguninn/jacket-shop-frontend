@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { User } from "@/entities/user";
+import type { User } from "@/features/users/model";
 import { persist } from "zustand/middleware";
 
 interface AuthState {

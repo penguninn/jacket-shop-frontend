@@ -211,18 +211,29 @@ export function OverviewTab({ user }: Props) {
           <CardTitle>Account Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Created</span>
-            <span className="text-sm font-medium">
-              {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
-            </span>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              Created At
+            </p>
+            <p className="text-sm">
+              {user.createdAt
+                ? formatDistanceToNow(new Date(user.createdAt), {
+                  addSuffix: true,
+                })
+                : "N/A"}
+            </p>
           </div>
-          <Separator />
-          <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Last Updated</span>
-            <span className="text-sm font-medium">
-              {formatDistanceToNow(new Date(user.updatedAt), { addSuffix: true })}
-            </span>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              Updated At
+            </p>
+            <p className="text-sm">
+              {user.updatedAt
+                ? formatDistanceToNow(new Date(user.updatedAt), {
+                  addSuffix: true,
+                })
+                : "N/A"}
+            </p>
           </div>
         </CardContent>
       </Card>
