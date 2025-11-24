@@ -1,8 +1,8 @@
 import ClientLayout from "@/app/layouts/ClientLayout";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "@/pages/client/Home";
-import Products from "@/features/products/pages/ClientProductsPage";
-import ProductDetail from "@/features/products/pages/ProductDetailPage";
+// import Products from "@/features/products/pages/ClientProductsPage";
+// import ProductDetail from "@/features/products/pages/ProductDetailPage";
 import Profile from "@/features/auth/pages/ProfilePage";
 import Coupons from "@/pages/client/Coupons";
 import Cart from "@/pages/client/Cart";
@@ -18,8 +18,8 @@ export default function ClientRoutes() {
     <Routes>
       <Route element={<ClientLayout />}>
         <Route index element={<Home />} />
-        <Route path="products" element={<Products />} />
-        <Route path="products/:id" element={<ProductDetail />} />
+        {/* <Route path="products" element={<Products />} />
+        <Route path="products/:id" element={<ProductDetail />} /> */}
 
         <Route
           path="cart"
