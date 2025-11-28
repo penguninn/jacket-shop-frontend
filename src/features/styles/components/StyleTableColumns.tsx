@@ -2,13 +2,12 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-
-import { ProductTableRowActions } from "./ProductTableRowActions";
-import { ProductStatusBadge } from "./ProductStatusBadge";
+import { StyleStatusBadge } from "./StyleStatusBadge";
+import { StyleTableRowActions } from "./StyleTableRowActions";
 import { formatDistanceToNow } from "date-fns";
-import type { Product } from "@/features/products/model/schemas";
+import type { Style } from "../model/schemas";
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<Style>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -51,61 +50,21 @@ export const columns: ColumnDef<Product>[] = [
         ),
     },
     {
-        accessorKey: "category",
-        header: "Category",
+        accessorKey: "description",
+        header: "Description",
         cell: ({ row }) => {
-            const category = row.original.category;
-            return <div>{category?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const category = row.original.category;
-            if (!category) return false;
-            return value.includes(category.id.toString());
-        },
-    },
-    {
-        accessorKey: "brand",
-        header: "Brand",
-        cell: ({ row }) => {
-            const brand = row.original.brand;
-            return <div>{brand?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const brand = row.original.brand;
-            if (!brand) return false;
-            return value.includes(brand.id.toString());
-        },
-    },
-    {
-        accessorKey: "material",
-        header: "Material",
-        cell: ({ row }) => {
-            const material = row.original.material;
-            return <div>{material?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const material = row.original.material;
-            if (!material) return false;
-            return value.includes(material.id.toString());
-        },
-    },
-    {
-        accessorKey: "style",
-        header: "Style",
-        cell: ({ row }) => {
-            const style = row.original.style;
-            return <div>{style?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const style = row.original.style;
-            if (!style) return false;
-            return value.includes(style.id.toString());
+            const description = row.getValue("description") as string | null;
+            return (
+                <div className="max-w-[300px] truncate text-muted-foreground">
+                    {description || "—"}
+                </div>
+            );
         },
     },
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <ProductStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StyleStatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },
@@ -136,6 +95,6 @@ export const columns: ColumnDef<Product>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <ProductTableRowActions row={row} />,
+        cell: ({ row }) => <StyleTableRowActions row={row} />,
     },
 ];
