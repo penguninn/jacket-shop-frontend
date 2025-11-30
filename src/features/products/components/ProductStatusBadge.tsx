@@ -9,8 +9,6 @@ export function ProductStatusBadge({ status }: Props) {
     const variants: Record<ProductStatus, "default" | "secondary" | "destructive" | "outline"> = {
         ACTIVE: "default",
         INACTIVE: "secondary",
-        DRAFT: "outline",
-        ARCHIVED: "destructive",
     };
 
     return <Badge variant={variants[status]}>{status}</Badge>;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, Pen, Trash, Eye, Archive, CheckCircle2 } from "lucide-react";
+import { MoreHorizontal, Pen, Trash, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
     DropdownMenu,
@@ -9,65 +9,63 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { useDeleteProduct, useUpdateProductStatus } from "../hooks";
-import { ProductEditForm } from "./ProductEditForm";
-import type { Product, UpdateProductStatusInput } from "../model/schemas";
+import { useDeleteStyle, useUpdateStyleStatus } from "../hooks";
+import { StyleEditForm } from "./StyleEditForm";
+import type { Style, UpdateStyleStatusInput } from "../model/schemas";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { useNavigate } from "react-router-dom";
 
 interface DataTableRowActionsProps<TData> {
     row: Row<TData>;
 }
 
-export function ProductTableRowActions<TData>({
+export function StyleTableRowActions<TData>({
     row,
 }: DataTableRowActionsProps<TData>) {
-    const product = row.original as Product;
-    const deleteProduct = useDeleteProduct();
-    const updateStatus = useUpdateProductStatus();
-    const navigate = useNavigate();
+    const style = row.original as Style;
+    const deleteStyle = useDeleteStyle();
+    const updateStatus = useUpdateStyleStatus();
 
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleDelete = () => {
-        deleteProduct.mutate(product.id, {
+        deleteStyle.mutate(style.id, {
             onSuccess: () => setShowDeleteDialog(false),
         });
     };
 
     const handleToggleStatus = () => {
-        const newStatus = product.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-        const payload: UpdateProductStatusInput = {
+        const newStatus = style.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+        const payload: UpdateStyleStatusInput = {
             status: newStatus,
         };
         updateStatus.mutate({
-            id: product.id,
+            id: style.id,
             data: payload,
         });
     };
 
     return (
         <>
-            <ProductEditForm
+            <StyleEditForm
                 open={showEditDialog}
                 onOpenChange={setShowEditDialog}
-                product={product}
+                style={style}
             />
 
             <ConfirmDialog
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
-                title="Delete Product"
+                title="Delete Style"
                 description={
                     <span>
-                        Are you sure you want to delete product <strong>{product.name}</strong>? This action cannot be undone.
+                        Are you sure you want to delete style <strong>{style.name}</strong>? This action cannot be undone.
                     </span>
                 }
                 onConfirm={handleDelete}
                 confirmText="Delete"
                 variant="destructive"
-                isLoading={deleteProduct.isPending}
+                isLoading={deleteStyle.isPending}
             />
 
             <DropdownMenu>
@@ -81,18 +79,14 @@ export function ProductTableRowActions<TData>({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">
-                    <DropdownMenuItem onClick={() => navigate(`/admin/products/${product.id}`)}>
-                        <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-                        View Details
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                         <Pen className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleToggleStatus}>
-                        {product.status === "ACTIVE" ? (
+                        {style.status === "ACTIVE" ? (
                             <>
-                                <Archive className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                                <XCircle className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
                                 Deactivate
                             </>
                         ) : (

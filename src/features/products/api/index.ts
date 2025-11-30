@@ -1,7 +1,17 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
 
 import z from "zod";
-import { productSchema, productsResponseSchema, type CreateProductInput, type UpdateProductInput, type UpdateProductStatusInput } from "../model/schemas";
+import {
+    productSchema,
+    productsResponseSchema,
+    categoriesResponseSchema,
+    brandsResponseSchema,
+    materialsResponseSchema,
+    stylesResponseSchema,
+    type CreateProductInput,
+    type UpdateProductInput,
+    type UpdateProductStatusInput
+} from "../model/schemas";
 
 type SortDirection = "asc" | "desc";
 const DEFAULT_SORT_BY = "createdAt";
@@ -16,6 +26,8 @@ export interface GetProductsParams {
     status?: string[];
     categoryIds?: number[];
     brandIds?: number[];
+    materialIds?: number[];
+    styleIds?: number[];
 }
 
 export async function getProducts(params: GetProductsParams) {
@@ -41,6 +53,12 @@ export async function getProducts(params: GetProductsParams) {
     }
     if (params.brandIds?.length) {
         params.brandIds.forEach((id) => queryParams.append("brandIds", id.toString()));
+    }
+    if (params.materialIds?.length) {
+        params.materialIds.forEach((id) => queryParams.append("materialIds", id.toString()));
+    }
+    if (params.styleIds?.length) {
+        params.styleIds.forEach((id) => queryParams.append("styleIds", id.toString()));
     }
 
     const res = await httpPrivateTyped.get(
@@ -79,4 +97,148 @@ export async function bulkUpdateProductStatus(ids: number[], status: string) {
 
 export async function bulkDeleteProducts(ids: number[]) {
     await httpPrivateTyped.post("/products/bulk/delete", { ids }, z.null());
+}
+
+// -----------------
+// Helper Entities API - For Product Creation/Editing
+// -----------------
+
+export interface GetCategoriesParams {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: SortDirection;
+    search?: string;
+    status?: string[];
+}
+
+export async function getCategories(params: GetCategoriesParams = {}) {
+    const queryParams = new URLSearchParams({
+        page: (params.page ?? 0).toString(),
+        size: (params.size ?? 100).toString(), // Default to larger size for dropdowns
+    });
+
+    const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+    const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+    queryParams.append("sortBy", sortBy);
+    queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+    if (params.search) {
+        queryParams.append("search", params.search);
+    }
+    if (params.status?.length) {
+        params.status.forEach((s) => queryParams.append("status", s));
+    }
+
+    const res = await httpPrivateTyped.get(
+        `/categories?${queryParams.toString()}`,
+        categoriesResponseSchema,
+    );
+    return res;
+}
+
+export interface GetBrandsParams {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: SortDirection;
+    search?: string;
+    status?: string;
+}
+
+export async function getBrands(params: GetBrandsParams = {}) {
+    const queryParams = new URLSearchParams({
+        page: (params.page ?? 0).toString(),
+        size: (params.size ?? 100).toString(), // Default to larger size for dropdowns
+    });
+
+    const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+    const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+    queryParams.append("sortBy", sortBy);
+    queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+    if (params.search) {
+        queryParams.append("search", params.search);
+    }
+    if (params.status) {
+        queryParams.append("status", params.status);
+    }
+
+    const res = await httpPrivateTyped.get(
+        `/brands?${queryParams.toString()}`,
+        brandsResponseSchema,
+    );
+    return res;
+}
+
+export interface GetMaterialsParams {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: SortDirection;
+    search?: string;
+    status?: string[];
+}
+
+export async function getMaterials(params: GetMaterialsParams = {}) {
+    const queryParams = new URLSearchParams({
+        page: (params.page ?? 0).toString(),
+        size: (params.size ?? 100).toString(), // Default to larger size for dropdowns
+    });
+
+    const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+    const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+    queryParams.append("sortBy", sortBy);
+    queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+    if (params.search) {
+        queryParams.append("search", params.search);
+    }
+    if (params.status?.length) {
+        params.status.forEach((s) => queryParams.append("status", s));
+    }
+
+    const res = await httpPrivateTyped.get(
+        `/materials?${queryParams.toString()}`,
+        materialsResponseSchema,
+    );
+    return res;
+}
+
+export interface GetStylesParams {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: SortDirection;
+    search?: string;
+    status?: string;
+}
+
+export async function getStyles(params: GetStylesParams = {}) {
+    const queryParams = new URLSearchParams({
+        page: (params.page ?? 0).toString(),
+        size: (params.size ?? 100).toString(), // Default to larger size for dropdowns
+    });
+
+    const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+    const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+    queryParams.append("sortBy", sortBy);
+    queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+    if (params.search) {
+        queryParams.append("search", params.search);
+    }
+    if (params.status) {
+        queryParams.append("status", params.status);
+    }
+
+    const res = await httpPrivateTyped.get(
+        `/styles?${queryParams.toString()}`,
+        stylesResponseSchema,
+    );
+    return res;
 }
