@@ -5,6 +5,7 @@ import {
   Inbox,
   ReceiptText,
   RotateCcw,
+  Scroll,
   Shirt,
   ShoppingBag,
   ShoppingBasket,
@@ -116,6 +117,11 @@ const sidebarGroups = [
         title: "Brands",
         url: "/admin/brands",
         icon: Award,
+      },
+      {
+        title: "Materials",
+        url: "/admin/materials",
+        icon: Scroll,
       },
       {
         title: "Styles",

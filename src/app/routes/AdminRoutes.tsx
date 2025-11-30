@@ -14,6 +14,7 @@ import ProductVariant from "@/features/product-variants/pages/ProductVariantPage
 import ShippingMethods from "@/pages/admin/ShippingMethods";
 import PaymentMethods from "@/pages/admin/PaymentMethods";
 import Coupons from "@/pages/admin/Coupons";
+import Materials from "@/features/materials/pages/MaterialsPage";
 import RequireAuth from "./RequireAuth";
 
 export default function AdminRoutes() {
@@ -54,6 +55,14 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN"]}>
               <Attributes />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="materials"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <Materials />
             </RequireAuth>
           }
         />
