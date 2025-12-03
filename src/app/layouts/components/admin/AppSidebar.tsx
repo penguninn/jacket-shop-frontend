@@ -5,7 +5,6 @@ import {
   Inbox,
   ReceiptText,
   RotateCcw,
-  Scroll,
   Shirt,
   ShoppingBag,
   ShoppingBasket,
@@ -18,6 +17,7 @@ import {
   User,
   Wallet,
   Warehouse,
+  Scroll,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {

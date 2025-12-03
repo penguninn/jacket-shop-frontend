@@ -21,7 +21,7 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateProductSchema, type UpdateProductInput, type Product } from "../model/schemas";
+import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
 import type { Problem } from "@/shared/api/error";
 import { useUpdateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
 
@@ -232,7 +232,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                                onValueChange={(value) => setValue("status", value as ProductStatus, { shouldDirty: true })}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
