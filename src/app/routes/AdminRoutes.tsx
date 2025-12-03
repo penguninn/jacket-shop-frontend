@@ -13,7 +13,7 @@ import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
 import ShippingMethods from "@/pages/admin/ShippingMethods";
 import PaymentMethods from "@/pages/admin/PaymentMethods";
-import Coupons from "@/pages/admin/Coupons";
+import Coupons from "@/features/coupons/pages/CouponsPage";
 import Materials from "@/features/materials/pages/MaterialsPage";
 import RequireAuth from "./RequireAuth";
 
