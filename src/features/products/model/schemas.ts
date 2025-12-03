@@ -21,6 +21,14 @@ export const brandResponseSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
+export const brandsResponseSchema = z.object({
+  contents: z.array(brandResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
+});
+
 export const materialResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -37,6 +45,14 @@ export const styleResponseSchema = z.object({
   status: z.enum(commonStatusEnum),
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
+});
+
+export const stylesResponseSchema = z.object({
+  contents: z.array(styleResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
 });
 
 export const productSchema = z.object({
@@ -111,24 +127,9 @@ export const categoriesResponseSchema = z.object({
   totalElements: z.number(),
 });
 
-export const brandsResponseSchema = z.object({
-  contents: z.array(brandResponseSchema),
-  page: z.number(),
-  size: z.number(),
-  totalPages: z.number(),
-  totalElements: z.number(),
-});
 
 export const materialsResponseSchema = z.object({
   contents: z.array(materialResponseSchema),
-  page: z.number(),
-  size: z.number(),
-  totalPages: z.number(),
-  totalElements: z.number(),
-});
-
-export const stylesResponseSchema = z.object({
-  contents: z.array(styleResponseSchema),
   page: z.number(),
   size: z.number(),
   totalPages: z.number(),
