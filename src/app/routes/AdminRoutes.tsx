@@ -10,8 +10,7 @@ import Styles from "@/features/styles/pages/StylesPage";
 import Attributes from "@/features/attributes/pages/AttributesPage";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
-import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
-import Coupons from "@/pages/admin/Coupons";
+import Coupons from "@/features/coupons/pages/CouponsPage";
 import Materials from "@/features/materials/pages/MaterialsPage";
 import RequireAuth from "./RequireAuth";
 import Categories from "@/features/categories/pages/CategoriesPage";
@@ -21,6 +20,7 @@ import {
   ShippingMethodsPage as ShippingMethods,
   ShippingMethodDetailPage as ShippingMethodDetail,
 } from "@/features/shipping-methods";
+import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
 
 export default function AdminRoutes() {
   return (
