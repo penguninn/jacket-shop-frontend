@@ -1,17 +1,24 @@
 import z from "zod";
 
-export const productStatusEnum = ["ACTIVE", "INACTIVE", "DRAFT", "ARCHIVED"] as const; // Added common statuses, can be adjusted
+export const productStatusEnum = ["ACTIVE", "INACTIVE"] as const;
+export const commonStatusEnum = ["ACTIVE", "INACTIVE"] as const;
 
 // Helper schemas for related entities
 export const categoryResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
-  // Add other fields if known
+  status: z.enum(commonStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 export const brandResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
+  logoUrl: z.string().nullable().optional(),
+  status: z.enum(commonStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 export const brandsResponseSchema = z.object({
@@ -25,11 +32,19 @@ export const brandsResponseSchema = z.object({
 export const materialResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.enum(commonStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 export const styleResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
+  description: z.string().nullable().optional(),
+  status: z.enum(commonStatusEnum),
+  createdAt: z.string().nullable().optional(),
+  updatedAt: z.string().nullable().optional(),
 });
 
 export const stylesResponseSchema = z.object({
@@ -96,3 +111,32 @@ export type ProductsResponse = z.infer<typeof productsResponseSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type UpdateProductStatusInput = z.infer<typeof updateProductStatusSchema>;
+
+// Helper entity types
+export type Category = z.infer<typeof categoryResponseSchema>;
+export type Brand = z.infer<typeof brandResponseSchema>;
+export type Material = z.infer<typeof materialResponseSchema>;
+export type Style = z.infer<typeof styleResponseSchema>;
+
+// Page Response schemas for helper entities
+export const categoriesResponseSchema = z.object({
+  contents: z.array(categoryResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
+});
+
+
+export const materialsResponseSchema = z.object({
+  contents: z.array(materialResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
+});
+
+export type CategoriesResponse = z.infer<typeof categoriesResponseSchema>;
+export type BrandsResponse = z.infer<typeof brandsResponseSchema>;
+export type MaterialsResponse = z.infer<typeof materialsResponseSchema>;
+export type StylesResponse = z.infer<typeof stylesResponseSchema>;

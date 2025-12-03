@@ -119,6 +119,11 @@ const sidebarGroups = [
         icon: Award,
       },
       {
+        title: "Materials",
+        url: "/admin/materials",
+        icon: Scroll,
+      },
+      {
         title: "Styles",
         url: "/admin/styles",
         icon: Sparkles,
@@ -127,11 +132,6 @@ const sidebarGroups = [
         title: "Attributes",
         url: "/admin/attributes",
         icon: Sliders,
-      },
-      {
-        title: "Materials",
-        url: "/admin/materials",
-        icon: Scroll,
       },
     ],
   },

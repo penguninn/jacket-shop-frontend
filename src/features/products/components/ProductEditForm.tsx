@@ -23,9 +23,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
 import type { Problem } from "@/shared/api/error";
-import { useUpdateProduct, useBrands, useStyles } from "../hooks";
-import { useCategories } from "@/features/categories/hooks";
-import { useMaterials } from "@/features/materials/hooks";
+import { useUpdateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
     if (err.errors) {
@@ -47,17 +45,17 @@ interface Props {
 export function ProductEditForm({ open, onOpenChange, product }: Props) {
     const { mutate: doUpdateProduct, isPending } = useUpdateProduct();
 
-    const { data: categoriesData } = useCategories({ page: 0, size: 100, status: ["ACTIVE"] });
-    const categories = categoriesData?.contents;
+    // Fetch helper entities for dropdowns
+    const { data: categoriesResponse } = useCategories();
+    const { data: brandsResponse } = useBrands();
+    const { data: materialsResponse } = useMaterials();
+    const { data: stylesResponse } = useStyles();
 
-    const { data: brandsData } = useBrands();
-    const brands = brandsData?.contents;
-
-    const { data: materialsData } = useMaterials({ page: 0, size: 100, status: ["ACTIVE"] });
-    const materials = materialsData?.contents;
-
-    const { data: stylesData } = useStyles();
-    const styles = stylesData?.contents;
+    // Extract contents from paginated responses
+    const categories = categoriesResponse?.contents ?? [];
+    const brands = brandsResponse?.contents ?? [];
+    const materials = materialsResponse?.contents ?? [];
+    const styles = stylesResponse?.contents ?? [];
 
     const {
         register,
@@ -72,7 +70,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
         defaultValues: {
             name: "",
             description: "",
-            status: "DRAFT",
+            status: "ACTIVE",
         },
     });
 
@@ -240,10 +238,8 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="DRAFT">Draft</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                     <SelectItem value="INACTIVE">Inactive</SelectItem>
-                                    <SelectItem value="ARCHIVED">Archived</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.status && (

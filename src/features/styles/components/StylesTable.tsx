@@ -11,39 +11,29 @@ import {
     type SortingState,
     type VisibilityState,
 } from "@tanstack/react-table";
-import { ProductTableToolbar } from "./ProductTableToolbar";
-import { columns } from "./ProductTableColumns";
-import { useProducts, useBulkUpdateProductStatus } from "../hooks";
+import { StyleTableToolbar } from "./StyleTableToolbar";
+import { columns } from "./StyleTableColumns";
+import { useStyles, useBulkUpdateStyleStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
 import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
 
-export function ProductsTable() {
+export function StylesTable() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-    const bulkUpdateStatus = useBulkUpdateProductStatus();
+    const bulkUpdateStatus = useBulkUpdateStyleStatus();
 
-    // Helper function to convert filter values to number arrays
-    const getFilterIds = (filterId: string): number[] | undefined => {
-        const filterValue = columnFilters.find((f) => f.id === filterId)?.value as string[] | undefined;
-        return filterValue?.map((id) => Number(id));
-    };
-
-    const { data, isLoading } = useProducts({
+    const { data, isLoading } = useStyles({
         page: pagination.pageIndex,
         size: pagination.pageSize,
         sortBy: sorting[0]?.id,
         sortDir: sorting[0]?.desc ? "desc" : "asc",
         status: columnFilters.find((f) => f.id === "status")?.value as string[],
         search: columnFilters.find((f) => f.id === "name")?.value as string,
-        categoryIds: getFilterIds("category"),
-        brandIds: getFilterIds("brand"),
-        materialIds: getFilterIds("material"),
-        styleIds: getFilterIds("style"),
     });
 
     const table = useReactTable({
@@ -71,7 +61,7 @@ export function ProductsTable() {
 
     return (
         <div className="space-y-4">
-            <ProductTableToolbar table={table} />
+            <StyleTableToolbar table={table} />
             {selectedRows.length > 0 && (
                 <DataTableBulkActions
                     selectedCount={selectedRows.length}

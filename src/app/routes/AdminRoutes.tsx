@@ -5,18 +5,17 @@ import Products from "@/features/products/pages/ProductsPage";
 import Orders from "@/pages/admin/Orders";
 import Users from "@/features/users/pages/UsersPage";
 import UserDetail from "@/features/users/pages/UserDetailPage";
-import Brands from "@/pages/admin/Brands";
-import Styles from "@/pages/admin/Styles";
+import Brands from "@/features/brands/pages/BrandsPage";
+import Styles from "@/features/styles/pages/StylesPage";
 import Attributes from "@/features/attributes/pages/AttributesPage";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
-
 import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
 import Coupons from "@/pages/admin/Coupons";
+import Materials from "@/features/materials/pages/MaterialsPage";
 import RequireAuth from "./RequireAuth";
 import Categories from "@/features/categories/pages/CategoriesPage";
 import CategoryDetailPage from "@/features/categories/pages/CategoryDetailPage";
-import Materials from "@/features/materials/pages/MaterialsPage";
 import MaterialDetail from "@/features/materials/pages/MaterialDetailPage";
 import {
   ShippingMethodsPage as ShippingMethods,

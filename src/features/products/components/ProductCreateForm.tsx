@@ -24,10 +24,8 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import type { Problem } from "@/shared/api/error";
-import { useCreateProduct, useBrands, useStyles } from "../hooks";
-import { createProductSchema, type CreateProductInput, type ProductStatus } from "../model/schemas";
-import { useCategories } from "@/features/categories/hooks";
-import { useMaterials } from "@/features/materials/hooks";
+import { useCreateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
+import { createProductSchema, type CreateProductInput } from "../model/schemas";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
     if (err.errors) {
@@ -45,18 +43,17 @@ export function ProductCreateForm() {
 
     const { mutate: doCreateProduct, isPending } = useCreateProduct();
 
-    // Fetch data
-    const { data: categoriesData } = useCategories({ page: 0, size: 100, status: ["ACTIVE"] });
-    const categories = categoriesData?.contents;
+    // Fetch helper entities for dropdowns
+    const { data: categoriesResponse } = useCategories();
+    const { data: brandsResponse } = useBrands();
+    const { data: materialsResponse } = useMaterials();
+    const { data: stylesResponse } = useStyles();
 
-    const { data: brandsData } = useBrands();
-    const brands = brandsData?.contents;
-
-    const { data: materialsData } = useMaterials({ page: 0, size: 100, status: ["ACTIVE"] });
-    const materials = materialsData?.contents;
-
-    const { data: stylesData } = useStyles();
-    const styles = stylesData?.contents;
+    // Extract contents from paginated responses
+    const categories = categoriesResponse?.contents ?? [];
+    const brands = brandsResponse?.contents ?? [];
+    const materials = materialsResponse?.contents ?? [];
+    const styles = stylesResponse?.contents ?? [];
 
     const {
         register,
@@ -70,7 +67,7 @@ export function ProductCreateForm() {
         defaultValues: {
             name: "",
             description: "",
-            status: "DRAFT",
+            status: "ACTIVE",
         },
     });
 
@@ -224,17 +221,15 @@ export function ProductCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="DRAFT"
-                                onValueChange={(value) => setValue("status", value as ProductStatus)}
+                                defaultValue="ACTIVE"
+                                onValueChange={(value) => setValue("status", value as any)}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="DRAFT">Draft</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                     <SelectItem value="INACTIVE">Inactive</SelectItem>
-                                    <SelectItem value="ARCHIVED">Archived</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.status && (
