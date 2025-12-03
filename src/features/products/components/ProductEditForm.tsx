@@ -21,15 +21,11 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateProductSchema, type UpdateProductInput, type Product } from "../model/schemas";
+import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
 import type { Problem } from "@/shared/api/error";
-import { useUpdateProduct } from "../hooks";
-
-// TODO: Replace with actual hooks
-const useCategories = () => ({ data: [{ id: 1, name: "Jackets" }], isLoading: false });
-const useBrands = () => ({ data: [{ id: 1, name: "Nike" }], isLoading: false });
-const useMaterials = () => ({ data: [{ id: 1, name: "Leather" }], isLoading: false });
-const useStyles = () => ({ data: [{ id: 1, name: "Bomber" }], isLoading: false });
+import { useUpdateProduct, useBrands, useStyles } from "../hooks";
+import { useCategories } from "@/features/categories/hooks";
+import { useMaterials } from "@/features/materials/hooks";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
     if (err.errors) {
@@ -51,10 +47,17 @@ interface Props {
 export function ProductEditForm({ open, onOpenChange, product }: Props) {
     const { mutate: doUpdateProduct, isPending } = useUpdateProduct();
 
-    const { data: categories } = useCategories();
-    const { data: brands } = useBrands();
-    const { data: materials } = useMaterials();
-    const { data: styles } = useStyles();
+    const { data: categoriesData } = useCategories({ page: 0, size: 100, status: ["ACTIVE"] });
+    const categories = categoriesData?.contents;
+
+    const { data: brandsData } = useBrands();
+    const brands = brandsData?.contents;
+
+    const { data: materialsData } = useMaterials({ page: 0, size: 100, status: ["ACTIVE"] });
+    const materials = materialsData?.contents;
+
+    const { data: stylesData } = useStyles();
+    const styles = stylesData?.contents;
 
     const {
         register,
@@ -231,7 +234,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                                onValueChange={(value) => setValue("status", value as ProductStatus, { shouldDirty: true })}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />

@@ -14,6 +14,14 @@ export const brandResponseSchema = z.object({
   name: z.string(),
 });
 
+export const brandsResponseSchema = z.object({
+  contents: z.array(brandResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
+});
+
 export const materialResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -22,6 +30,14 @@ export const materialResponseSchema = z.object({
 export const styleResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
+});
+
+export const stylesResponseSchema = z.object({
+  contents: z.array(styleResponseSchema),
+  page: z.number(),
+  size: z.number(),
+  totalPages: z.number(),
+  totalElements: z.number(),
 });
 
 export const productSchema = z.object({

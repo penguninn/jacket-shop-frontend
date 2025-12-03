@@ -1,7 +1,15 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
 
 import z from "zod";
-import { productSchema, productsResponseSchema, type CreateProductInput, type UpdateProductInput, type UpdateProductStatusInput } from "../model/schemas";
+import {
+    productSchema,
+    productsResponseSchema,
+    brandsResponseSchema,
+    stylesResponseSchema,
+    type CreateProductInput,
+    type UpdateProductInput,
+    type UpdateProductStatusInput
+} from "../model/schemas";
 
 type SortDirection = "asc" | "desc";
 const DEFAULT_SORT_BY = "createdAt";
@@ -79,4 +87,28 @@ export async function bulkUpdateProductStatus(ids: number[], status: string) {
 
 export async function bulkDeleteProducts(ids: number[]) {
     await httpPrivateTyped.post("/products/bulk/delete", { ids }, z.null());
+}
+
+export async function getBrands() {
+    // Fetching all brands for dropdown, using a large size
+    const queryParams = new URLSearchParams({
+        page: "0",
+        size: "100",
+        sortDir: "ASC",
+        sortBy: "name"
+    });
+    const res = await httpPrivateTyped.get(`/brands?${queryParams.toString()}`, brandsResponseSchema);
+    return res;
+}
+
+export async function getStyles() {
+    // Fetching all styles for dropdown, using a large size
+    const queryParams = new URLSearchParams({
+        page: "0",
+        size: "100",
+        sortDir: "ASC",
+        sortBy: "name"
+    });
+    const res = await httpPrivateTyped.get(`/styles?${queryParams.toString()}`, stylesResponseSchema);
+    return res;
 }

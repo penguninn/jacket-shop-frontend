@@ -7,6 +7,8 @@ import {
     getProducts,
     updateProduct,
     updateProductStatus,
+    getBrands,
+    getStyles,
     type GetProductsParams,
 } from "../api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -92,5 +94,21 @@ export function useProductDetail(id: number) {
         queryKey: ["product", id],
         queryFn: () => getProductById(id),
         enabled: !!id,
+    });
+}
+
+export function useBrands() {
+    return useQuery({
+        queryKey: ["brands"],
+        queryFn: getBrands,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}
+
+export function useStyles() {
+    return useQuery({
+        queryKey: ["styles"],
+        queryFn: getStyles,
+        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 }

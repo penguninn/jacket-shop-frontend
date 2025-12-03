@@ -5,16 +5,23 @@ import Products from "@/features/products/pages/ProductsPage";
 import Orders from "@/pages/admin/Orders";
 import Users from "@/features/users/pages/UsersPage";
 import UserDetail from "@/features/users/pages/UserDetailPage";
-import Categories from "@/pages/admin/Categories";
 import Brands from "@/pages/admin/Brands";
 import Styles from "@/pages/admin/Styles";
 import Attributes from "@/features/attributes/pages/AttributesPage";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
-import ShippingMethods from "@/pages/admin/ShippingMethods";
-import PaymentMethods from "@/pages/admin/PaymentMethods";
+
+import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
 import Coupons from "@/pages/admin/Coupons";
 import RequireAuth from "./RequireAuth";
+import Categories from "@/features/categories/pages/CategoriesPage";
+import CategoryDetailPage from "@/features/categories/pages/CategoryDetailPage";
+import Materials from "@/features/materials/pages/MaterialsPage";
+import MaterialDetail from "@/features/materials/pages/MaterialDetailPage";
+import {
+  ShippingMethodsPage as ShippingMethods,
+  ShippingMethodDetailPage as ShippingMethodDetail,
+} from "@/features/shipping-methods";
 
 export default function AdminRoutes() {
   return (
@@ -30,6 +37,7 @@ export default function AdminRoutes() {
         <Route path="products" element={<Products />} />
         <Route path="products/:id" element={<ProductVariant />} />
         <Route path="categories" element={<Categories />} />
+        <Route path="categories/:id" element={<CategoryDetailPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:id" element={<OrderDetail />} />
 
@@ -54,6 +62,22 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN"]}>
               <Attributes />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="materials"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <Materials />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="materials/:id"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <MaterialDetail />
             </RequireAuth>
           }
         />
@@ -86,6 +110,14 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN"]}>
               <ShippingMethods />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="shipping-methods/:id"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <ShippingMethodDetail />
             </RequireAuth>
           }
         />

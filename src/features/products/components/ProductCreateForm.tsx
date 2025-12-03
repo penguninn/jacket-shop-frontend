@@ -24,14 +24,10 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import type { Problem } from "@/shared/api/error";
-import { useCreateProduct } from "../hooks";
-import { createProductSchema, type CreateProductInput } from "../model/schemas";
-
-// TODO: Replace with actual hooks when available
-const useCategories = () => ({ data: [{ id: 1, name: "Jackets" }], isLoading: false });
-const useBrands = () => ({ data: [{ id: 1, name: "Nike" }], isLoading: false });
-const useMaterials = () => ({ data: [{ id: 1, name: "Leather" }], isLoading: false });
-const useStyles = () => ({ data: [{ id: 1, name: "Bomber" }], isLoading: false });
+import { useCreateProduct, useBrands, useStyles } from "../hooks";
+import { createProductSchema, type CreateProductInput, type ProductStatus } from "../model/schemas";
+import { useCategories } from "@/features/categories/hooks";
+import { useMaterials } from "@/features/materials/hooks";
 
 function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
     if (err.errors) {
@@ -49,11 +45,18 @@ export function ProductCreateForm() {
 
     const { mutate: doCreateProduct, isPending } = useCreateProduct();
 
-    // Mock data hooks - replace with real ones later
-    const { data: categories } = useCategories();
-    const { data: brands } = useBrands();
-    const { data: materials } = useMaterials();
-    const { data: styles } = useStyles();
+    // Fetch data
+    const { data: categoriesData } = useCategories({ page: 0, size: 100, status: ["ACTIVE"] });
+    const categories = categoriesData?.contents;
+
+    const { data: brandsData } = useBrands();
+    const brands = brandsData?.contents;
+
+    const { data: materialsData } = useMaterials({ page: 0, size: 100, status: ["ACTIVE"] });
+    const materials = materialsData?.contents;
+
+    const { data: stylesData } = useStyles();
+    const styles = stylesData?.contents;
 
     const {
         register,
@@ -222,7 +225,7 @@ export function ProductCreateForm() {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 defaultValue="DRAFT"
-                                onValueChange={(value) => setValue("status", value as any)}
+                                onValueChange={(value) => setValue("status", value as ProductStatus)}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />

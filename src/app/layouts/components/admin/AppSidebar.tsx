@@ -17,6 +17,7 @@ import {
   User,
   Wallet,
   Warehouse,
+  Scroll,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -126,6 +127,11 @@ const sidebarGroups = [
         title: "Attributes",
         url: "/admin/attributes",
         icon: Sliders,
+      },
+      {
+        title: "Materials",
+        url: "/admin/materials",
+        icon: Scroll,
       },
     ],
   },
