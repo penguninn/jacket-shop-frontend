@@ -129,9 +129,11 @@ export default function SignUpForm() {
                   autoComplete="new-password"
                   {...register("password")}
                 />
-                <button
+                <Button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPwd((s) => !s)}
                   aria-label={showPwd ? "Hide password" : "Show password"}
                 >
@@ -140,7 +142,7 @@ export default function SignUpForm() {
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                </button>
+                </Button>
               </div>
               {errors.password && (
                 <p className="text-xs text-red-500">
@@ -155,9 +157,11 @@ export default function SignUpForm() {
 
             <div className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/signin" className="underline">
-                Sign in
-              </Link>
+              <Button variant="link" asChild className="p-0 h-auto font-normal underline">
+                <Link to="/signin">
+                  Sign in
+                </Link>
+              </Button>
             </div>
           </form>
         </CardContent>

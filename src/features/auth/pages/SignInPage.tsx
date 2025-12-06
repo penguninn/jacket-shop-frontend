@@ -91,9 +91,11 @@ export default function SignInForm() {
                   autoComplete="current-password"
                   {...register("password")}
                 />
-                <button
+                <Button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPwd((s) => !s)}
                   aria-label={showPwd ? "Hide password" : "Show password"}
                 >
@@ -102,7 +104,7 @@ export default function SignInForm() {
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                </button>
+                </Button>
               </div>
               {errors.password && (
                 <p className="text-xs text-red-500">
@@ -113,9 +115,11 @@ export default function SignInForm() {
 
             {/* Remember + Forgot */}
             <div className="flex items-center justify-between">
-              <Link to="/forgot-password" className="text-sm underline">
-                Forgot password?
-              </Link>
+              <Button variant="link" asChild className="p-0 h-auto font-normal underline">
+                <Link to="/forgot-password">
+                  Forgot password?
+                </Link>
+              </Button>
             </div>
 
             <Button type="submit" className="w-full" disabled={busy}>
@@ -124,9 +128,11 @@ export default function SignInForm() {
 
             <div className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link to="/signup" className="underline">
-                Create one
-              </Link>
+              <Button variant="link" asChild className="p-0 h-auto font-normal underline">
+                <Link to="/signup">
+                  Create one
+                </Link>
+              </Button>
             </div>
           </form>
         </CardContent>

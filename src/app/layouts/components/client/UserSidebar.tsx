@@ -2,14 +2,13 @@ import { NavLink } from "react-router-dom";
 import {
   Bell,
   User,
-  CreditCard,
   MapPin,
   Lock,
   ShoppingBag,
   Ticket,
 } from "lucide-react";
 
-export function UserSidebar() {
+export function UserSidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="h-full bg-card">
       <div className="space-y-1 p-4 text-sm">
@@ -18,6 +17,7 @@ export function UserSidebar() {
           to="/user/account/notifications"
           label="Notifications"
           icon={<Bell className="h-4 w-4" />}
+          onClick={onNavigate}
         />
 
         <Section title="My Account" />
@@ -25,32 +25,32 @@ export function UserSidebar() {
           to="/user/account/profile"
           label="Profile"
           icon={<User className="h-4 w-4" />}
-        />
-        <SidebarItem
-          to="/user/account/payment"
-          label="Banks & Cards"
-          icon={<CreditCard className="h-4 w-4" />}
+          onClick={onNavigate}
         />
         <SidebarItem
           to="/user/account/address"
           label="Addresses"
           icon={<MapPin className="h-4 w-4" />}
+          onClick={onNavigate}
         />
         <SidebarItem
           to="/user/account/change-password"
           label="Change Password"
           icon={<Lock className="h-4 w-4" />}
+          onClick={onNavigate}
         />
         <Section title="Purchases" />
         <SidebarItem
           to="/user/purchase"
           label="My Purchase"
           icon={<ShoppingBag className="h-4 w-4" />}
+          onClick={onNavigate}
         />
         <SidebarItem
           to="/user/coupons"
           label="My Vouchers"
           icon={<Ticket className="h-4 w-4" />}
+          onClick={onNavigate}
         />
       </div>
     </div>
@@ -69,14 +69,17 @@ function SidebarItem({
   to,
   label,
   icon,
+  onClick,
 }: {
   to: string;
   label: string;
   icon: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) =>
         [
           "flex items-center gap-2 rounded-md px-2 py-2",

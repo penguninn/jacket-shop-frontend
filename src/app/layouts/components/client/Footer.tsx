@@ -63,36 +63,40 @@ export default function Footer() {
 
               {/* Socials */}
               <div className="mt-5 flex items-center gap-3">
-                <a
-                  href="#"
-                  aria-label="Twitter"
-                  className="rounded-full border border-gray-200 p-2 hover:bg-gray-50"
-                >
-                  <Twitter className="h-4 w-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="Facebook"
-                  className="rounded-full border border-gray-200 p-2 hover:bg-gray-50"
-                >
-                  <Facebook className="h-4 w-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="Instagram"
-                  className="rounded-full border border-gray-200 p-2 hover:bg-gray-50"
-                >
-                  <Instagram className="h-4 w-4" />
-                </a>
-                <a
-                  href="https://github.com/penguninn"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="GitHub"
-                  className="rounded-full border border-gray-200 p-2 hover:bg-gray-50"
-                >
-                  <Github className="h-4 w-4" />
-                </a>
+                <Button variant="ghost" size="icon" asChild className="rounded-full border border-zinc-200 hover:bg-zinc-50">
+                  <a
+                    href="#"
+                    aria-label="Twitter"
+                  >
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" asChild className="rounded-full border border-zinc-200 hover:bg-zinc-50">
+                  <a
+                    href="#"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" asChild className="rounded-full border border-zinc-200 hover:bg-zinc-50">
+                  <a
+                    href="#"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" asChild className="rounded-full border border-zinc-200 hover:bg-zinc-50">
+                  <a
+                    href="https://github.com/penguninn"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="GitHub"
+                  >
+                    <Github className="h-4 w-4" />
+                  </a>
+                </Button>
               </div>
             </div>
 
@@ -136,11 +140,11 @@ export default function Footer() {
           </div>
 
           {/* Divider */}
-          <div className="my-8 h-px w-full bg-gray-200" />
+          <div className="my-8 h-px w-full bg-zinc-200" />
 
           {/* Bottom row */}
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-zinc-600">
               ThreadCity.co © 2025, All Rights Reserved
             </p>
 
@@ -169,7 +173,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h3 className="text-xs tracking-widest text-gray-800 font-semibold uppercase">
+      <h3 className="text-xs tracking-widest text-zinc-800 font-semibold uppercase">
         {title}
       </h3>
       <ul className="mt-4 space-y-3">
@@ -177,7 +181,7 @@ function FooterColumn({
           <li key={l.label}>
             <Link
               to={l.to}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-zinc-600 hover:text-zinc-900"
             >
               {l.label}
             </Link>
@@ -190,11 +194,11 @@ function FooterColumn({
 
 function PaymentBadge({ src, alt }: { src: string; alt: string }) {
   return (
-    <span className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+    <span className="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-sm">
       {src ? (
         <img src={src} alt={alt} className="h-5 w-auto" />
       ) : (
-        <span className="text-xs font-medium text-gray-700">{alt}</span>
+        <span className="text-xs font-medium text-zinc-700">{alt}</span>
       )}
     </span>
   );

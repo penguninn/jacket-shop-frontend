@@ -49,111 +49,101 @@ export default function Profile() {
 
   if (isLoadingProfile) {
     return (
-      <main className="col-span-12 md:col-span-10 md:row-start-2">
-        <div className="flex h-full items-center justify-center">
-          <p>Loading profile...</p>
-        </div>
-      </main>
+      <div className="flex h-full items-center justify-center p-8">
+        <p>Loading profile...</p>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <main className="col-span-12 md:col-span-10 md:row-start-2">
-        <div className="flex h-full items-center justify-center">
-          <p>Failed to load profile</p>
-        </div>
-      </main>
+      <div className="flex h-full items-center justify-center p-8">
+        <p>Failed to load profile</p>
+      </div>
     );
   }
 
   return (
-    <main className="col-span-12 md:col-span-10 md:row-start-2">
-      <div className="flex h-full flex-col">
-        {/* Header */}
-        <div className="col-span-12 md:col-span-9 md:row-start-1">
-          <div className="h-full border-b bg-card">
-            <div className="px-4 py-5">
-              <h2 className="text-lg font-semibold">My Profile</h2>
-              <p className="text-sm text-muted-foreground">
-                Manage and protect your account
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col h-full bg-background rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="border-b px-6 py-4">
+        <h2 className="text-lg font-medium">My Profile</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage and protect your account
+        </p>
+      </div>
 
-        {/* Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Content */}
+      <div className="flex-1 p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl">
           <FormError errors={errors} />
-          <div className="flex-1 grid grid-cols-12 gap-8 p-8">
-            <div className="col-span-12 md:col-span-6">
-              <div className="grid auto-rows-min gap-4">
-                <Row>
-                  <Label className="col-span-3 text-right text-gray-500">
-                    Username
-                  </Label>
-                  <div className="col-span-9 text-sm">{profile.username}</div>
-                </Row>
 
-                <Row>
-                  <Label
-                    htmlFor="fullName"
-                    className="col-span-3 text-right text-gray-500"
-                  >
-                    Name
-                  </Label>
-                  <div className="col-span-9 space-y-1">
-                    <Input
-                      id="fullName"
-                      placeholder="Your name"
-                      {...register("fullName")}
-                    />
-                    {errors.fullName && (
-                      <p className="text-xs text-red-500">
-                        {errors.fullName.message}
-                      </p>
-                    )}
-                  </div>
-                </Row>
+          <div className="space-y-6 mt-6">
+            <Row>
+              <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
+                Username
+              </Label>
+              <div className="flex-1 text-sm font-medium">{profile.username}</div>
+            </Row>
 
-                <Row>
-                  <Label className="col-span-3 text-right text-gray-500">
-                    Phone Number
-                  </Label>
-                  <div className="col-span-9 flex items-center gap-4">
-                    <div className="text-sm">{profile.phone || "Not set"}</div>
-                    <Link to="#" className="text-sm text-blue-500 underline">
-                      Change
-                    </Link>
-                  </div>
-                </Row>
+            <Row>
+              <Label
+                htmlFor="fullName"
+                className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground pt-2"
+              >
+                Name
+              </Label>
+              <div className="flex-1 space-y-2">
+                <Input
+                  id="fullName"
+                  placeholder="Your name"
+                  {...register("fullName")}
+                  className="max-w-md"
+                />
+                {errors.fullName && (
+                  <p className="text-xs text-red-500">
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
+            </Row>
 
-              {/* Save Button */}
-              <div className="mt-8">
+            <Row>
+              <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
+                Phone Number
+              </Label>
+              <div className="flex-1 flex items-center gap-4">
+                <div className="text-sm font-medium">{profile.phone || "Not set"}</div>
+                <Button variant="link" asChild className="p-0 h-auto text-sm text-primary underline-offset-4 hover:underline">
+                  <Link to="#">Change</Link>
+                </Button>
+              </div>
+            </Row>
+
+            <Row>
+              <div className="w-full md:w-1/4" /> {/* Spacer */}
+              <div className="flex-1">
                 <Button type="submit" disabled={busy || !isDirty}>
                   Save
                 </Button>
               </div>
-            </div>
+            </Row>
           </div>
         </form>
-      </div>
-    </main>
+      </div >
+    </div >
   );
 }
 
 function Row({
   children,
-  alignTop,
+  className,
 }: {
   children: React.ReactNode;
-  alignTop?: boolean;
+  className?: string;
 }) {
   return (
-    <div
-      className={`grid min-h-12 grid-cols-12 gap-3 ${alignTop ? "items-start" : "items-center"}`}
-    >
+    <div className={`flex flex-col md:flex-row md:items-start gap-2 md:gap-0 ${className}`}>
       {children}
     </div>
   );

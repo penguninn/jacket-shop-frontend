@@ -23,7 +23,7 @@ export function StatisticsTab({ userId }: Props) {
       title: "Orders Handled",
       value: stats.ordersCount,
       icon: Package,
-      color: "text-blue-600",
+      color: "text-primary",
     },
     {
       title: "Revenue Generated",

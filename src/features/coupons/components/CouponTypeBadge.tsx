@@ -3,19 +3,36 @@ import { cn } from "@/shared/lib/utils";
 
 interface Props {
     type: string;
+    className?: string;
 }
 
-export function CouponTypeBadge({ type }: Props) {
+const TYPE_CONFIG: Record<string, { label: string; className: string }> = {
+    PERCENTAGE: {
+        label: "Percentage",
+        className: "border-blue-500 text-blue-500",
+    },
+    FIXED_AMOUNT: {
+        label: "Fixed Amount",
+        className: "border-green-500 text-green-500",
+    },
+};
+
+export function CouponTypeBadge({ type, className }: Props) {
+    const config = TYPE_CONFIG[type] || {
+        label: type,
+        className: "border-gray-500 text-gray-500",
+    };
+
     return (
         <Badge
-            variant="secondary"
+            variant="outline"
             className={cn(
-                "text-xs",
-                type === "PERCENT" && "bg-blue-100 text-blue-800",
-                type === "AMOUNT" && "bg-purple-100 text-purple-800",
+                "font-normal rounded-sm px-2 py-0.5",
+                config.className,
+                className
             )}
         >
-            {type}
+            {config.label}
         </Badge>
     );
 }

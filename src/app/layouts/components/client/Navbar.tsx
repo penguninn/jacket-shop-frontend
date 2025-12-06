@@ -32,25 +32,29 @@ export default function Navbar() {
       <div className="flex items-center gap-6">
         <SearchBar />
 
-        <Link to="/" aria-label="Home">
-          <Home className="h-5 w-5 text-gray-600" />
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link to="/" aria-label="Home">
+            <Home className="h-5 w-5 text-zinc-600" />
+          </Link>
+        </Button>
 
-        <button aria-label="Notifications">
-          <Bell className="h-5 w-5 text-gray-600" />
-        </button>
+        <Button variant="ghost" size="icon" aria-label="Notifications">
+          <Bell className="h-5 w-5 text-zinc-600" />
+        </Button>
 
-        <Link to="/cart" aria-label="Cart">
-          <ShoppingCart className="h-5 w-5 text-gray-600" />
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link to="/cart" aria-label="Cart">
+            <ShoppingCart className="h-5 w-5 text-zinc-600" />
+          </Link>
+        </Button>
 
         {/* Auth area */}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="cursor-pointer" aria-label="User menu">
-                <User className="h-5 w-5 text-gray-600" />
-              </button>
+              <Button variant="ghost" size="icon" className="rounded-full" aria-label="User menu">
+                <User className="h-5 w-5 text-zinc-600" />
+              </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-56">
@@ -82,7 +86,7 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button asChild variant="ghost" className="px-2 text-gray-600">
+          <Button asChild variant="ghost" className="px-2 text-zinc-600">
             <Link to="/signin">Sign In</Link>
           </Button>
         )}

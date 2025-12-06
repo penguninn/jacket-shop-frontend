@@ -3,20 +3,27 @@ import { cn } from "@/shared/lib/utils";
 
 interface Props {
   role: string;
+  className?: string;
 }
 
-export function UserRoleBadge({ role }: Props) {
+const ROLE_CONFIG: Record<string, { label: string; variant: "active" | "secondary" | "default" | "outline" | "destructive" }> = {
+  ADMIN: { label: "Admin", variant: "secondary" },
+  STAFF: { label: "Staff", variant: "secondary" }, // Previously MANAGER
+  CUSTOMER: { label: "Customer", variant: "secondary" }, // Previously USER
+};
+
+export function UserRoleBadge({ role, className }: Props) {
+  const config = ROLE_CONFIG[role] || {
+    label: role,
+    variant: "outline",
+  };
+
   return (
     <Badge
-      variant="secondary"
-      className={cn(
-        "text-xs",
-        role === "ADMIN" && "bg-purple-100 text-purple-800",
-        role === "CUSTOMER" && "bg-blue-100 text-blue-800",
-        role === "STAFF" && "bg-orange-100 text-orange-800",
-      )}
+      variant={config.variant}
+      className={cn("font-normal rounded-sm px-2 py-0.5", className)}
     >
-      {role}
+      {config.label}
     </Badge>
   );
 }

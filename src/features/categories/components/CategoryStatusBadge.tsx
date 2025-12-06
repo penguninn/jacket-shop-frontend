@@ -1,22 +1,37 @@
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
-import { type CategoryStatus } from "../model/schemas";
 
 interface Props {
-  status: CategoryStatus;
+  status: number | string;
+  className?: string;
 }
 
-export function CategoryStatusBadge({ status }: Props) {
+const STATUS_CONFIG: Record<string, { label: string; variant: "active" | "secondary" | "default" | "outline" | "destructive" }> = {
+  1: { label: "Active", variant: "active" },
+  0: { label: "Inactive", variant: "secondary" },
+  active: { label: "Active", variant: "active" },
+  inactive: { label: "Inactive", variant: "secondary" },
+};
+
+export function CategoryStatusBadge({ status, className }: Props) {
+  // Normalize key: if number, use it; if string, lowercase it
+  const key = typeof status === 'number' ? status : status.toString().toLowerCase();
+
+  // Direct match or fallback for string keys if needed
+  const config = STATUS_CONFIG[key] || STATUS_CONFIG[status.toString().toLowerCase()] || {
+    label: "Unknown",
+    variant: "secondary",
+  };
+
   return (
     <Badge
-      variant="secondary"
+      variant={config.variant}
       className={cn(
-        "text-xs",
-        status === "ACTIVE" && "bg-green-100 text-green-800",
-        status === "INACTIVE" && "bg-slate-100 text-slate-800",
+        "font-normal rounded-sm px-2 py-0.5",
+        className
       )}
     >
-      {status}
+      {config.label}
     </Badge>
   );
 }
