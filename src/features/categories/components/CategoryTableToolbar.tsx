@@ -1,7 +1,7 @@
 import { type Table } from "@tanstack/react-table";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { X, CheckCircle2, XCircle } from "lucide-react";
+import { X } from "lucide-react";
 import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
 
@@ -9,12 +9,10 @@ const statusOptions = [
   {
     value: "ACTIVE",
     label: "Active",
-    icon: CheckCircle2,
   },
   {
     value: "INACTIVE",
     label: "Inactive",
-    icon: XCircle,
   },
 ];
 

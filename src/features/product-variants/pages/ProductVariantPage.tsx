@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useProductDetail } from "@/features/products/hooks";
 import { Button } from "@/shared/ui/button";
-import { ProductStatusBadge } from "@/features/products/components/ProductStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -49,7 +49,7 @@ export default function ProductVariantPage() {
                             {product.name}
                         </h1>
                         <div className="mt-2 flex items-center gap-3">
-                            <ProductStatusBadge status={product.status} />
+                            <StatusBadge status={product.status} />
                             <span className="text-muted-foreground">
                                 {product.category?.name} • {product.brand?.name}
                             </span>

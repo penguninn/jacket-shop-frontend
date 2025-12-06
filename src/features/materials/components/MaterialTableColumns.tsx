@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { MaterialStatusBadge } from "./MaterialStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { MaterialTableRowActions } from "./MaterialTableRowActions";
 import { formatDistanceToNow } from "date-fns";
 import { type Material } from "@/features/materials/model/schemas";
@@ -60,7 +60,7 @@ export const columns: ColumnDef<Material>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <MaterialStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },

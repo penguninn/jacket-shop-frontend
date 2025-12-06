@@ -22,19 +22,9 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
-import type { Problem } from "@/shared/api/error";
 import { useUpdateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
-
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-    if (err.errors) {
-        for (const [field, msg] of Object.entries(err.errors)) {
-            setError(field as any, { message: String(msg) });
-        }
-        return;
-    }
-    const msg = err.message || err.detail || "Failed to update product";
-    setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 interface Props {
     open: boolean;
@@ -115,6 +105,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
 
                 <ScrollArea className="max-h-[70vh]">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                        <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Product Name *</Label>

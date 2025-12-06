@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { PaymentMethodStatusBadge } from "./PaymentMethodStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { PaymentMethodTableRowActions } from "./PaymentMethodTableRowActions";
 import { formatDistanceToNow } from "date-fns";
 import type { PaymentMethod } from "@/features/payment-methods/model/schemas";
@@ -60,7 +60,7 @@ export const columns: ColumnDef<PaymentMethod>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <PaymentMethodStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },

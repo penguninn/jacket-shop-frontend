@@ -27,19 +27,9 @@ import {
   type UpdateColorInput,
   type Color,
 } from "../../model/schemas";
-import type { Problem } from "@/shared/api/error";
 import { useUpdateColor } from "../../hooks";
-
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Failed to update color";
-  setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 interface Props {
   color: Color;
@@ -105,6 +95,7 @@ export function ColorEditForm({ color, children }: Props) {
 
         <ScrollArea className="max-h-[60vh]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+            <FormError errors={errors} />
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>

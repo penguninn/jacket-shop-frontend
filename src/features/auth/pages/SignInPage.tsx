@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import type { Problem } from "@/shared/api/error";
+
 import { useSignInMutation } from "../hooks/use-signin";
 
 import { Input } from "@/shared/ui/input";
@@ -13,16 +13,8 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { signInSchema } from "../model/schemas";
 import type { SignInInput } from "../model/types";
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Login failed";
-  setError("password", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export default function SignInForm() {
   const [showPwd, setShowPwd] = useState(false);
@@ -66,6 +58,7 @@ export default function SignInForm() {
             )}
             className="space-y-5"
           >
+            <FormError errors={errors} />
             {/* Username */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>

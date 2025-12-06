@@ -17,18 +17,10 @@ import { Label } from "@/shared/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { useCreateCategory } from "../hooks";
 import { createCategorySchema, type CreateCategoryInput, type CategoryStatus } from "../model/schemas";
-import type { Problem } from "@/shared/api/error";
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Failed to create category";
-  setError("name", { message: msg });
-}
+
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export function CategoryCreateForm() {
   const [open, setOpen] = useState(false);
@@ -72,6 +64,7 @@ export function CategoryCreateForm() {
           <DialogDescription>Fill in the category details.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <FormError errors={errors} />
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input id="name" placeholder="Category name" {...register("name")} autoFocus />

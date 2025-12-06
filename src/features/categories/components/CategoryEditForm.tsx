@@ -8,23 +8,15 @@ import { Dialog, DialogContent, DialogTrigger } from "@/shared/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Label } from "@/shared/ui/label";
 import { Input } from "@/shared/ui/input";
-import type { Problem } from "@/shared/api/error";
+
 
 interface Props {
   category: Category;
   children: React.ReactNode;
 }
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Failed to update category";
-  setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export function CategoryEditForm({ category, children }: Props) {
   const [open, setOpen] = useState(false);
@@ -58,6 +50,7 @@ export function CategoryEditForm({ category, children }: Props) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <FormError errors={errors} />
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input id="name" {...register("name")} />

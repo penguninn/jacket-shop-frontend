@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { StyleStatusBadge } from "./StyleStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { StyleTableRowActions } from "./StyleTableRowActions";
 import { formatDistanceToNow } from "date-fns";
 import type { Style } from "../model/schemas";
@@ -64,7 +64,7 @@ export const columns: ColumnDef<Style>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <StyleStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
-import type { Problem } from "@/shared/api/error";
+
 
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
@@ -13,17 +13,8 @@ import { useSignUpMutation } from "../hooks/use-signup";
 import { signUpSchema } from "../model/schemas";
 import type { SignUpInput } from "../model/types";
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Register failed";
-  setError("password", { message: msg });
-}
-
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 export default function SignUpForm() {
   const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
@@ -58,21 +49,14 @@ export default function SignUpForm() {
         <CardContent>
           <form
             onSubmit={handleSubmit((v) =>
-              doSignUp(
-                {
-                  username: v.username,
-                  fullName: v.fullName,
-                  phoneNumber: v.phoneNumber,
-                  password: v.password,
-                },
-                {
-                  onSuccess: () => navigate("/signin", { replace: true }),
-                  onError: (e: any) => mapProblemToForm(e, setError),
-                },
-              ),
+              doSignUp(v, {
+                onSuccess: () => navigate("/login"),
+                onError: (e: any) => mapProblemToForm(e, setError),
+              }),
             )}
-            className="space-y-5"
+            className="space-y-4"
           >
+            <FormError errors={errors} />
             {/* Username */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>

@@ -4,5 +4,5 @@ export * from "./model";
 export * from "./components/StylesTable";
 export * from "./components/StyleCreateForm";
 export * from "./components/StyleEditForm";
-export * from "./components/StyleStatusBadge";
+
 export * from "./pages/StylesPage";

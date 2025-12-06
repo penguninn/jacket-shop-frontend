@@ -4,5 +4,5 @@ export * from "./model/schemas";
 export * from "./components/ProductsTable";
 export * from "./components/ProductCreateForm";
 export * from "./components/ProductEditForm";
-export * from "./components/ProductStatusBadge";
+
 export * from "./pages/ProductsPage";

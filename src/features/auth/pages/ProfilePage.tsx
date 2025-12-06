@@ -8,18 +8,10 @@ import { Label } from "@/shared/ui/label";
 import { updateProfileSchema } from "../model/schemas";
 import type { UpdateProfileInput } from "../model/types";
 import { useMe, useUpdateProfile } from "../hooks";
-import type { Problem } from "@/shared/api/error";
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Update failed";
-  setError("fullName", { message: msg });
-}
+
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export default function Profile() {
   const { data: profile, isLoading: isLoadingProfile } = useMe();
@@ -44,10 +36,10 @@ export default function Profile() {
 
   const busy = isSubmitting || isPending;
 
-  const onSubmit = (values: UpdateProfileInput) => {
-    doUpdateProfile(values, {
+  const onSubmit = (data: UpdateProfileInput) => {
+    doUpdateProfile(data, {
       onSuccess: () => {
-        reset(values); // Reset dirty state
+        reset();
       },
       onError: (e: any) => {
         mapProblemToForm(e, setError);
@@ -91,17 +83,23 @@ export default function Profile() {
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <FormError errors={errors} />
           <div className="flex-1 grid grid-cols-12 gap-8 p-8">
             <div className="col-span-12 md:col-span-6">
               <div className="grid auto-rows-min gap-4">
                 <Row>
-                  <Label className="col-span-3 text-right text-gray-500">Username</Label>
+                  <Label className="col-span-3 text-right text-gray-500">
+                    Username
+                  </Label>
                   <div className="col-span-9 text-sm">{profile.username}</div>
                 </Row>
 
                 <Row>
-                  <Label htmlFor="fullName" className="col-span-3 text-right text-gray-500">
+                  <Label
+                    htmlFor="fullName"
+                    className="col-span-3 text-right text-gray-500"
+                  >
                     Name
                   </Label>
                   <div className="col-span-9 space-y-1">
@@ -119,13 +117,12 @@ export default function Profile() {
                 </Row>
 
                 <Row>
-                  <Label className="col-span-3 text-right text-gray-500">Phone Number</Label>
+                  <Label className="col-span-3 text-right text-gray-500">
+                    Phone Number
+                  </Label>
                   <div className="col-span-9 flex items-center gap-4">
                     <div className="text-sm">{profile.phone || "Not set"}</div>
-                    <Link
-                      to="#"
-                      className="text-sm text-blue-500 underline"
-                    >
+                    <Link to="#" className="text-sm text-blue-500 underline">
                       Change
                     </Link>
                   </div>

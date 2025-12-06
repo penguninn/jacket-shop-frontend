@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
 
 import { ProductTableRowActions } from "./ProductTableRowActions";
-import { ProductStatusBadge } from "./ProductStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { formatDistanceToNow } from "date-fns";
 import type { Product } from "@/features/products/model/schemas";
 
@@ -105,7 +105,7 @@ export const columns: ColumnDef<Product>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <ProductStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },
