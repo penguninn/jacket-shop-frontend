@@ -1,4 +1,4 @@
-import { Badge } from "@/shared/ui/badge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { Checkbox } from "@/shared/ui/checkbox";
 import type { Size } from "../../model/schemas";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -45,14 +45,7 @@ export const columns: ColumnDef<Size>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: (info) => {
-      const status = info.getValue<Size["status"]>();
-      return (
-        <Badge variant={status === "ACTIVE" ? "default" : "outline"}>
-          {status}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
   },
   {
     id: "actions",

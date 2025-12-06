@@ -22,20 +22,10 @@ import {
     SelectValue,
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
-import type { Problem } from "@/shared/api/error";
 import { useCreateStyle } from "../hooks";
 import { createStyleSchema, type CreateStyleInput } from "../model/schemas";
-
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-    if (err.errors) {
-        for (const [field, msg] of Object.entries(err.errors)) {
-            setError(field as any, { message: String(msg) });
-        }
-        return;
-    }
-    const msg = err.message || err.detail || "Failed to create style";
-    setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export function StyleCreateForm() {
     const [open, setOpen] = useState(false);
@@ -94,6 +84,7 @@ export function StyleCreateForm() {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <FormError errors={errors} />
                     {/* Name */}
                     <div className="space-y-2">
                         <Label htmlFor="name">Style Name *</Label>

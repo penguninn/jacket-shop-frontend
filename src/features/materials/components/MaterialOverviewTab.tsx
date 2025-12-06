@@ -18,7 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useDeleteMaterial, useUpdateMaterial } from "@/features/materials/hooks";
 import { updateMaterialSchema, type UpdateMaterialInput, type Material, type MaterialStatus } from "@/features/materials/model/schemas";
-import { MaterialStatusBadge } from "./MaterialStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 
 interface Props {
     material: Material;
@@ -181,7 +181,7 @@ export function MaterialOverviewTab({ material }: Props) {
                                 </Select>
                             ) : (
                                 <div className="flex h-10 items-center">
-                                    <MaterialStatusBadge status={material.status} />
+                                    <StatusBadge status={material.status} />
                                 </div>
                             )}
                         </div>

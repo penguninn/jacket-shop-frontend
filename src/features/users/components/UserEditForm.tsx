@@ -25,20 +25,12 @@ import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateUserSchema, type UpdateUserInput } from "../model/schemas";
 import type { User } from "../model/schemas";
-import type { Problem } from "@/shared/api/error";
+
 import { useUpdateUser } from "../hooks";
 import { useRoles } from "@/features/roles/hooks";
 
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-  if (err.errors) {
-    for (const [field, msg] of Object.entries(err.errors)) {
-      setError(field as any, { message: String(msg) });
-    }
-    return;
-  }
-  const msg = err.message || err.detail || "Failed to update user";
-  setError("fullName", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 interface Props {
   user: User;
@@ -123,6 +115,7 @@ export function UserEditForm({ user, children }: Props) {
 
         <ScrollArea className="max-h-[60vh]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+            <FormError errors={errors} />
             {/* Username (Read-only) */}
             <div className="space-y-2">
               <Label htmlFor="username-readonly">Username</Label>

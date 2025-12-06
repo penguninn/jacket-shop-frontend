@@ -23,20 +23,10 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import type { Problem } from "@/shared/api/error";
 import { useCreatePaymentMethod } from "../hooks";
 import { createPaymentMethodSchema, type CreatePaymentMethodInput } from "../model/schemas";
-
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-    if (err.errors) {
-        for (const [field, msg] of Object.entries(err.errors)) {
-            setError(field as any, { message: String(msg) });
-        }
-        return;
-    }
-    const msg = err.message || err.detail || "Failed to create payment method";
-    setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 export function PaymentMethodCreateForm() {
     const [open, setOpen] = useState(false);
@@ -97,6 +87,7 @@ export function PaymentMethodCreateForm() {
 
                 <ScrollArea className="max-h-[60vh]">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                        <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>

@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useShippingMethodDetail } from "../hooks";
 import { Button } from "@/shared/ui/button";
-import { ShippingMethodStatusBadge } from "../components/ShippingMethodStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ShippingMethodOverview } from "../components/ShippingMethodOverview";
@@ -50,7 +50,7 @@ export default function ShippingMethodDetail() {
                             {shippingMethod.name}
                         </h1>
                         <div className="mt-2 flex items-center gap-3">
-                            <ShippingMethodStatusBadge status={shippingMethod.status} />
+                            <StatusBadge status={shippingMethod.status} />
                             <div className="text-muted-foreground">
                                 Fee: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(shippingMethod.fee)}
                             </div>

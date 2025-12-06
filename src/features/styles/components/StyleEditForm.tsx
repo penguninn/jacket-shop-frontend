@@ -21,19 +21,9 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { updateStyleSchema, type UpdateStyleInput, type Style } from "../model/schemas";
-import type { Problem } from "@/shared/api/error";
 import { useUpdateStyle } from "../hooks";
-
-function mapProblemToForm(err: Problem, setError: (name: any, e: any) => void) {
-    if (err.errors) {
-        for (const [field, msg] of Object.entries(err.errors)) {
-            setError(field as any, { message: String(msg) });
-        }
-        return;
-    }
-    const msg = err.message || err.detail || "Failed to update style";
-    setError("name", { message: msg });
-}
+import { mapProblemToForm } from "@/shared/utils/form";
+import { FormError } from "@/shared/ui/form-error";
 
 interface Props {
     open: boolean;
@@ -97,6 +87,7 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <FormError errors={errors} />
                     {/* Name */}
                     <div className="space-y-2">
                         <Label htmlFor="name">Style Name *</Label>

@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { CategoryStatusBadge } from "./CategoryStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { CategoryTableRowActions } from "./CategoryTableRowActions";
 import { formatDistanceToNow } from "date-fns";
 import type { Category } from "@/features/categories/model/schemas";
@@ -50,7 +50,7 @@ export const columns: ColumnDef<Category>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <CategoryStatusBadge status={row.getValue("status")} />,
+    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
     },

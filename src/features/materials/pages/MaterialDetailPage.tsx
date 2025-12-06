@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useMaterialDetail } from "../hooks";
 import { Button } from "@/shared/ui/button";
-import { MaterialStatusBadge } from "../components/MaterialStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { MaterialOverviewTab } from "../components/MaterialOverviewTab";
@@ -50,7 +50,7 @@ export default function MaterialDetail() {
                             {material.name}
                         </h1>
                         <div className="mt-2 flex items-center gap-3">
-                            <MaterialStatusBadge status={material.status} />
+                            <StatusBadge status={material.status} />
                         </div>
                     </div>
                 </div>

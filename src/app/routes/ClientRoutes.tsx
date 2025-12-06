@@ -4,7 +4,6 @@ import Home from "@/pages/client/Home";
 // import Products from "@/features/products/pages/ClientProductsPage";
 // import ProductDetail from "@/features/products/pages/ProductDetailPage";
 import Profile from "@/features/auth/pages/ProfilePage";
-import Coupons from "@/pages/client/Coupons";
 import Cart from "@/pages/client/Cart";
 import SignIn from "@/features/auth/pages/SignInPage";
 import SignUp from "@/features/auth/pages/SignUpPage";
@@ -18,8 +17,9 @@ export default function ClientRoutes() {
     <Routes>
       <Route element={<ClientLayout />}>
         <Route index element={<Home />} />
-        {/* <Route path="products" element={<Products />} />
-        <Route path="products/:id" element={<ProductDetail />} /> */}
+        {/*
+  <Route path="products" element={<Products />} />
+  <Route path="products/:id" element={<ProductDetail />} /> */}
 
         <Route
           path="cart"
@@ -39,18 +39,16 @@ export default function ClientRoutes() {
           }
         >
           <Route path="account/profile" element={<Profile />} />
-          {/* 
-          <Route path="account/address" element={<Address />} />
-          <Route path="account/change-password" element={<ChangePassword />} />
-          <Route path="account/payment" element={<PaymentMethods />} />
-          <Route
-            path="account/notifications"
-            element={<NotificationSettings />}
-          />
-          <Route path="purchase" element={<MyPurchase />} />
-          <Route path="purchase/:id" element={<PurchaseDetail />} />
-          */}
-          <Route path="coupons" element={<Coupons />} />
+          {/*
+      <Route path="account/address" element={<Address />} />
+      <Route path="account/change-password" element={<ChangePassword />} />
+      <Route path="account/payment" element={<PaymentMethods />} />
+      <Route path="account/notifications" element={<NotificationSettings />}
+      />
+      <Route path="purchase" element={<MyPurchase />} />
+      <Route path="purchase/:id" element={<PurchaseDetail />} />
+      <Route path="coupons" element={<Coupons />} />
+      */}
           <Route index element={<Navigate to="account/profile" replace />} />
         </Route>
 

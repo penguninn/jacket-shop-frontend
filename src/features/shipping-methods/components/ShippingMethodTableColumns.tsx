@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { ShippingMethodStatusBadge } from "./ShippingMethodStatusBadge";
+import { StatusBadge } from "@/shared/components/StatusBadge";
 import { ShippingMethodTableRowActions } from "./ShippingMethodTableRowActions";
 import { formatDistanceToNow } from "date-fns";
 import type { ShippingMethod } from "../model/schemas";
@@ -80,7 +80,7 @@ export const columns: ColumnDef<ShippingMethod>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <ShippingMethodStatusBadge status={row.getValue("status")} />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },
