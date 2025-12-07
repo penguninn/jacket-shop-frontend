@@ -43,39 +43,34 @@
 }
 
 :root {
-  /* Zinc-50 for background #FAFAFA */
-  --background: #ffffff
-    /* Charcoal (Gray-800) for foreground #1F2937 */
-    --foreground: hsl(215 28% 17%);
+  /* URBAN ENERGY THEME VARIABLES */
+  --background: #ffffff;
+  --foreground: hsl(215 28% 17%);
 
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(215 28% 17%);
+  --card-foreground: hsl(222 47% 11%);
 
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(215 28% 17%);
+  --popover-foreground: hsl(222 47% 11%);
 
-  /* Primary Orange-600 #EA580C */
-  --primary: hsl(21 90% 48%);
-  --primary-foreground: hsl(0 0% 100%);
+  --primary: hsl(24.6 95% 53.1%);
+  --primary-foreground: hsl(210 40% 98%);
 
-  /* Secondary Gray-800 #1F2937 */
-  --secondary: hsl(215 28% 17%);
-  --secondary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222 47% 11%);
 
   --muted: hsl(210 40% 96.1%);
   --muted-foreground: hsl(215.4 16.3% 46.9%);
 
   --accent: hsl(210 40% 96.1%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
+  --accent-foreground: hsl(222 47% 11%);
 
   --destructive: hsl(0 84.2% 60.2%);
   --destructive-foreground: hsl(210 40% 98%);
 
   --border: hsl(214.3 31.8% 91.4%);
   --input: hsl(214.3 31.8% 91.4%);
-
-  /* Ring matches Primary Orange */
-  --ring: hsl(21 90% 48%);
+  --ring: hsl(24.6 95% 53.1%);
 
   --radius: 0.75rem;
 
@@ -105,8 +100,8 @@
   --popover: hsl(222.2 84% 4.9%);
   --popover-foreground: hsl(210 40% 98%);
 
-  --primary: hsl(21 90% 48%);
-  --primary-foreground: hsl(0 0% 100%);
+  --primary: hsl(24.6 95% 53.1%);
+  --primary-foreground: hsl(210 40% 98%);
 
   --secondary: hsl(217.2 32.6% 17.5%);
   --secondary-foreground: hsl(210 40% 98%);
@@ -122,7 +117,7 @@
 
   --border: hsl(217.2 32.6% 17.5%);
   --input: hsl(217.2 32.6% 17.5%);
-  --ring: hsl(21 90% 48%);
+  --ring: hsl(24.6 95% 53.1%);
 
   --chart-1: hsl(220 70% 50%);
   --chart-2: hsl(160 60% 45%);
