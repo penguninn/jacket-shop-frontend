@@ -4,6 +4,7 @@ import Home from "@/pages/client/Home";
 // import Products from "@/features/products/pages/ClientProductsPage";
 // import ProductDetail from "@/features/products/pages/ProductDetailPage";
 import Profile from "@/features/auth/pages/ProfilePage";
+import Address from "@/features/auth/pages/AddressPage";
 import Cart from "@/pages/client/Cart";
 import SignIn from "@/features/auth/pages/SignInPage";
 import SignUp from "@/features/auth/pages/SignUpPage";
@@ -39,8 +40,8 @@ export default function ClientRoutes() {
           }
         >
           <Route path="account/profile" element={<Profile />} />
+          <Route path="account/address" element={<Address />} />
           {/*
-      <Route path="account/address" element={<Address />} />
       <Route path="account/change-password" element={<ChangePassword />} />
       <Route path="account/payment" element={<PaymentMethods />} />
       <Route path="account/notifications" element={<NotificationSettings />}
