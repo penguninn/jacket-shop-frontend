@@ -26,6 +26,7 @@ import {
   updateColorSchema,
   type UpdateColorInput,
   type Color,
+  type ColorStatus,
 } from "../../model/schemas";
 import { useUpdateColor } from "../../hooks";
 import { mapProblemToForm } from "@/shared/utils/form";
@@ -94,7 +95,11 @@ export function ColorEditForm({ color, children }: Props) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+          <form
+            id="edit-color-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <FormError errors={errors} />
             {/* Name */}
             <div className="space-y-2">
@@ -131,7 +136,7 @@ export function ColorEditForm({ color, children }: Props) {
               <Select
                 value={currentStatus}
                 onValueChange={(value) =>
-                  setValue("status", value as any, { shouldDirty: true })
+                  setValue("status", value as ColorStatus, { shouldDirty: true })
                 }
               >
                 <SelectTrigger id="status">
@@ -159,7 +164,8 @@ export function ColorEditForm({ color, children }: Props) {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="edit-color-form"
             disabled={busy || !isDirty}
           >
             {busy ? "Saving..." : "Save Changes"}

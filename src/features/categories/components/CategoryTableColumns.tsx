@@ -45,7 +45,21 @@ export const columns: ColumnDef<Category>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => {
+      const description = row.getValue("description") as string | null;
+      return (
+        <div className="max-w-[300px] truncate" title={description || ""}>
+          {description || "—"}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "status",

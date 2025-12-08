@@ -37,6 +37,7 @@ export function StyleCreateForm() {
         handleSubmit,
         setError,
         setValue,
+        watch,
         reset,
         formState: { errors, isSubmitting },
     } = useForm<CreateStyleInput>({
@@ -48,6 +49,7 @@ export function StyleCreateForm() {
         },
     });
 
+    const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
     const onSubmit = (data: CreateStyleInput) => {
@@ -83,7 +85,11 @@ export function StyleCreateForm() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                    id="create-style-form"
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-4"
+                >
                     <FormError errors={errors} />
                     {/* Name */}
                     <div className="space-y-2">
@@ -121,8 +127,10 @@ export function StyleCreateForm() {
                     <div className="space-y-2">
                         <Label htmlFor="status">Status *</Label>
                         <Select
-                            defaultValue="ACTIVE"
-                            onValueChange={(value) => setValue("status", value as any)}
+                            value={currentStatus}
+                            onValueChange={(value) =>
+                                setValue("status", value as any)
+                            }
                         >
                             <SelectTrigger id="status">
                                 <SelectValue placeholder="Select status" />
@@ -133,7 +141,9 @@ export function StyleCreateForm() {
                             </SelectContent>
                         </Select>
                         {errors.status && (
-                            <p className="text-xs text-red-500">{errors.status.message}</p>
+                            <p className="text-xs text-red-500">
+                                {errors.status.message}
+                            </p>
                         )}
                     </div>
                 </form>
@@ -147,7 +157,11 @@ export function StyleCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-style-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Style"}
                     </Button>
                 </DialogFooter>

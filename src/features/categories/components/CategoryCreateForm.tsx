@@ -14,24 +14,43 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { useCreateCategory } from "../hooks";
-import { createCategorySchema, type CreateCategoryInput, type CategoryStatus } from "../model/schemas";
-
+import {
+  createCategorySchema,
+  type CreateCategoryInput,
+  type CategoryStatus,
+} from "../model/schemas";
 
 import { mapProblemToForm } from "@/shared/utils/form";
 import { FormError } from "@/shared/ui/form-error";
+import { Textarea } from "@/shared/ui/textarea";
 
 export function CategoryCreateForm() {
   const [open, setOpen] = useState(false);
   const { mutate: doCreate, isPending } = useCreateCategory();
 
-  const { register, handleSubmit, setValue, reset, setError, formState: { errors, isSubmitting } } = useForm<CreateCategoryInput>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    setError,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateCategoryInput>({
     resolver: zodResolver(createCategorySchema),
-    defaultValues: { name: "", status: "ACTIVE" },
+    defaultValues: { name: "", description: "", status: "ACTIVE" },
   });
 
   const busy = isSubmitting || isPending;
+  const currentStatus = watch("status");
 
   const onSubmit = (data: CreateCategoryInput) => {
     doCreate(data, {
@@ -63,31 +82,72 @@ export function CategoryCreateForm() {
           <DialogTitle>Create New Category</DialogTitle>
           <DialogDescription>Fill in the category details.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          id="create-category-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <FormError errors={errors} />
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
-            <Input id="name" placeholder="Category name" {...register("name")} autoFocus />
-            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+            <Input
+              id="name"
+              placeholder="Category name"
+              {...register("name")}
+              autoFocus
+            />
+            {errors.name && (
+              <p className="text-xs text-red-500">{errors.name.message}</p>
+            )}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Description"
+              {...register("description")}
+            />
+            {errors.description && (
+              <p className="text-xs text-red-500">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="status">Status *</Label>
             <Select
-              defaultValue="ACTIVE"
-              onValueChange={(value) => setValue("status", value as CategoryStatus)}
+              value={currentStatus}
+              onValueChange={(value) =>
+                setValue("status", value as CategoryStatus)
+              }
             >
-              <SelectTrigger id="status"><SelectValue placeholder="Select status" /></SelectTrigger>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ACTIVE">Active</SelectItem>
                 <SelectItem value="INACTIVE">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            {errors.status && <p className="text-xs text-red-500">{errors.status.message}</p>}
+            {errors.status && (
+              <p className="text-xs text-red-500">{errors.status.message}</p>
+            )}
           </div>
         </form>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>Cancel</Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy}>{busy ? "Creating..." : "Create"}</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="create-category-form" disabled={busy}>
+            {busy ? "Creating..." : "Create"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

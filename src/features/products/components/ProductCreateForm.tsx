@@ -52,6 +52,7 @@ export function ProductCreateForm() {
         handleSubmit,
         setError,
         setValue,
+        watch,
         reset,
         formState: { errors, isSubmitting },
     } = useForm<CreateProductInput>({
@@ -63,6 +64,11 @@ export function ProductCreateForm() {
         },
     });
 
+    const categoryId = watch("categoryId");
+    const brandId = watch("brandId");
+    const materialId = watch("materialId");
+    const styleId = watch("styleId");
+    const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
     const onSubmit = (data: CreateProductInput) => {
@@ -99,7 +105,11 @@ export function ProductCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[70vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                    <form
+                        id="create-product-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
                         <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
@@ -137,14 +147,20 @@ export function ProductCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="categoryId">Category</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("categoryId", Number(value))}
+                                    value={categoryId ? String(categoryId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("categoryId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="categoryId">
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories?.map((c) => (
-                                            <SelectItem key={c.id} value={String(c.id)}>
+                                            <SelectItem
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
                                                 {c.name}
                                             </SelectItem>
                                         ))}
@@ -156,14 +172,20 @@ export function ProductCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="brandId">Brand</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("brandId", Number(value))}
+                                    value={brandId ? String(brandId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("brandId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="brandId">
                                         <SelectValue placeholder="Select brand" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {brands?.map((b) => (
-                                            <SelectItem key={b.id} value={String(b.id)}>
+                                            <SelectItem
+                                                key={b.id}
+                                                value={String(b.id)}
+                                            >
                                                 {b.name}
                                             </SelectItem>
                                         ))}
@@ -175,14 +197,22 @@ export function ProductCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="materialId">Material</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("materialId", Number(value))}
+                                    value={
+                                        materialId ? String(materialId) : undefined
+                                    }
+                                    onValueChange={(value) =>
+                                        setValue("materialId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="materialId">
                                         <SelectValue placeholder="Select material" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {materials?.map((m) => (
-                                            <SelectItem key={m.id} value={String(m.id)}>
+                                            <SelectItem
+                                                key={m.id}
+                                                value={String(m.id)}
+                                            >
                                                 {m.name}
                                             </SelectItem>
                                         ))}
@@ -194,14 +224,20 @@ export function ProductCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="styleId">Style</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("styleId", Number(value))}
+                                    value={styleId ? String(styleId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("styleId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="styleId">
                                         <SelectValue placeholder="Select style" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {styles?.map((s) => (
-                                            <SelectItem key={s.id} value={String(s.id)}>
+                                            <SelectItem
+                                                key={s.id}
+                                                value={String(s.id)}
+                                            >
                                                 {s.name}
                                             </SelectItem>
                                         ))}
@@ -214,8 +250,10 @@ export function ProductCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as any)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -226,7 +264,9 @@ export function ProductCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -241,7 +281,11 @@ export function ProductCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-product-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Product"}
                     </Button>
                 </DialogFooter>

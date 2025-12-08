@@ -39,6 +39,7 @@ export function MaterialCreateForm() {
         setError,
         setValue,
         reset,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<CreateMaterialInput>({
         resolver: zodResolver(createMaterialSchema),
@@ -50,6 +51,7 @@ export function MaterialCreateForm() {
     });
 
     const busy = isSubmitting || isPending;
+    const currentStatus = watch("status");
 
     const onSubmit = (data: CreateMaterialInput) => {
         doCreateMaterial(data, {
@@ -85,7 +87,11 @@ export function MaterialCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                    <form
+                        id="create-material-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
                         <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
@@ -112,7 +118,9 @@ export function MaterialCreateForm() {
                                 {...register("description")}
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description.message}
+                                </p>
                             )}
                         </div>
 
@@ -120,8 +128,10 @@ export function MaterialCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as MaterialStatus)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as MaterialStatus)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -132,7 +142,9 @@ export function MaterialCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -147,7 +159,11 @@ export function MaterialCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-material-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Material"}
                     </Button>
                 </DialogFooter>

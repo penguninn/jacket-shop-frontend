@@ -26,6 +26,7 @@ import {
   updateSizeSchema,
   type UpdateSizeInput,
   type Size,
+  type SizeStatus,
 } from "../../model/schemas";
 import { useUpdateSize } from "../../hooks";
 import { mapProblemToForm } from "@/shared/utils/form";
@@ -94,7 +95,11 @@ export function SizeEditForm({ size, children }: Props) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+          <form
+            id="edit-size-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <FormError errors={errors} />
             {/* Name */}
             <div className="space-y-2">
@@ -131,7 +136,7 @@ export function SizeEditForm({ size, children }: Props) {
               <Select
                 value={currentStatus}
                 onValueChange={(value) =>
-                  setValue("status", value as any, { shouldDirty: true })
+                  setValue("status", value as SizeStatus, { shouldDirty: true })
                 }
               >
                 <SelectTrigger id="status">
@@ -159,7 +164,8 @@ export function SizeEditForm({ size, children }: Props) {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="edit-size-form"
             disabled={busy || !isDirty}
           >
             {busy ? "Saving..." : "Save Changes"}

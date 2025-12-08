@@ -114,7 +114,11 @@ export function UserEditForm({ user, children }: Props) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+          <form
+            id="edit-user-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <FormError errors={errors} />
             {/* Username (Read-only) */}
             <div className="space-y-2">
@@ -136,7 +140,9 @@ export function UserEditForm({ user, children }: Props) {
                 {...register("fullName")}
               />
               {errors.fullName && (
-                <p className="text-xs text-red-500">{errors.fullName.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.fullName.message}
+                </p>
               )}
             </div>
 
@@ -150,7 +156,9 @@ export function UserEditForm({ user, children }: Props) {
                 {...register("phone")}
               />
               {errors.phone && (
-                <p className="text-xs text-red-500">{errors.phone.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.phone.message}
+                </p>
               )}
             </div>
 
@@ -159,18 +167,28 @@ export function UserEditForm({ user, children }: Props) {
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={currentStatus}
-                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                onValueChange={(value) =>
+                  setValue("status", value as any, {
+                    shouldDirty: true,
+                  })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="ACTIVE">
+                    Active
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    Inactive
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {errors.status && (
-                <p className="text-xs text-red-500">{errors.status.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.status.message}
+                </p>
               )}
             </div>
 
@@ -178,15 +196,24 @@ export function UserEditForm({ user, children }: Props) {
             <div className="space-y-2">
               <Label>Roles *</Label>
               {rolesLoading ? (
-                <div className="text-sm text-muted-foreground">Loading roles...</div>
+                <div className="text-sm text-muted-foreground">
+                  Loading roles...
+                </div>
               ) : (
                 <div className="space-y-2">
                   {roles?.map((role) => (
-                    <div key={role.id} className="flex items-center space-x-2">
+                    <div
+                      key={role.id}
+                      className="flex items-center space-x-2"
+                    >
                       <Checkbox
                         id={`role-${role.id}`}
-                        checked={selectedRoleIds?.includes(role.id)}
-                        onCheckedChange={() => toggleRole(role.id)}
+                        checked={selectedRoleIds?.includes(
+                          role.id
+                        )}
+                        onCheckedChange={() =>
+                          toggleRole(role.id)
+                        }
                       />
                       <Label
                         htmlFor={`role-${role.id}`}
@@ -199,18 +226,27 @@ export function UserEditForm({ user, children }: Props) {
                 </div>
               )}
               {errors.roleIds && (
-                <p className="text-xs text-red-500">{errors.roleIds.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.roleIds.message}
+                </p>
               )}
 
               {/* Selected Roles Preview */}
               {selectedRoleIds && selectedRoleIds.length > 0 && (
                 <div className="mt-3">
-                  <div className="text-sm text-muted-foreground mb-2">Selected:</div>
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Selected:
+                  </div>
                   <div className="flex flex-wrap gap-1">
                     {selectedRoleIds.map((id) => {
-                      const role = roles?.find((r) => r.id === id);
+                      const role = roles?.find(
+                        (r) => r.id === id
+                      );
                       return role ? (
-                        <Badge key={id} variant="secondary">
+                        <Badge
+                          key={id}
+                          variant="secondary"
+                        >
                           {role.name}
                         </Badge>
                       ) : null;
@@ -232,7 +268,8 @@ export function UserEditForm({ user, children }: Props) {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="edit-user-form"
             disabled={busy || !isDirty}
           >
             {busy ? "Saving..." : "Save Changes"}
@@ -242,4 +279,3 @@ export function UserEditForm({ user, children }: Props) {
     </Dialog>
   );
 }
-

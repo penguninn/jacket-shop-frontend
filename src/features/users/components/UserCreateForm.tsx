@@ -62,6 +62,7 @@ export function UserCreateForm() {
   });
 
   const selectedRoleIds = watch("roleIds");
+  const currentStatus = watch("status");
   const busy = isSubmitting || isPending;
 
   const toggleRole = (roleId: number) => {
@@ -108,7 +109,11 @@ export function UserCreateForm() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+          <form
+            id="create-user-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <FormError errors={errors} />
             {/* Username */}
             <div className="space-y-2">
@@ -221,7 +226,7 @@ export function UserCreateForm() {
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
-                defaultValue="ACTIVE"
+                value={currentStatus}
                 onValueChange={(value) => setValue("status", value as any)}
               >
                 <SelectTrigger id="status">
@@ -298,7 +303,7 @@ export function UserCreateForm() {
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+          <Button type="submit" form="create-user-form" disabled={busy}>
             {busy ? "Creating..." : "Create User"}
           </Button>
         </DialogFooter>

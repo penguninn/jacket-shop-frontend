@@ -92,7 +92,11 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                    id="edit-shipping-method-form"
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-4"
+                >
                     <FormError errors={errors} />
                     {/* Name */}
                     <div className="space-y-2">
@@ -103,7 +107,9 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                             {...register("name")}
                         />
                         {errors.name && (
-                            <p className="text-xs text-red-500">{errors.name.message}</p>
+                            <p className="text-xs text-red-500">
+                                {errors.name.message}
+                            </p>
                         )}
                     </div>
 
@@ -116,7 +122,9 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                             {...register("description")}
                         />
                         {errors.description && (
-                            <p className="text-xs text-red-500">{errors.description.message}</p>
+                            <p className="text-xs text-red-500">
+                                {errors.description.message}
+                            </p>
                         )}
                     </div>
 
@@ -132,7 +140,9 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                                 {...register("fee", { valueAsNumber: true })}
                             />
                             {errors.fee && (
-                                <p className="text-xs text-red-500">{errors.fee.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.fee.message}
+                                </p>
                             )}
                         </div>
 
@@ -144,10 +154,14 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                                 type="number"
                                 min="1"
                                 max="60"
-                                {...register("estimatedDays", { valueAsNumber: true })}
+                                {...register("estimatedDays", {
+                                    valueAsNumber: true,
+                                })}
                             />
                             {errors.estimatedDays && (
-                                <p className="text-xs text-red-500">{errors.estimatedDays.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.estimatedDays.message}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -157,7 +171,11 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                         <Label htmlFor="status">Status *</Label>
                         <Select
                             value={currentStatus}
-                            onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                            onValueChange={(value) =>
+                                setValue("status", value as any, {
+                                    shouldDirty: true,
+                                })
+                            }
                         >
                             <SelectTrigger id="status">
                                 <SelectValue />
@@ -168,7 +186,9 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                             </SelectContent>
                         </Select>
                         {errors.status && (
-                            <p className="text-xs text-red-500">{errors.status.message}</p>
+                            <p className="text-xs text-red-500">
+                                {errors.status.message}
+                            </p>
                         )}
                     </div>
                 </form>
@@ -183,7 +203,8 @@ export function ShippingMethodEditForm({ shippingMethod, children }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-shipping-method-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

@@ -86,7 +86,11 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                    id="edit-style-form"
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-4"
+                >
                     <FormError errors={errors} />
                     {/* Name */}
                     <div className="space-y-2">
@@ -124,7 +128,11 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
                         <Label htmlFor="status">Status *</Label>
                         <Select
                             value={currentStatus}
-                            onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                            onValueChange={(value) =>
+                                setValue("status", value as any, {
+                                    shouldDirty: true,
+                                })
+                            }
                         >
                             <SelectTrigger id="status">
                                 <SelectValue placeholder="Select status" />
@@ -135,7 +143,9 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
                             </SelectContent>
                         </Select>
                         {errors.status && (
-                            <p className="text-xs text-red-500">{errors.status.message}</p>
+                            <p className="text-xs text-red-500">
+                                {errors.status.message}
+                            </p>
                         )}
                     </div>
                 </form>
@@ -150,7 +160,8 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-style-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

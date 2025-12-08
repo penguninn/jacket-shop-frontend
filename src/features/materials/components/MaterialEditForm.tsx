@@ -91,7 +91,11 @@ export function MaterialEditForm({ material, children }: Props) {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                    <form
+                        id="edit-material-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
                         <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
@@ -124,7 +128,11 @@ export function MaterialEditForm({ material, children }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as MaterialStatus, { shouldDirty: true })}
+                                onValueChange={(value) =>
+                                    setValue("status", value as MaterialStatus, {
+                                        shouldDirty: true,
+                                    })
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue />
@@ -135,7 +143,9 @@ export function MaterialEditForm({ material, children }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -151,7 +161,8 @@ export function MaterialEditForm({ material, children }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-material-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

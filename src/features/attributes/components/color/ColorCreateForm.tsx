@@ -24,7 +24,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateColor } from "../../hooks";
-import { createColorSchema, type CreateColorInput } from "../../model/schemas";
+import { createColorSchema, type ColorStatus, type CreateColorInput } from "../../model/schemas";
 import { mapProblemToForm } from "@/shared/utils/form";
 import { FormError } from "@/shared/ui/form-error";
 
@@ -37,6 +37,7 @@ export function ColorCreateForm() {
     handleSubmit,
     setError,
     setValue,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateColorInput>({
@@ -49,6 +50,7 @@ export function ColorCreateForm() {
   });
 
   const busy = isSubmitting || isPending;
+  const currentStatus = watch("status");
 
   const onSubmit = (data: CreateColorInput) => {
     doCreate(data, {
@@ -82,7 +84,11 @@ export function ColorCreateForm() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+          <form
+            id="create-color-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <FormError errors={errors} />
             {/* Name */}
             <div className="space-y-2">
@@ -118,8 +124,10 @@ export function ColorCreateForm() {
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
-                defaultValue="ACTIVE"
-                onValueChange={(value) => setValue("status", value as any)}
+                value={currentStatus}
+                onValueChange={(value) =>
+                  setValue("status", value as ColorStatus, { shouldDirty: true })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
@@ -145,7 +153,7 @@ export function ColorCreateForm() {
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+          <Button type="submit" form="create-color-form" disabled={busy}>
             {busy ? "Creating..." : "Create Color"}
           </Button>
         </DialogFooter>

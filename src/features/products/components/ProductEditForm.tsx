@@ -65,6 +65,10 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
     });
 
     const currentStatus = watch("status");
+    const categoryId = watch("categoryId");
+    const brandId = watch("brandId");
+    const materialId = watch("materialId");
+    const styleId = watch("styleId");
     const busy = isSubmitting || isPending;
 
     useEffect(() => {
@@ -104,7 +108,11 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[70vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
+                    <form
+                        id="edit-product-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
                         <FormError errors={errors} />
                         {/* Name */}
                         <div className="space-y-2">
@@ -141,15 +149,24 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <div className="space-y-2">
                                 <Label htmlFor="categoryId">Category</Label>
                                 <Select
-                                    value={watch("categoryId")?.toString()}
-                                    onValueChange={(value) => setValue("categoryId", Number(value), { shouldDirty: true })}
+                                    value={
+                                        categoryId ? String(categoryId) : undefined
+                                    }
+                                    onValueChange={(value) =>
+                                        setValue("categoryId", Number(value), {
+                                            shouldDirty: true,
+                                        })
+                                    }
                                 >
                                     <SelectTrigger id="categoryId">
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories?.map((c) => (
-                                            <SelectItem key={c.id} value={String(c.id)}>
+                                            <SelectItem
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
                                                 {c.name}
                                             </SelectItem>
                                         ))}
@@ -161,15 +178,22 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <div className="space-y-2">
                                 <Label htmlFor="brandId">Brand</Label>
                                 <Select
-                                    value={watch("brandId")?.toString()}
-                                    onValueChange={(value) => setValue("brandId", Number(value), { shouldDirty: true })}
+                                    value={brandId ? String(brandId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("brandId", Number(value), {
+                                            shouldDirty: true,
+                                        })
+                                    }
                                 >
                                     <SelectTrigger id="brandId">
                                         <SelectValue placeholder="Select brand" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {brands?.map((b) => (
-                                            <SelectItem key={b.id} value={String(b.id)}>
+                                            <SelectItem
+                                                key={b.id}
+                                                value={String(b.id)}
+                                            >
                                                 {b.name}
                                             </SelectItem>
                                         ))}
@@ -181,15 +205,24 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <div className="space-y-2">
                                 <Label htmlFor="materialId">Material</Label>
                                 <Select
-                                    value={watch("materialId")?.toString()}
-                                    onValueChange={(value) => setValue("materialId", Number(value), { shouldDirty: true })}
+                                    value={
+                                        materialId ? String(materialId) : undefined
+                                    }
+                                    onValueChange={(value) =>
+                                        setValue("materialId", Number(value), {
+                                            shouldDirty: true,
+                                        })
+                                    }
                                 >
                                     <SelectTrigger id="materialId">
                                         <SelectValue placeholder="Select material" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {materials?.map((m) => (
-                                            <SelectItem key={m.id} value={String(m.id)}>
+                                            <SelectItem
+                                                key={m.id}
+                                                value={String(m.id)}
+                                            >
                                                 {m.name}
                                             </SelectItem>
                                         ))}
@@ -201,15 +234,22 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <div className="space-y-2">
                                 <Label htmlFor="styleId">Style</Label>
                                 <Select
-                                    value={watch("styleId")?.toString()}
-                                    onValueChange={(value) => setValue("styleId", Number(value), { shouldDirty: true })}
+                                    value={styleId ? String(styleId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("styleId", Number(value), {
+                                            shouldDirty: true,
+                                        })
+                                    }
                                 >
                                     <SelectTrigger id="styleId">
                                         <SelectValue placeholder="Select style" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {styles?.map((s) => (
-                                            <SelectItem key={s.id} value={String(s.id)}>
+                                            <SelectItem
+                                                key={s.id}
+                                                value={String(s.id)}
+                                            >
                                                 {s.name}
                                             </SelectItem>
                                         ))}
@@ -223,7 +263,11 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as ProductStatus, { shouldDirty: true })}
+                                onValueChange={(value) =>
+                                    setValue("status", value as ProductStatus, {
+                                        shouldDirty: true,
+                                    })
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -234,7 +278,9 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -250,7 +296,8 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-product-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}
