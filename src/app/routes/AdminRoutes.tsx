@@ -11,11 +11,7 @@ import Attributes from "@/features/attributes/pages/AttributesPage";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
 import Coupons from "@/features/coupons/pages/CouponsPage";
-import Materials from "@/features/materials/pages/MaterialsPage";
 import RequireAuth from "./RequireAuth";
-import Categories from "@/features/categories/pages/CategoriesPage";
-import CategoryDetailPage from "@/features/categories/pages/CategoryDetailPage";
-import MaterialDetail from "@/features/materials/pages/MaterialDetailPage";
 import {
   ShippingMethodsPage as ShippingMethods,
   ShippingMethodDetailPage as ShippingMethodDetail,
@@ -35,8 +31,6 @@ export default function AdminRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="products/:id" element={<ProductVariant />} />
-        <Route path="categories" element={<Categories />} />
-        <Route path="categories/:id" element={<CategoryDetailPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:id" element={<OrderDetail />} />
 
@@ -61,22 +55,6 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN"]}>
               <Attributes />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="materials"
-          element={
-            <RequireAuth roles={["ADMIN"]}>
-              <Materials />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="materials/:id"
-          element={
-            <RequireAuth roles={["ADMIN"]}>
-              <MaterialDetail />
             </RequireAuth>
           }
         />

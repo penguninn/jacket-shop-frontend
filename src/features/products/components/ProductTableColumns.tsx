@@ -51,19 +51,6 @@ export const columns: ColumnDef<Product>[] = [
         ),
     },
     {
-        accessorKey: "category",
-        header: "Category",
-        cell: ({ row }) => {
-            const category = row.original.category;
-            return <div>{category?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const category = row.original.category;
-            if (!category) return false;
-            return value.includes(category.id.toString());
-        },
-    },
-    {
         accessorKey: "brand",
         header: "Brand",
         cell: ({ row }) => {
@@ -74,19 +61,6 @@ export const columns: ColumnDef<Product>[] = [
             const brand = row.original.brand;
             if (!brand) return false;
             return value.includes(brand.id.toString());
-        },
-    },
-    {
-        accessorKey: "material",
-        header: "Material",
-        cell: ({ row }) => {
-            const material = row.original.material;
-            return <div>{material?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const material = row.original.material;
-            if (!material) return false;
-            return value.includes(material.id.toString());
         },
     },
     {

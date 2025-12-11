@@ -12,12 +12,10 @@ import {
   Sliders,
   Sparkles,
   Star,
-  Tags,
   Truck,
   User,
   Wallet,
   Warehouse,
-  Scroll,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -109,19 +107,9 @@ const sidebarGroups = [
         icon: Warehouse,
       },
       {
-        title: "Categories",
-        url: "/admin/categories",
-        icon: Tags,
-      },
-      {
         title: "Brands",
         url: "/admin/brands",
         icon: Award,
-      },
-      {
-        title: "Materials",
-        url: "/admin/materials",
-        icon: Scroll,
       },
       {
         title: "Styles",

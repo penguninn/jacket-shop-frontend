@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { ShippingMethodTableToolbar } from "./ShippingMethodTableToolbar";
 import { columns } from "./ShippingMethodTableColumns";
-import { useShippingMethods, useBulkUpdateStatus } from "../hooks";
+import { useShippingMethods, useBulkUpdateShippingMethodStatus as useBulkUpdateStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
 import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";

@@ -25,8 +25,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateCouponSchema, type UpdateCouponInput } from "../model/schemas";
 import type { Coupon } from "../model/schemas";
 import { useUpdateCoupon } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 interface Props {
     coupon: Coupon;
@@ -35,15 +34,14 @@ interface Props {
 
 export function CouponEditForm({ coupon, children }: Props) {
     const [open, setOpen] = useState(false);
-    const { mutate: doUpdateCoupon, isPending } = useUpdateCoupon();
 
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting, isDirty },
     } = useForm<UpdateCouponInput>({
         resolver: zodResolver(updateCouponSchema),
@@ -59,6 +57,8 @@ export function CouponEditForm({ coupon, children }: Props) {
             status: "ACTIVE",
         },
     });
+
+    const { mutate: doUpdateCoupon, isPending } = useUpdateCoupon({ setError: setError as any });
 
     const couponType = watch("type");
     const currentStatus = watch("status");
@@ -104,7 +104,6 @@ export function CouponEditForm({ coupon, children }: Props) {
                 onSuccess: () => {
                     setOpen(false);
                 },
-                onError: (e: any) => mapProblemToForm(e, setError),
             }
         );
     };
@@ -126,7 +125,7 @@ export function CouponEditForm({ coupon, children }: Props) {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
+
                         {/* Code (Read-only) */}
                         <div className="space-y-2">
                             <Label htmlFor="code-readonly">Code</Label>

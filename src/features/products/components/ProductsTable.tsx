@@ -40,9 +40,7 @@ export function ProductsTable() {
         sortDir: sorting[0]?.desc ? "desc" : "asc",
         status: columnFilters.find((f) => f.id === "status")?.value as string[],
         search: columnFilters.find((f) => f.id === "name")?.value as string,
-        categoryIds: getFilterIds("category"),
         brandIds: getFilterIds("brand"),
-        materialIds: getFilterIds("material"),
         styleIds: getFilterIds("style"),
     });
 

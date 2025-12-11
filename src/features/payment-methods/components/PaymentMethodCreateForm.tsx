@@ -25,21 +25,17 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreatePaymentMethod } from "../hooks";
 import { createPaymentMethodSchema, type CreatePaymentMethodInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
 
 export function PaymentMethodCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreate, isPending } = useCreatePaymentMethod();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreatePaymentMethodInput>({
         resolver: zodResolver(createPaymentMethodSchema),
@@ -51,6 +47,8 @@ export function PaymentMethodCreateForm() {
         },
     });
 
+    const { mutate: doCreate, isPending } = useCreatePaymentMethod({ setError: setError as any });
+
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
@@ -60,7 +58,6 @@ export function PaymentMethodCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -93,8 +90,6 @@ export function PaymentMethodCreateForm() {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
-                        {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
                             <Input

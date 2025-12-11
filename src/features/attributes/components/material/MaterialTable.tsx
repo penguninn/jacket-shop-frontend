@@ -12,20 +12,20 @@ import {
     type VisibilityState,
 } from "@tanstack/react-table";
 import { MaterialTableToolbar } from "./MaterialTableToolbar";
-import { columns } from "./MaterialTableColumns";
-import { useMaterials, useBulkUpdateStatus } from "../hooks";
+import { useMaterials, useBulkUpdateStatusMaterials } from "../../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
 import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";
+import { columns } from "./MaterialTableColumns";
 
-export function MaterialsTable() {
+export function MaterialTable() {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-    const bulkUpdateStatus = useBulkUpdateStatus();
+    const bulkUpdateStatus = useBulkUpdateStatusMaterials();
 
     const { data, isLoading } = useMaterials({
         page: pagination.pageIndex,

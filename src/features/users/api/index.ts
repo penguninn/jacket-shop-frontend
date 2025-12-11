@@ -1,134 +1,158 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import { userSchema } from "@/features/users/model";
 import {
+  userSchema,
   usersResponseSchema,
+  loginHistorySchema,
+  auditLogSchema,
+  userStatisticsSchema,
+  type UserFilterParams,
   type CreateUserInput,
   type UpdateUserInput,
   type UpdateUserStatusInput,
+  type BulkUpdateStatusInput,
+  type BulkDeleteInput,
 } from "../model/schemas";
-import z from "zod";
+import { z } from "zod";
 
-type SortDirection = "asc" | "desc";
-const DEFAULT_SORT_BY = "createdAt";
-const DEFAULT_SORT_DIR: SortDirection = "desc";
+// ============================================
+// API ENDPOINTS CONSTANTS
+// ============================================
 
-export interface GetUsersParams {
-  page: number;
-  size: number;
-  sortBy?: string;
-  sortDir?: SortDirection;
-  search?: string;
-  status?: string[];
-  roles?: string[];
-}
+const ENDPOINTS = Object.freeze({
+  USERS: '/users',
+  USER_BY_ID: (id: number) => `/users/${id}`,
+  USER_STATUS: (id: number) => `/users/${id}/status`,
+  USER_LOGIN_HISTORY: (id: number) => `/users/${id}/login-history`,
+  USER_AUDIT_LOGS: (id: number) => `/users/${id}/audit-logs`,
+  USER_STATISTICS: (id: number) => `/users/${id}/statistics`,
+  USER_FORCE_LOGOUT: (id: number) => `/users/${id}/force-logout`,
+  BULK_UPDATE_STATUS: '/users/bulk/status',
+  BULK_DELETE: '/users/bulk/delete',
+} as const);
 
-export async function getUsers(params: GetUsersParams) {
+
+function buildQueryParams(params: UserFilterParams): URLSearchParams {
   const queryParams = new URLSearchParams({
     page: params.page.toString(),
     size: params.size.toString(),
   });
 
-  const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
-  const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+  if (params.sortBy) {
+    queryParams.append("sortBy", params.sortBy);
+  }
 
-  queryParams.append("sortBy", sortBy);
-  queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+  if (params.sortDir) {
+    queryParams.append("sortDir", params.sortDir);
+  }
 
   if (params.search) {
     queryParams.append("search", params.search);
   }
+
   if (params.status?.length) {
     params.status.forEach((s) => queryParams.append("status", s));
   }
+
   if (params.roles?.length) {
     params.roles.forEach((r) => queryParams.append("roles", r));
   }
 
-  const res = await httpPrivateTyped.get(
-    `/users?${queryParams.toString()}`,
-    usersResponseSchema,
+  return queryParams;
+}
+
+// ============================================
+// API FUNCTIONS
+// ============================================
+
+// Queries
+export async function getUsers(params: UserFilterParams) {
+  const queryParams = buildQueryParams(params);
+  return await httpPrivateTyped.get(
+    `${ENDPOINTS.USERS}?${queryParams.toString()}`,
+    usersResponseSchema
   );
-  return res;
 }
 
 export async function getUserById(id: number) {
-  const res = await httpPrivateTyped.get(`/users/${id}`, userSchema);
-  return res;
-}
-
-export async function createUser(payload: CreateUserInput) {
-  const res = await httpPrivateTyped.post("/users", payload, userSchema);
-  return res;
-}
-
-export async function updateUser(id: number, payload: UpdateUserInput) {
-  const res = await httpPrivateTyped.put(`/users/${id}`, payload, userSchema);
-  return res;
-}
-
-export async function deleteUser(id: number) {
-  await httpPrivateTyped.del(`/users/${id}`, z.null());
-}
-
-export async function updateStatus(id: number, payload: UpdateUserStatusInput) {
-  await httpPrivateTyped.put(`/users/${id}/status`, payload, userSchema);
-}
-
-export async function bulkUpdateStatus(ids: number[], status: string) {
-  await httpPrivateTyped.post("/users/bulk/status", { ids, status }, z.null());
-}
-
-export async function bulkDelete(ids: number[]) {
-  await httpPrivateTyped.post("/users/bulk/delete", { ids }, z.null());
+  return await httpPrivateTyped.get(
+    ENDPOINTS.USER_BY_ID(id),
+    userSchema
+  );
 }
 
 export async function getUserLoginHistory(id: number) {
-  const loginHistorySchema = z.array(
-    z.object({
-      id: z.number(),
-      ipAddress: z.string(),
-      device: z.string(),
-      location: z.string().nullable(),
-      loginAt: z.string(),
-    }),
+  return await httpPrivateTyped.get(
+    ENDPOINTS.USER_LOGIN_HISTORY(id),
+    z.array(loginHistorySchema)
   );
-  const res = await httpPrivateTyped.get(
-    `/users/${id}/login-history`,
-    loginHistorySchema,
-  );
-  return res;
 }
 
 export async function getUserAuditLogs(id: number) {
-  const auditLogSchema = z.array(
-    z.object({
-      id: z.number(),
-      action: z.string(),
-      description: z.string(),
-      createdAt: z.string(),
-    }),
+  return await httpPrivateTyped.get(
+    ENDPOINTS.USER_AUDIT_LOGS(id),
+    z.array(auditLogSchema)
   );
-  const res = await httpPrivateTyped.get(
-    `/users/${id}/audit-logs`,
-    auditLogSchema,
-  );
-  return res;
 }
 
 export async function getUserStatistics(id: number) {
-  const statsSchema = z.object({
-    ordersCount: z.number(),
-    revenue: z.number(),
-    avgHandlingTime: z.number(),
-    customerRating: z.number().nullable(),
-  });
-  const res = await httpPrivateTyped.get(
-    `/users/${id}/statistics`,
-    statsSchema,
+  return await httpPrivateTyped.get(
+    ENDPOINTS.USER_STATISTICS(id),
+    userStatisticsSchema
   );
-  return res;
+}
+
+// Mutations
+export async function createUser(payload: CreateUserInput) {
+  return await httpPrivateTyped.post(
+    ENDPOINTS.USERS,
+    payload,
+    userSchema
+  );
+}
+
+export async function updateUser(id: number, payload: UpdateUserInput) {
+  return await httpPrivateTyped.put(
+    ENDPOINTS.USER_BY_ID(id),
+    payload,
+    userSchema
+  );
+}
+
+export async function updateUserStatus(id: number, payload: UpdateUserStatusInput) {
+  return await httpPrivateTyped.put(
+    ENDPOINTS.USER_STATUS(id),
+    payload,
+    userSchema
+  );
+}
+
+export async function deleteUser(id: number) {
+  return await httpPrivateTyped.del(
+    ENDPOINTS.USER_BY_ID(id),
+    z.null()
+  );
+}
+
+export async function bulkUpdateStatus(payload: BulkUpdateStatusInput) {
+  return await httpPrivateTyped.post(
+    ENDPOINTS.BULK_UPDATE_STATUS,
+    payload,
+    z.array(userSchema)
+  );
+}
+
+export async function bulkDelete(payload: BulkDeleteInput) {
+  return await httpPrivateTyped.post(
+    ENDPOINTS.BULK_DELETE,
+    payload,
+    z.null()
+  );
 }
 
 export async function forceLogout(userId: number) {
-  await httpPrivateTyped.post(`/users/${userId}/force-logout`, {}, z.null());
+  return await httpPrivateTyped.post(
+    ENDPOINTS.USER_FORCE_LOGOUT(userId),
+    {},
+    z.null()
+  );
 }

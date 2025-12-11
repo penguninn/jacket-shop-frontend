@@ -24,36 +24,44 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
-import { useCreateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
+import { useCreateProduct, useBrands, useStyles } from "../hooks";
 import { createProductSchema, type CreateProductInput } from "../model/schemas";
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+    LABELS: {
+        NAME: "Product Name *",
+        DESCRIPTION: "Description",
+        BRAND: "Brand",
+        STYLE: "Style",
+        STATUS: "Status *",
+    },
+    PLACEHOLDERS: {
+        NAME: "Classic Leather Jacket",
+        DESCRIPTION: "Product description...",
+        SELECT_BRAND: "Select brand",
+        SELECT_STYLE: "Select style",
+        SELECT_STATUS: "Select status",
+    },
+    MESSAGES: {
+        CREATE: "Create Product",
+        CREATING: "Creating...",
+    },
+} as const;
 
 export function ProductCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateProduct, isPending } = useCreateProduct();
-
-    // Fetch helper entities for dropdowns
-    const { data: categoriesResponse } = useCategories();
-    const { data: brandsResponse } = useBrands();
-    const { data: materialsResponse } = useMaterials();
-    const { data: stylesResponse } = useStyles();
-
-    // Extract contents from paginated responses
-    const categories = categoriesResponse?.contents ?? [];
-    const brands = brandsResponse?.contents ?? [];
-    const materials = materialsResponse?.contents ?? [];
-    const styles = stylesResponse?.contents ?? [];
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateProductInput>({
         resolver: zodResolver(createProductSchema),
@@ -64,9 +72,17 @@ export function ProductCreateForm() {
         },
     });
 
-    const categoryId = watch("categoryId");
+    const { mutate: doCreateProduct, isPending } = useCreateProduct({ setError: setError as any });
+
+    // Fetch helper entities for dropdowns
+    const { data: brandsResponse } = useBrands();
+    const { data: stylesResponse } = useStyles();
+
+    // Extract contents from paginated responses
+    const brands = brandsResponse?.contents ?? [];
+    const styles = stylesResponse?.contents ?? [];
+
     const brandId = watch("brandId");
-    const materialId = watch("materialId");
     const styleId = watch("styleId");
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
@@ -77,7 +93,6 @@ export function ProductCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -110,13 +125,13 @@ export function ProductCreateForm() {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
+
                         {/* Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="name">Product Name *</Label>
+                            <Label htmlFor="name">{FORM_CONFIG.LABELS.NAME}</Label>
                             <Input
                                 id="name"
-                                placeholder="Classic Leather Jacket"
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.NAME}
                                 {...register("name")}
                                 autoFocus
                             />
@@ -129,10 +144,10 @@ export function ProductCreateForm() {
 
                         {/* Description */}
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{FORM_CONFIG.LABELS.DESCRIPTION}</Label>
                             <Textarea
                                 id="description"
-                                placeholder="Product description..."
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.DESCRIPTION}
                                 {...register("description")}
                             />
                             {errors.description && (
@@ -143,30 +158,6 @@ export function ProductCreateForm() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Category */}
-                            <div className="space-y-2">
-                                <Label htmlFor="categoryId">Category</Label>
-                                <Select
-                                    value={categoryId ? String(categoryId) : undefined}
-                                    onValueChange={(value) =>
-                                        setValue("categoryId", Number(value))
-                                    }
-                                >
-                                    <SelectTrigger id="categoryId">
-                                        <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories?.map((c) => (
-                                            <SelectItem
-                                                key={c.id}
-                                                value={String(c.id)}
-                                            >
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
 
                             {/* Brand */}
                             <div className="space-y-2">
@@ -187,33 +178,6 @@ export function ProductCreateForm() {
                                                 value={String(b.id)}
                                             >
                                                 {b.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Material */}
-                            <div className="space-y-2">
-                                <Label htmlFor="materialId">Material</Label>
-                                <Select
-                                    value={
-                                        materialId ? String(materialId) : undefined
-                                    }
-                                    onValueChange={(value) =>
-                                        setValue("materialId", Number(value))
-                                    }
-                                >
-                                    <SelectTrigger id="materialId">
-                                        <SelectValue placeholder="Select material" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {materials?.map((m) => (
-                                            <SelectItem
-                                                key={m.id}
-                                                value={String(m.id)}
-                                            >
-                                                {m.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -248,7 +212,7 @@ export function ProductCreateForm() {
 
                         {/* Status */}
                         <div className="space-y-2">
-                            <Label htmlFor="status">Status *</Label>
+                            <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
                             <Select
                                 value={currentStatus}
                                 onValueChange={(value) =>
@@ -256,7 +220,7 @@ export function ProductCreateForm() {
                                 }
                             >
                                 <SelectTrigger id="status">
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder={FORM_CONFIG.PLACEHOLDERS.SELECT_STATUS} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
@@ -286,7 +250,7 @@ export function ProductCreateForm() {
                         form="create-product-form"
                         disabled={busy}
                     >
-                        {busy ? "Creating..." : "Create Product"}
+                        {busy ? FORM_CONFIG.MESSAGES.CREATING : FORM_CONFIG.MESSAGES.CREATE}
                     </Button>
                 </DialogFooter>
             </DialogContent>

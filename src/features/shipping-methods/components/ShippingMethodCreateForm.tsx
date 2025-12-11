@@ -22,22 +22,20 @@ import {
     SelectValue,
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateShippingMethod } from "../hooks";
 import { createShippingMethodSchema, type CreateShippingMethodInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 export function ShippingMethodCreateForm() {
     const [open, setOpen] = useState(false);
-    const { mutate: doCreate, isPending } = useCreateShippingMethod();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateShippingMethodInput>({
         resolver: zodResolver(createShippingMethodSchema),
@@ -50,6 +48,8 @@ export function ShippingMethodCreateForm() {
         },
     });
 
+    const { mutate: doCreate, isPending } = useCreateShippingMethod({ setError: setError as any });
+
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
@@ -59,7 +59,6 @@ export function ShippingMethodCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -86,105 +85,106 @@ export function ShippingMethodCreateForm() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form
-                    id="create-shipping-method-form"
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="space-y-4"
-                >
-                    <FormError errors={errors} />
-                    {/* Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name *</Label>
-                        <Input
-                            id="name"
-                            placeholder="Standard Shipping"
-                            {...register("name")}
-                            autoFocus
-                        />
-                        {errors.name && (
-                            <p className="text-xs text-red-500">
-                                {errors.name.message}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="Standard delivery within 3-5 business days"
-                            {...register("description")}
-                        />
-                        {errors.description && (
-                            <p className="text-xs text-red-500">
-                                {errors.description.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Fee */}
+                <ScrollArea className="max-h-[60vh]">
+                    <form
+                        id="create-shipping-method-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+                        {/* Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="fee">Fee *</Label>
+                            <Label htmlFor="name">Name *</Label>
                             <Input
-                                id="fee"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                {...register("fee", { valueAsNumber: true })}
+                                id="name"
+                                placeholder="Standard Shipping"
+                                {...register("name")}
+                                autoFocus
                             />
-                            {errors.fee && (
+                            {errors.name && (
                                 <p className="text-xs text-red-500">
-                                    {errors.fee.message}
+                                    {errors.name.message}
                                 </p>
                             )}
                         </div>
 
-                        {/* Estimated Days */}
+                        {/* Description */}
                         <div className="space-y-2">
-                            <Label htmlFor="estimatedDays">Est. Days *</Label>
-                            <Input
-                                id="estimatedDays"
-                                type="number"
-                                min="1"
-                                max="60"
-                                {...register("estimatedDays", {
-                                    valueAsNumber: true,
-                                })}
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Standard delivery within 3-5 business days"
+                                {...register("description")}
                             />
-                            {errors.estimatedDays && (
+                            {errors.description && (
                                 <p className="text-xs text-red-500">
-                                    {errors.estimatedDays.message}
+                                    {errors.description.message}
                                 </p>
                             )}
                         </div>
-                    </div>
 
-                    {/* Status */}
-                    <div className="space-y-2">
-                        <Label htmlFor="status">Status *</Label>
-                        <Select
-                            value={currentStatus}
-                            onValueChange={(value) =>
-                                setValue("status", value as any)
-                            }
-                        >
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">Inactive</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {errors.status && (
-                            <p className="text-xs text-red-500">
-                                {errors.status.message}
-                            </p>
-                        )}
-                    </div>
-                </form>
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Fee */}
+                            <div className="space-y-2">
+                                <Label htmlFor="fee">Fee *</Label>
+                                <Input
+                                    id="fee"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    {...register("fee", { valueAsNumber: true })}
+                                />
+                                {errors.fee && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.fee.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Estimated Days */}
+                            <div className="space-y-2">
+                                <Label htmlFor="estimatedDays">Est. Days *</Label>
+                                <Input
+                                    id="estimatedDays"
+                                    type="number"
+                                    min="1"
+                                    max="60"
+                                    {...register("estimatedDays", {
+                                        valueAsNumber: true,
+                                    })}
+                                />
+                                {errors.estimatedDays && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.estimatedDays.message}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status *</Label>
+                            <Select
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
+                            >
+                                <SelectTrigger id="status">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ACTIVE">Active</SelectItem>
+                                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.status && (
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
+                            )}
+                        </div>
+                    </form>
+                </ScrollArea>
 
                 <DialogFooter>
                     <Button

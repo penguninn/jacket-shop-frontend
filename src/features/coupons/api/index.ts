@@ -75,7 +75,7 @@ export async function updateStatus(id: number, payload: UpdateCouponStatusInput)
 }
 
 export async function bulkUpdateStatus(ids: number[], status: string) {
-    await httpPrivateTyped.post("/coupons/bulk/status", { ids, status }, z.null());
+    await httpPrivateTyped.post("/coupons/bulk/status", { ids, status }, z.array(couponSchema));
 }
 
 export async function bulkDelete(ids: number[]) {

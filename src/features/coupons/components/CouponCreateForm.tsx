@@ -25,21 +25,18 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateCoupon } from "../hooks";
 import { createCouponSchema, type CreateCouponInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 export function CouponCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateCoupon, isPending } = useCreateCoupon();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateCouponInput>({
         resolver: zodResolver(createCouponSchema),
@@ -56,6 +53,8 @@ export function CouponCreateForm() {
             status: "ACTIVE",
         },
     });
+
+    const { mutate: doCreateCoupon, isPending } = useCreateCoupon({ setError: setError as any });
 
     const couponType = watch("type");
     const currentStatus = watch("status");
@@ -87,7 +86,6 @@ export function CouponCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -120,7 +118,7 @@ export function CouponCreateForm() {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
+
                         {/* Code */}
                         <div className="space-y-2">
                             <Label htmlFor="code">Code *</Label>

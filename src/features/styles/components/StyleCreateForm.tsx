@@ -22,23 +22,21 @@ import {
     SelectValue,
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateStyle } from "../hooks";
 import { createStyleSchema, type CreateStyleInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 export function StyleCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateStyle, isPending } = useCreateStyle();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateStyleInput>({
         resolver: zodResolver(createStyleSchema),
@@ -49,6 +47,8 @@ export function StyleCreateForm() {
         },
     });
 
+    const { mutate: doCreateStyle, isPending } = useCreateStyle({ setError: setError as any });
+
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
@@ -58,7 +58,6 @@ export function StyleCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -85,68 +84,69 @@ export function StyleCreateForm() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form
-                    id="create-style-form"
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="space-y-4"
-                >
-                    <FormError errors={errors} />
-                    {/* Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Style Name *</Label>
-                        <Input
-                            id="name"
-                            placeholder="Bomber, Biker, Hoodie, etc."
-                            {...register("name")}
-                            autoFocus
-                        />
-                        {errors.name && (
-                            <p className="text-xs text-red-500">
-                                {errors.name.message}
-                            </p>
-                        )}
-                    </div>
+                <ScrollArea className="max-h-[60vh]">
+                    <form
+                        id="create-style-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+                        {/* Name */}
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Style Name *</Label>
+                            <Input
+                                id="name"
+                                placeholder="Bomber, Biker, Hoodie, etc."
+                                {...register("name")}
+                                autoFocus
+                            />
+                            {errors.name && (
+                                <p className="text-xs text-red-500">
+                                    {errors.name.message}
+                                </p>
+                            )}
+                        </div>
 
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="Description of the style..."
-                            {...register("description")}
-                            rows={3}
-                        />
-                        {errors.description && (
-                            <p className="text-xs text-red-500">
-                                {errors.description.message}
-                            </p>
-                        )}
-                    </div>
+                        {/* Description */}
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Description of the style..."
+                                {...register("description")}
+                                rows={3}
+                            />
+                            {errors.description && (
+                                <p className="text-xs text-red-500">
+                                    {errors.description.message}
+                                </p>
+                            )}
+                        </div>
 
-                    {/* Status */}
-                    <div className="space-y-2">
-                        <Label htmlFor="status">Status *</Label>
-                        <Select
-                            value={currentStatus}
-                            onValueChange={(value) =>
-                                setValue("status", value as any)
-                            }
-                        >
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">Inactive</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {errors.status && (
-                            <p className="text-xs text-red-500">
-                                {errors.status.message}
-                            </p>
-                        )}
-                    </div>
-                </form>
+                        {/* Status */}
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status *</Label>
+                            <Select
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
+                            >
+                                <SelectTrigger id="status">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ACTIVE">Active</SelectItem>
+                                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.status && (
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
+                            )}
+                        </div>
+                    </form>
+                </ScrollArea>
 
                 <DialogFooter>
                     <Button

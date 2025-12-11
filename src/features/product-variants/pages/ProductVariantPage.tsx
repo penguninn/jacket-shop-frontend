@@ -51,7 +51,7 @@ export default function ProductVariantPage() {
                         <div className="mt-2 flex items-center gap-3">
                             <StatusBadge status={product.status} />
                             <span className="text-muted-foreground">
-                                {product.category?.name} • {product.brand?.name}
+                                {product.brand?.name}
                             </span>
                         </div>
                     </div>
@@ -81,7 +81,7 @@ export default function ProductVariantPage() {
                             <div>
                                 <h3 className="font-semibold">Attributes</h3>
                                 <ul className="text-sm text-muted-foreground">
-                                    <li>Material: {product.material?.name || "N/A"}</li>
+
                                     <li>Style: {product.style?.name || "N/A"}</li>
                                 </ul>
                             </div>

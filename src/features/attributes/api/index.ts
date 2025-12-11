@@ -1,14 +1,17 @@
 // src/api/attribute.ts
 import { z } from "zod";
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import { colorSchema, sizeSchema } from "@/features/attributes/model";
+import { colorSchema, sizeSchema, materialSchema } from "@/features/attributes/model";
 import {
   colorsResponseSchema,
   sizesResponseSchema,
+  materialsResponseSchema,
   type CreateColorInput,
   type UpdateColorInput,
   type CreateSizeInput,
   type UpdateSizeInput,
+  type CreateMaterialInput,
+  type UpdateMaterialInput,
 } from "../model/schemas";
 
 // -----------------
@@ -69,7 +72,7 @@ export async function bulkDeleteColors(ids: number[]) {
 }
 
 export async function bulkUpdateStatusColors(ids: number[], status: string) {
-  await httpPrivateTyped.post("/colors/bulk/status", { ids, status }, z.null());
+  await httpPrivateTyped.post("/colors/bulk/status", { ids, status }, z.array(colorSchema));
 }
 
 // -----------------
@@ -123,5 +126,59 @@ export async function bulkDeleteSizes(ids: number[]) {
 }
 
 export async function bulkUpdateStatusSizes(ids: number[], status: string) {
-  await httpPrivateTyped.post("/sizes/bulk/status", { ids, status }, z.null());
+  await httpPrivateTyped.post("/sizes/bulk/status", { ids, status }, z.array(sizeSchema));
+}
+
+// -----------------
+// Material API
+// -----------------
+export interface GetMaterialsParams {
+  page: number;
+  size: number;
+  sortBy?: string;
+  sortDir?: SortDirection;
+  search?: string;
+  status?: string[];
+}
+
+export async function getMaterials(params: GetMaterialsParams) {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+  const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+  queryParams.append("sortBy", sortBy);
+  queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+  if (params.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params.status?.length) {
+    params.status.forEach((s) => queryParams.append("status", s));
+  }
+
+  return httpPrivateTyped.get(`/materials?${queryParams.toString()}`, materialsResponseSchema);
+}
+
+export async function createMaterial(payload: CreateMaterialInput) {
+  return httpPrivateTyped.post("/materials", payload, materialSchema);
+}
+
+export async function updateMaterial(id: number, payload: UpdateMaterialInput) {
+  return httpPrivateTyped.put(`/materials/${id}`, payload, materialSchema);
+}
+
+export async function deleteMaterial(id: number) {
+  return httpPrivateTyped.del(`/materials/${id}`, z.null());
+}
+
+export async function bulkDeleteMaterials(ids: number[]) {
+  await httpPrivateTyped.post("/materials/bulk/delete", { ids }, z.null());
+}
+
+export async function bulkUpdateStatusMaterials(ids: number[], status: string) {
+  await httpPrivateTyped.post("/materials/bulk/status", { ids, status }, z.array(materialSchema));
 }

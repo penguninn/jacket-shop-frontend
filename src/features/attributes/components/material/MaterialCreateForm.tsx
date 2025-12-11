@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -22,31 +23,24 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateMaterialSchema, type UpdateMaterialInput, type MaterialStatus } from "../model/schemas";
-import type { Material } from "../model/schemas";
-import { useUpdateMaterial } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+import { useCreateMaterial } from "../../hooks";
+import { createMaterialSchema, type CreateMaterialInput, type MaterialStatus } from "../../model/schemas";
 
-interface Props {
-    material: Material;
-    children: React.ReactNode;
-}
 
-export function MaterialEditForm({ material, children }: Props) {
+export function MaterialCreateForm() {
     const [open, setOpen] = useState(false);
-    const { mutate: doUpdateMaterial, isPending } = useUpdateMaterial();
 
     const {
         register,
         handleSubmit,
-        setError,
+
         setValue,
-        watch,
         reset,
-        formState: { errors, isSubmitting, isDirty },
-    } = useForm<UpdateMaterialInput>({
-        resolver: zodResolver(updateMaterialSchema),
+        watch,
+        setError,
+        formState: { errors, isSubmitting },
+    } = useForm<CreateMaterialInput>({
+        resolver: zodResolver(createMaterialSchema),
         defaultValues: {
             name: "",
             description: "",
@@ -54,49 +48,50 @@ export function MaterialEditForm({ material, children }: Props) {
         },
     });
 
-    const currentStatus = watch("status");
+    const { mutate: doCreateMaterial, isPending } = useCreateMaterial({ setError: setError as any });
+
     const busy = isSubmitting || isPending;
+    const currentStatus = watch("status");
 
-    useEffect(() => {
-        if (open && material) {
-            reset({
-                name: material.name,
-                description: material.description || "",
-                status: material.status,
-            });
+    const onSubmit = (data: CreateMaterialInput) => {
+        doCreateMaterial(data, {
+            onSuccess: () => {
+                setOpen(false);
+                reset();
+            },
+        });
+    };
+
+    const handleOpenChange = (newOpen: boolean) => {
+        if (!newOpen) {
+            reset();
         }
-    }, [open, material, reset]);
-
-    const onSubmit = (data: UpdateMaterialInput) => {
-        doUpdateMaterial(
-            { id: material.id, data },
-            {
-                onSuccess: () => {
-                    setOpen(false);
-                },
-                onError: (e: any) => mapProblemToForm(e, setError),
-            }
-        );
+        setOpen(newOpen);
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Material
+                </Button>
+            </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Material: {material.name}</DialogTitle>
+                    <DialogTitle>Create New Material</DialogTitle>
                     <DialogDescription>
-                        Update material information.
+                        Add a new material to the system. Fill in all required fields.
                     </DialogDescription>
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
                     <form
-                        id="edit-material-form"
+                        id="create-material-form"
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
+
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
@@ -104,9 +99,12 @@ export function MaterialEditForm({ material, children }: Props) {
                                 id="name"
                                 placeholder="Material Name"
                                 {...register("name")}
+                                autoFocus
                             />
                             {errors.name && (
-                                <p className="text-xs text-red-500">{errors.name.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.name.message}
+                                </p>
                             )}
                         </div>
 
@@ -119,7 +117,9 @@ export function MaterialEditForm({ material, children }: Props) {
                                 {...register("description")}
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description.message}
+                                </p>
                             )}
                         </div>
 
@@ -129,13 +129,11 @@ export function MaterialEditForm({ material, children }: Props) {
                             <Select
                                 value={currentStatus}
                                 onValueChange={(value) =>
-                                    setValue("status", value as MaterialStatus, {
-                                        shouldDirty: true,
-                                    })
+                                    setValue("status", value as MaterialStatus)
                                 }
                             >
                                 <SelectTrigger id="status">
-                                    <SelectValue />
+                                    <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
@@ -162,10 +160,10 @@ export function MaterialEditForm({ material, children }: Props) {
                     </Button>
                     <Button
                         type="submit"
-                        form="edit-material-form"
-                        disabled={busy || !isDirty}
+                        form="create-material-form"
+                        disabled={busy}
                     >
-                        {busy ? "Saving..." : "Save Changes"}
+                        {busy ? "Creating..." : "Create Material"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

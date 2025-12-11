@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit2, Save, X } from "lucide-react";
+import { Edit2, Save, X, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Separator } from "@/shared/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -27,14 +28,13 @@ interface Props {
 export function OverviewTab({ user }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
-  const updateMutation = useUpdateUser();
-  const deleteMutation = useDeleteUser();
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    setError,
     reset,
     formState: { errors, isDirty },
   } = useForm<UpdateUserInput>({
@@ -43,18 +43,22 @@ export function OverviewTab({ user }: Props) {
       fullName: user.fullName,
       phone: user.phone || "",
       status: user.status,
-      roleIds: [],
+      roleIds: [], // Roles not editable here, but schema might require it? user schema usually has roleIds optional or we just ignore for this partial update
     },
   });
+
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser({ setError: setError as any });
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser({ setError: setError as any });
 
   const currentStatus = watch("status");
 
   const onSubmit = (data: UpdateUserInput) => {
-    updateMutation.mutate(
+    updateUser(
       { id: user.id, data },
       {
         onSuccess: () => {
           setIsEditing(false);
+          // Optional: invalidate/refetch handled by hook
         },
       }
     );
@@ -67,7 +71,7 @@ export function OverviewTab({ user }: Props) {
 
   const handleDelete = () => {
     if (confirm(`Are you sure you want to delete user "${user.username}"?`)) {
-      deleteMutation.mutate(user.id, {
+      deleteUser(user.id, {
         onSuccess: () => {
           navigate("/admin/users");
         },
@@ -77,7 +81,6 @@ export function OverviewTab({ user }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Personal Information */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Personal Information</CardTitle>
@@ -96,7 +99,7 @@ export function OverviewTab({ user }: Props) {
                 variant="outline"
                 size="sm"
                 onClick={handleCancel}
-                disabled={updateMutation.isPending}
+                disabled={isUpdating}
               >
                 <X className="mr-2 h-4 w-4" />
                 Cancel
@@ -104,16 +107,24 @@ export function OverviewTab({ user }: Props) {
               <Button
                 size="sm"
                 onClick={handleSubmit(onSubmit)}
-                disabled={updateMutation.isPending || !isDirty}
+                disabled={isUpdating || !isDirty}
               >
                 <Save className="mr-2 h-4 w-4" />
-                {updateMutation.isPending ? "Saving..." : "Save"}
+                {isUpdating ? "Saving..." : "Save"}
               </Button>
             </div>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Username (read-only) */}
+          {errors.root && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {errors.root.message}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Username</Label>
             <div className="col-span-3">
@@ -121,7 +132,6 @@ export function OverviewTab({ user }: Props) {
             </div>
           </div>
 
-          {/* Full Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="fullName" className="text-right">
               Full Name
@@ -141,7 +151,6 @@ export function OverviewTab({ user }: Props) {
             </div>
           </div>
 
-          {/* Phone */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="phone" className="text-right">
               Phone
@@ -161,7 +170,6 @@ export function OverviewTab({ user }: Props) {
             </div>
           </div>
 
-          {/* Status */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Status</Label>
             <div className="col-span-3">
@@ -191,7 +199,6 @@ export function OverviewTab({ user }: Props) {
         </CardContent>
       </Card>
 
-      {/* Roles & Permissions */}
       <Card>
         <CardHeader>
           <CardTitle>Roles & Permissions</CardTitle>
@@ -199,13 +206,12 @@ export function OverviewTab({ user }: Props) {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {user.roles.map((role) => (
-              <UserRoleBadge key={role} role={role} />
+              <UserRoleBadge key={role.id} role={role.name} />
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Account Info */}
       <Card>
         <CardHeader>
           <CardTitle>Account Information</CardTitle>
@@ -238,7 +244,6 @@ export function OverviewTab({ user }: Props) {
         </CardContent>
       </Card>
 
-      {/* Danger Zone */}
       <Card className="border-red-200">
         <CardHeader>
           <CardTitle className="text-red-600">Danger Zone</CardTitle>
@@ -264,9 +269,9 @@ export function OverviewTab({ user }: Props) {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={isDeleting}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </CardContent>

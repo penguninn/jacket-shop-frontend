@@ -26,9 +26,31 @@ import {
   type BrandStatus,
 } from "../model/schemas";
 import { useUpdateBrand } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 import { Textarea } from "@/shared/ui/textarea";
+import { ScrollArea } from "@/shared/ui/scroll-area";
+
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+  LABELS: {
+    NAME: "Brand Name *",
+    LOGO: "Logo URL",
+    DESCRIPTION: "Description",
+    STATUS: "Status *",
+  },
+  PLACEHOLDERS: {
+    NAME: "Nike, Adidas, etc.",
+    LOGO: "https://example.com/logo.png",
+    DESCRIPTION: "Description",
+    SELECT_STATUS: "Select status",
+  },
+  MESSAGES: {
+    SAVE: "Save Changes",
+    SAVING: "Saving...",
+  },
+} as const;
 
 interface Props {
   open: boolean;
@@ -37,15 +59,13 @@ interface Props {
 }
 
 export function BrandEditForm({ open, onOpenChange, brand }: Props) {
-  const { mutate: doUpdateBrand, isPending } = useUpdateBrand();
-
   const {
     register,
     handleSubmit,
-    setError,
     setValue,
     watch,
     reset,
+    setError,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateBrandInput>({
     resolver: zodResolver(updateBrandSchema),
@@ -56,6 +76,8 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
       status: "ACTIVE",
     },
   });
+
+  const { mutate: doUpdateBrand, isPending } = useUpdateBrand({ setError: setError as any });
 
   const currentStatus = watch("status");
   const busy = isSubmitting || isPending;
@@ -78,7 +100,6 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
         onSuccess: () => {
           onOpenChange(false);
         },
-        onError: (e: any) => mapProblemToForm(e, setError),
       },
     );
   };
@@ -91,74 +112,75 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
           <DialogDescription>Update brand information.</DialogDescription>
         </DialogHeader>
 
-        <form
-          id="edit-brand-form"
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
-        >
-          <FormError errors={errors} />
-          {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Brand Name *</Label>
-            <Input
-              id="name"
-              placeholder="Nike, Adidas, etc."
-              {...register("name")}
-            />
-            {errors.name && (
-              <p className="text-xs text-red-500">{errors.name.message}</p>
-            )}
-          </div>
+        <ScrollArea className="max-h-[60vh]">
+          <form
+            id="edit-brand-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">{FORM_CONFIG.LABELS.NAME}</Label>
+              <Input
+                id="name"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.NAME}
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
+            </div>
 
-          {/* Logo URL */}
-          <div className="space-y-2">
-            <Label htmlFor="logoUrl">Logo URL</Label>
-            <Input
-              id="logoUrl"
-              placeholder="https://example.com/logo.png"
-              {...register("logoUrl")}
-            />
-            {errors.logoUrl && (
-              <p className="text-xs text-red-500">{errors.logoUrl.message}</p>
-            )}
-          </div>
+            {/* Logo URL */}
+            <div className="space-y-2">
+              <Label htmlFor="logoUrl">{FORM_CONFIG.LABELS.LOGO}</Label>
+              <Input
+                id="logoUrl"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.LOGO}
+                {...register("logoUrl")}
+              />
+              {errors.logoUrl && (
+                <p className="text-xs text-red-500">{errors.logoUrl.message}</p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Description"
-              {...register("description")}
-            />
-            {errors.description && (
-              <p className="text-xs text-red-500">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">{FORM_CONFIG.LABELS.DESCRIPTION}</Label>
+              <Textarea
+                id="description"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.DESCRIPTION}
+                {...register("description")}
+              />
+              {errors.description && (
+                <p className="text-xs text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
 
-          {/* Status */}
-          <div className="space-y-2">
-            <Label htmlFor="status">Status *</Label>
-            <Select
-              value={currentStatus}
-              onValueChange={(value) =>
-                setValue("status", value as BrandStatus, { shouldDirty: true })
-              }
-            >
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.status && (
-              <p className="text-xs text-red-500">{errors.status.message}</p>
-            )}
-          </div>
-        </form>
+            {/* Status */}
+            <div className="space-y-2">
+              <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
+              <Select
+                value={currentStatus}
+                onValueChange={(value) =>
+                  setValue("status", value as BrandStatus, { shouldDirty: true })
+                }
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder={FORM_CONFIG.PLACEHOLDERS.SELECT_STATUS} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.status && (
+                <p className="text-xs text-red-500">{errors.status.message}</p>
+              )}
+            </div>
+          </form>
+        </ScrollArea>
 
         <DialogFooter>
           <Button
@@ -174,7 +196,7 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
             form="edit-brand-form"
             disabled={busy || !isDirty}
           >
-            {busy ? "Saving..." : "Save Changes"}
+            {busy ? FORM_CONFIG.MESSAGES.SAVING : FORM_CONFIG.MESSAGES.SAVE}
           </Button>
         </DialogFooter>
       </DialogContent>

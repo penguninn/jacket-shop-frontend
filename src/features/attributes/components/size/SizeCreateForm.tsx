@@ -25,20 +25,18 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateSize } from "../../hooks";
 import { createSizeSchema, type CreateSizeInput, type SizeStatus } from "../../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 export function SizeCreateForm() {
   const [open, setOpen] = useState(false);
-  const { mutate: doCreate, isPending } = useCreateSize();
-
   const {
     register,
     handleSubmit,
-    setError,
+
     setValue,
     watch,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CreateSizeInput>({
     resolver: zodResolver(createSizeSchema),
@@ -49,6 +47,8 @@ export function SizeCreateForm() {
     },
   });
 
+  const { mutate: doCreate, isPending } = useCreateSize({ setError: setError as any });
+
   const busy = isSubmitting || isPending;
   const currentStatus = watch("status");
 
@@ -58,7 +58,6 @@ export function SizeCreateForm() {
         setOpen(false);
         reset();
       },
-      onError: (e: any) => mapProblemToForm(e, setError),
     });
   };
 
@@ -89,7 +88,7 @@ export function SizeCreateForm() {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-4 pr-4"
           >
-            <FormError errors={errors} />
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>

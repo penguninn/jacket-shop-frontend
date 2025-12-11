@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { CouponTableToolbar } from "./CouponTableToolbar";
 import { columns } from "./CouponTableColumns";
-import { useCoupons, useBulkUpdateStatus } from "../hooks";
+import { useCoupons, useBulkUpdateCouponStatus as useBulkUpdateStatus } from "../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
 import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBulkActions";

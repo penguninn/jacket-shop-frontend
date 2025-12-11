@@ -1,22 +1,193 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
-
-
+import { Lock, Eye, EyeOff, User, Phone, AlertCircle } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useSignUpMutation } from "../hooks/use-signup";
-import { signUpSchema } from "../model/schemas";
-import type { SignUpInput } from "../model/types";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { useSignUp } from "../hooks";
+import { signUpSchema, type SignUpInput } from "../model";
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
-export default function SignUpForm() {
-  const [showPwd, setShowPwd] = useState(false);
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+  TITLE: 'Create Account',
+  SUBTITLE: 'Sign up to start shopping with us',
+  LABELS: {
+    USERNAME: 'Username',
+    FULL_NAME: 'Full Name',
+    PHONE: 'Phone Number',
+    PASSWORD: 'Password',
+  },
+  PLACEHOLDERS: {
+    USERNAME: 'Enter your username',
+    FULL_NAME: 'Enter your full name',
+    PHONE: 'Enter your phone number',
+    PASSWORD: 'Create a password',
+  },
+  BUTTONS: {
+    SUBMIT: 'Sign up',
+    SUBMITTING: 'Signing up...',
+    SIGN_IN: 'Sign in',
+  },
+  MESSAGES: {
+    HAVE_ACCOUNT: 'Already have an account?',
+  },
+  ARIA_LABELS: {
+    SHOW_PASSWORD: 'Show password',
+    HIDE_PASSWORD: 'Hide password',
+  },
+} as const;
+
+const ROUTES = {
+  SIGN_IN: '/signin',
+} as const;
+
+const DEFAULT_VALUES: SignUpInput = {
+  username: '',
+  fullName: '',
+  phoneNumber: '',
+  password: '',
+};
+
+interface FormHeaderProps {
+  title: string;
+  subtitle: string;
+}
+
+function FormHeader({ title, subtitle }: FormHeaderProps) {
+  return (
+    <CardHeader>
+      <CardTitle className="text-2xl text-center">{title}</CardTitle>
+      <p className="text-sm text-gray-500 text-center">{subtitle}</p>
+    </CardHeader>
+  );
+}
+
+interface FormFooterProps {
+  message: string;
+  linkText: string;
+  linkTo: string;
+}
+
+function FormFooter({ message, linkText, linkTo }: FormFooterProps) {
+  return (
+    <div className="text-center text-sm text-muted-foreground">
+      {message}{' '}
+      <Button
+        variant="link"
+        asChild
+        className="p-0 h-auto font-normal underline"
+      >
+        <Link to={linkTo}>{linkText}</Link>
+      </Button>
+    </div>
+  );
+}
+
+interface IconInputProps {
+  id: string;
+  label: string;
+  type?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  register: any;
+  error?: string;
+  placeholder?: string;
+  autoComplete?: string;
+}
+
+function IconInput({
+  id,
+  label,
+  type = 'text',
+  icon: Icon,
+  register,
+  error,
+  placeholder,
+  autoComplete,
+}: IconInputProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          id={id}
+          type={type}
+          className="pl-9"
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          {...register}
+        />
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+interface PasswordInputProps {
+  id: string;
+  label: string;
+  register: any;
+  error?: string;
+  placeholder?: string;
+  showPassword: boolean;
+  onToggleVisibility: () => void;
+}
+
+function PasswordInput({
+  id,
+  label,
+  register,
+  error,
+  placeholder,
+  showPassword,
+  onToggleVisibility,
+}: PasswordInputProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          id={id}
+          type={showPassword ? 'text' : 'password'}
+          className="pl-9 pr-9"
+          placeholder={placeholder}
+          autoComplete="new-password"
+          {...register}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+          onClick={onToggleVisibility}
+          aria-label={
+            showPassword
+              ? FORM_CONFIG.ARIA_LABELS.HIDE_PASSWORD
+              : FORM_CONFIG.ARIA_LABELS.SHOW_PASSWORD
+          }
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+export default function SignUpPage() {
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
 
   const {
@@ -26,146 +197,104 @@ export default function SignUpForm() {
     formState: { errors, isSubmitting },
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      username: "",
-      fullName: "",
-      phoneNumber: "",
-      password: "",
-    },
+    defaultValues: DEFAULT_VALUES,
   });
 
-  const { mutate: doSignUp, isPending } = useSignUpMutation();
+  const { mutate: signUp, isPending } = useSignUp({ setError: setError as any });
+
   const busy = isSubmitting || isPending;
+
+  const handleTogglePassword = useCallback(() => {
+    setShowPassword((prev) => !prev);
+  }, []);
+
+  const onSubmit = useCallback(
+    (data: SignUpInput) => {
+      signUp(data, {
+        onSuccess: () => {
+          navigate(ROUTES.SIGN_IN);
+        },
+      });
+    },
+    [signUp, navigate]
+  );
 
   return (
     <div className="min-h-[calc(100vh-400px)] flex items-center justify-center py-12">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-          <p className="text-sm text-gray-500 text-center">
-            Sign up to start shopping with us
-          </p>
-        </CardHeader>
+        <FormHeader
+          title={FORM_CONFIG.TITLE}
+          subtitle={FORM_CONFIG.SUBTITLE}
+        />
+
         <CardContent>
-          <form
-            onSubmit={handleSubmit((v) =>
-              doSignUp(v, {
-                onSuccess: () => navigate("/login"),
-                onError: (e: any) => mapProblemToForm(e, setError),
-              }),
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {errors.root && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {errors.root.message}
+                </AlertDescription>
+              </Alert>
             )}
-            className="space-y-4"
-          >
-            <FormError errors={errors} />
-            {/* Username */}
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="username"
-                  type="text"
-                  className="pl-9"
-                  autoComplete="username"
-                  {...register("username")}
-                />
-              </div>
-              {errors.username && (
-                <p className="text-xs text-red-500">
-                  {errors.username.message}
-                </p>
-              )}
-            </div>
 
-            {/* Fullname */}
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Fullname</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="fullName"
-                  type="text"
-                  className="pl-9"
-                  autoComplete="name"
-                  {...register("fullName")}
-                />
-              </div>
-              {errors.fullName && (
-                <p className="text-xs text-red-500">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </div>
+            <IconInput
+              id="username"
+              label={FORM_CONFIG.LABELS.USERNAME}
+              icon={User}
+              register={register('username')}
+              error={errors.username?.message}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.USERNAME}
+              autoComplete="username"
+            />
 
-            {/* Phone number */}
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone number</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phoneNumber"
-                  type="text"
-                  className="pl-9"
-                  autoComplete="tel"
-                  {...register("phoneNumber")}
-                />
-              </div>
-              {errors.phoneNumber && (
-                <p className="text-xs text-red-500">
-                  {errors.phoneNumber.message}
-                </p>
-              )}
-            </div>
+            <IconInput
+              id="fullName"
+              label={FORM_CONFIG.LABELS.FULL_NAME}
+              icon={User}
+              register={register('fullName')}
+              error={errors.fullName?.message}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.FULL_NAME}
+              autoComplete="name"
+            />
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPwd ? "text" : "password"}
-                  className="pl-9 pr-9"
-                  autoComplete="new-password"
-                  {...register("password")}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowPwd((s) => !s)}
-                  aria-label={showPwd ? "Hide password" : "Show password"}
-                >
-                  {showPwd ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.password && (
-                <p className="text-xs text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            <IconInput
+              id="phoneNumber"
+              label={FORM_CONFIG.LABELS.PHONE}
+              type="tel"
+              icon={Phone}
+              register={register('phoneNumber')}
+              error={errors.phoneNumber?.message}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.PHONE}
+              autoComplete="tel"
+            />
+
+            <PasswordInput
+              id="password"
+              label={FORM_CONFIG.LABELS.PASSWORD}
+              register={register('password')}
+              error={errors.password?.message}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.PASSWORD}
+              showPassword={showPassword}
+              onToggleVisibility={handleTogglePassword}
+            />
 
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Signing up..." : "Sign up"}
+              {busy
+                ? FORM_CONFIG.BUTTONS.SUBMITTING
+                : FORM_CONFIG.BUTTONS.SUBMIT}
             </Button>
 
-            <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Button variant="link" asChild className="p-0 h-auto font-normal underline">
-                <Link to="/signin">
-                  Sign in
-                </Link>
-              </Button>
-            </div>
+            <FormFooter
+              message={FORM_CONFIG.MESSAGES.HAVE_ACCOUNT}
+              linkText={FORM_CONFIG.BUTTONS.SIGN_IN}
+              linkTo={ROUTES.SIGN_IN}
+            />
           </form>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+

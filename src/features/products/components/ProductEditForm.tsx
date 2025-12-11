@@ -22,9 +22,33 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
-import { useUpdateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+import { useUpdateProduct, useBrands, useStyles } from "../hooks";
+
+
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+    LABELS: {
+        NAME: "Product Name *",
+        DESCRIPTION: "Description",
+        BRAND: "Brand",
+        STYLE: "Style",
+        STATUS: "Status *",
+    },
+    PLACEHOLDERS: {
+        NAME: "Classic Leather Jacket",
+        DESCRIPTION: "Product description...",
+        SELECT_BRAND: "Select brand",
+        SELECT_STYLE: "Select style",
+        SELECT_STATUS: "Select status",
+    },
+    MESSAGES: {
+        SAVE: "Save Changes",
+        SAVING: "Saving...",
+    },
+} as const;
+
 
 interface Props {
     open: boolean;
@@ -33,27 +57,13 @@ interface Props {
 }
 
 export function ProductEditForm({ open, onOpenChange, product }: Props) {
-    const { mutate: doUpdateProduct, isPending } = useUpdateProduct();
-
-    // Fetch helper entities for dropdowns
-    const { data: categoriesResponse } = useCategories();
-    const { data: brandsResponse } = useBrands();
-    const { data: materialsResponse } = useMaterials();
-    const { data: stylesResponse } = useStyles();
-
-    // Extract contents from paginated responses
-    const categories = categoriesResponse?.contents ?? [];
-    const brands = brandsResponse?.contents ?? [];
-    const materials = materialsResponse?.contents ?? [];
-    const styles = stylesResponse?.contents ?? [];
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting, isDirty },
     } = useForm<UpdateProductInput>({
         resolver: zodResolver(updateProductSchema),
@@ -64,10 +74,18 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
         },
     });
 
+    const { mutate: doUpdateProduct, isPending } = useUpdateProduct({ setError: setError as any });
+
+    // Fetch helper entities for dropdowns
+    const { data: brandsResponse } = useBrands();
+    const { data: stylesResponse } = useStyles();
+
+    // Extract contents from paginated responses
+    const brands = brandsResponse?.contents ?? [];
+    const styles = stylesResponse?.contents ?? [];
+
     const currentStatus = watch("status");
-    const categoryId = watch("categoryId");
     const brandId = watch("brandId");
-    const materialId = watch("materialId");
     const styleId = watch("styleId");
     const busy = isSubmitting || isPending;
 
@@ -76,9 +94,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
             reset({
                 name: product.name,
                 description: product.description || "",
-                categoryId: product.category?.id,
                 brandId: product.brand?.id,
-                materialId: product.material?.id,
                 styleId: product.style?.id,
                 status: product.status,
             });
@@ -92,7 +108,6 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                 onSuccess: () => {
                     onOpenChange(false);
                 },
-                onError: (e: any) => mapProblemToForm(e, setError),
             }
         );
     };
@@ -113,13 +128,13 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
-                        <FormError errors={errors} />
+
                         {/* Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="name">Product Name *</Label>
+                            <Label htmlFor="name">{FORM_CONFIG.LABELS.NAME}</Label>
                             <Input
                                 id="name"
-                                placeholder="Classic Leather Jacket"
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.NAME}
                                 {...register("name")}
                             />
                             {errors.name && (
@@ -131,10 +146,10 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
 
                         {/* Description */}
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{FORM_CONFIG.LABELS.DESCRIPTION}</Label>
                             <Textarea
                                 id="description"
-                                placeholder="Product description..."
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.DESCRIPTION}
                                 {...register("description")}
                             />
                             {errors.description && (
@@ -145,34 +160,6 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Category */}
-                            <div className="space-y-2">
-                                <Label htmlFor="categoryId">Category</Label>
-                                <Select
-                                    value={
-                                        categoryId ? String(categoryId) : undefined
-                                    }
-                                    onValueChange={(value) =>
-                                        setValue("categoryId", Number(value), {
-                                            shouldDirty: true,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="categoryId">
-                                        <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories?.map((c) => (
-                                            <SelectItem
-                                                key={c.id}
-                                                value={String(c.id)}
-                                            >
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
 
                             {/* Brand */}
                             <div className="space-y-2">
@@ -195,35 +182,6 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                                 value={String(b.id)}
                                             >
                                                 {b.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Material */}
-                            <div className="space-y-2">
-                                <Label htmlFor="materialId">Material</Label>
-                                <Select
-                                    value={
-                                        materialId ? String(materialId) : undefined
-                                    }
-                                    onValueChange={(value) =>
-                                        setValue("materialId", Number(value), {
-                                            shouldDirty: true,
-                                        })
-                                    }
-                                >
-                                    <SelectTrigger id="materialId">
-                                        <SelectValue placeholder="Select material" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {materials?.map((m) => (
-                                            <SelectItem
-                                                key={m.id}
-                                                value={String(m.id)}
-                                            >
-                                                {m.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -260,7 +218,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
 
                         {/* Status */}
                         <div className="space-y-2">
-                            <Label htmlFor="status">Status *</Label>
+                            <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
                             <Select
                                 value={currentStatus}
                                 onValueChange={(value) =>
@@ -270,7 +228,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                 }
                             >
                                 <SelectTrigger id="status">
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder={FORM_CONFIG.PLACEHOLDERS.SELECT_STATUS} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
@@ -300,7 +258,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                         form="edit-product-form"
                         disabled={busy || !isDirty}
                     >
-                        {busy ? "Saving..." : "Save Changes"}
+                        {busy ? FORM_CONFIG.MESSAGES.SAVING : FORM_CONFIG.MESSAGES.SAVE}
                     </Button>
                 </DialogFooter>
             </DialogContent>

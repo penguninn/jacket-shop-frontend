@@ -1,96 +1,100 @@
 import {
-    bulkDeletePaymentMethods,
-    bulkUpdatePaymentMethodStatus,
     createPaymentMethod,
     deletePaymentMethod,
     getPaymentMethodById,
     getPaymentMethods,
     updatePaymentMethod,
     updatePaymentMethodStatus,
+    bulkDeletePaymentMethods,
+    bulkUpdatePaymentMethodStatus,
     type GetPaymentMethodsParams,
 } from "../api";
-import type { UpdatePaymentMethodInput, UpdatePaymentMethodStatusInput } from "../model/schemas";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
+import type { BaseMutationOptions } from "@/shared/api/types";
+import type { CreatePaymentMethodInput, UpdatePaymentMethodInput, UpdatePaymentMethodStatusInput } from "../model/schemas";
 
 export function usePaymentMethods(params: GetPaymentMethodsParams) {
     return useQuery({
         queryKey: ["payment-methods", params],
         queryFn: () => getPaymentMethods(params),
-        staleTime: 30 * 1000,
-    });
-}
-
-export function useCreatePaymentMethod() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: createPaymentMethod,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useUpdatePaymentMethod() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdatePaymentMethodInput }) =>
-            updatePaymentMethod(id, data),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useUpdatePaymentMethodStatus() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdatePaymentMethodStatusInput }) =>
-            updatePaymentMethodStatus(id, data),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useDeletePaymentMethod() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: deletePaymentMethod,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useBulkUpdatePaymentMethodStatus() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
-            bulkUpdatePaymentMethodStatus(ids, status),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
-    });
-}
-
-export function useBulkDeletePaymentMethods() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: bulkDeletePaymentMethods,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["payment-methods"] });
-        },
     });
 }
 
 export function usePaymentMethodDetail(id: number) {
     return useQuery({
-        queryKey: ["payment-method", id],
+        queryKey: ["payment-methods", id],
         queryFn: () => getPaymentMethodById(id),
         enabled: !!id,
+    });
+}
+
+export function useCreatePaymentMethod(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: (data: CreatePaymentMethodInput) => createPaymentMethod(data),
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+        },
+    });
+}
+
+export function useUpdatePaymentMethod(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePaymentMethodInput }) =>
+            updatePaymentMethod(id, data),
+        setError: options?.setError,
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+            queryClient.invalidateQueries({ queryKey: ["payment-methods", variables.id] });
+        },
+    });
+}
+
+export function useDeletePaymentMethod(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: deletePaymentMethod,
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+        },
+    });
+}
+
+export function useUpdatePaymentMethodStatus(options?: BaseMutationOptions) {
+    const qc = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePaymentMethodStatusInput }) =>
+            updatePaymentMethodStatus(id, data),
+        setError: options?.setError,
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["payment-methods"] });
+        },
+    });
+}
+
+export function useBulkDeletePaymentMethods(options?: BaseMutationOptions) {
+    const qc = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: bulkDeletePaymentMethods,
+        setError: options?.setError,
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["payment-methods"] });
+        },
+    });
+}
+
+export function useBulkUpdatePaymentMethodStatus(options?: BaseMutationOptions) {
+    const qc = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
+            bulkUpdatePaymentMethodStatus(ids, status),
+        setError: options?.setError,
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["payment-methods"] });
+        },
     });
 }
