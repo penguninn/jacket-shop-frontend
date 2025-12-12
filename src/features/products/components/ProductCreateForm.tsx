@@ -23,6 +23,8 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
+import { useUpload } from "@/shared/hooks/use-upload";
 
 import { useCreateProduct, useBrands, useStyles } from "../hooks";
 import { createProductSchema, type CreateProductInput } from "../model/schemas";
@@ -49,6 +51,7 @@ const FORM_CONFIG = {
     MESSAGES: {
         CREATE: "Create Product",
         CREATING: "Creating...",
+        UPLOAD_SUCCESS: "Thumbnail uploaded successfully",
     },
 } as const;
 
@@ -69,8 +72,12 @@ export function ProductCreateForm() {
             name: "",
             description: "",
             status: "ACTIVE",
+            thumbnail: "",
         },
     });
+
+    const { upload, isUploading, progress } = useUpload();
+    const thumbnail = watch("thumbnail");
 
     const { mutate: doCreateProduct, isPending } = useCreateProduct({ setError: setError as any });
 
@@ -155,6 +162,41 @@ export function ProductCreateForm() {
                                     {errors.description.message}
                                 </p>
                             )}
+                        </div>
+
+                        {/* Thumbnail Upload */}
+                        <div className="space-y-2">
+                            <Label>Product Thumbnail</Label>
+                            <Dropzone
+                                onDrop={(files) => {
+                                    if (files.length > 0) {
+                                        upload(files[0], {
+                                            onSuccess: (data) => {
+                                                setValue("thumbnail", data.url, { shouldDirty: true });
+                                            }
+                                        });
+                                    }
+                                }}
+                                accept={{ "image/*": [] }}
+                                maxSize={5 * 1024 * 1024}
+                                className={isUploading ? "pointer-events-none opacity-50" : ""}
+                            >
+                                {isUploading ? (
+                                    <div className="flex flex-col items-center justify-center p-8 text-sm text-muted-foreground">
+                                        <p>Uploading... {progress}%</p>
+                                    </div>
+                                ) : thumbnail ? (
+                                    <div className="flex flex-col items-center justify-center p-4">
+                                        <div className="relative aspect-square w-32 overflow-hidden rounded-md border">
+                                            <img src={thumbnail} alt="Thumbnail" className="h-full w-full object-cover" />
+                                        </div>
+                                        <p className="mt-2 text-xs text-muted-foreground">Click or drag to replace</p>
+                                    </div>
+                                ) : (
+                                    <DropzoneEmptyState />
+                                )}
+                            </Dropzone>
+                            <input type="hidden" {...register("thumbnail")} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

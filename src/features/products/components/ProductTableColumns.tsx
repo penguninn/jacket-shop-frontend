@@ -51,6 +51,28 @@ export const columns: ColumnDef<Product>[] = [
         ),
     },
     {
+        accessorKey: "thumbnail",
+        header: "Thumbnail",
+        cell: ({ row }) => {
+            const thumbnail = row.getValue("thumbnail") as string | null;
+            return (
+                <div className="relative size-10 overflow-hidden rounded border">
+                    {thumbnail ? (
+                        <img
+                            src={thumbnail}
+                            alt={row.getValue("name")}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+                            No Img
+                        </div>
+                    )}
+                </div>
+            );
+        },
+    },
+    {
         accessorKey: "brand",
         header: "Brand",
         cell: ({ row }) => {

@@ -52,6 +52,7 @@ export const productSchema = z.object({
   brand: brandResponseSchema.nullable().optional(),
   description: z.string().nullable().optional(),
   style: styleResponseSchema.nullable().optional(),
+  thumbnail: z.string().nullable().optional(),
   imagesJson: z.string().nullable().optional(),
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
@@ -80,6 +81,7 @@ export const createProductSchema = z.object({
   brandId: z.number().optional(),
   description: z.string().optional(),
   styleId: z.number().optional(),
+  thumbnail: z.string().optional(),
   imagesJson: z.string().optional(),
   status: statusSchema,
 });
@@ -94,6 +96,7 @@ export const updateProductSchema = z.object({
   brandId: z.number().optional(),
   description: z.string().optional(),
   styleId: z.number().optional(),
+  thumbnail: z.string().optional(),
   imagesJson: z.string().optional(),
   status: statusSchema,
 });

@@ -21,6 +21,8 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
+import { useUpload } from "@/shared/hooks/use-upload";
 import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
 import { useUpdateProduct, useBrands, useStyles } from "../hooks";
 
@@ -46,6 +48,7 @@ const FORM_CONFIG = {
     MESSAGES: {
         SAVE: "Save Changes",
         SAVING: "Saving...",
+        UPLOAD_SUCCESS: "Thumbnail uploaded successfully",
     },
 } as const;
 
@@ -71,8 +74,12 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
             name: "",
             description: "",
             status: "ACTIVE",
+            thumbnail: "",
         },
     });
+
+    const { upload, isUploading, progress } = useUpload();
+    const thumbnail = watch("thumbnail");
 
     const { mutate: doUpdateProduct, isPending } = useUpdateProduct({ setError: setError as any });
 
@@ -97,6 +104,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                 brandId: product.brand?.id,
                 styleId: product.style?.id,
                 status: product.status,
+                thumbnail: product.thumbnail || "",
             });
         }
     }, [open, product, reset]);
@@ -157,6 +165,41 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                     {errors.description.message}
                                 </p>
                             )}
+                        </div>
+
+                        {/* Thumbnail Upload */}
+                        <div className="space-y-2">
+                            <Label>Product Thumbnail</Label>
+                            <Dropzone
+                                onDrop={(files) => {
+                                    if (files.length > 0) {
+                                        upload(files[0], {
+                                            onSuccess: (data) => {
+                                                setValue("thumbnail", data.url, { shouldDirty: true });
+                                            }
+                                        });
+                                    }
+                                }}
+                                accept={{ "image/*": [] }}
+                                maxSize={5 * 1024 * 1024}
+                                className={isUploading ? "pointer-events-none opacity-50" : ""}
+                            >
+                                {isUploading ? (
+                                    <div className="flex flex-col items-center justify-center p-8 text-sm text-muted-foreground">
+                                        <p>Uploading... {progress}%</p>
+                                    </div>
+                                ) : thumbnail ? (
+                                    <div className="flex flex-col items-center justify-center p-4">
+                                        <div className="relative aspect-square w-32 overflow-hidden rounded-md border">
+                                            <img src={thumbnail} alt="Thumbnail" className="h-full w-full object-cover" />
+                                        </div>
+                                        <p className="mt-2 text-xs text-muted-foreground">Click or drag to replace</p>
+                                    </div>
+                                ) : (
+                                    <DropzoneEmptyState />
+                                )}
+                            </Dropzone>
+                            <input type="hidden" {...register("thumbnail")} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
