@@ -1,11 +1,8 @@
-import axios, {
-  AxiosError,
-  type AxiosInstance,
-  type AxiosRequestConfig,
-} from "axios";
-import { toProblem } from "./error";
+import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from "axios";
+import { ERROR_CODES, toProblem } from "./error";
 import { authStore } from "@/app/store/auth";
-const BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 const TIMEOUT = 15000;
 
 const axiosInstance: AxiosInstance = axios.create({
@@ -16,79 +13,106 @@ const axiosInstance: AxiosInstance = axios.create({
   timeout: TIMEOUT,
 });
 
-axiosInstance.interceptors.request.use((config) => {
-  const token = authStore.getAccess();
-  if (token) {
-    config.headers = config.headers ?? {};
-    config.headers["Authorization"] = `Bearer ${token}`;
-  }
-  return config;
-});
-
+// ============================================
+// REFRESH TOKEN QUEUE
+// ============================================
 let isRefreshing = false;
-let subscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string) => void)[] = [];
 
-function onRefreshed(token: string) {
-  subscribers.forEach((cb) => cb(token));
-  subscribers = [];
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
 }
 
-function addSubscriber(cb: (token: string) => void) {
-  subscribers.push(cb);
+function addRefreshSubscriber(callback: (token: string) => void) {
+  refreshSubscribers.push(callback);
 }
 
-const raw = axios.create({ baseURL: `${BASE_URL}/api`, timeout: TIMEOUT });
-
-async function refreshTokenRequest() {
-  const token = authStore.getRefresh();
-  if (!token) throw new Error("No refresh token");
-  const res = await raw.post("/auth/refresh", { token });
-  const { accessToken, refreshToken: newRefresh } = res.data.data || {};
-  if (!accessToken) throw new Error("Invalid refresh response");
-  authStore.setAccess(accessToken);
-  if (newRefresh) authStore.setRefresh(newRefresh);
-  return accessToken as string;
-}
-
-axiosInstance.interceptors.response.use(
-  (response) => {
-    const d = response.data;
-    if (d && typeof d === "object" && "data" in d) {
-      return d.data;
+// ============================================
+// REQUEST INTERCEPTOR
+// ============================================
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = authStore.getAccess();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return d;
+    return config;
   },
+  (error) => Promise.reject(error)
+);
+
+// Function to refresh token
+async function refreshTokenRequest(): Promise<string> {
+  try {
+    const token = authStore.getRefresh();
+    if (!token) throw new Error("No refresh token");
+
+    const response = await axios.post(`${BASE_URL}/api/auth/refresh`, {
+      token,
+    });
+
+    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+    authStore.setAccess(accessToken);
+    if (newRefreshToken) {
+      authStore.setRefresh(newRefreshToken);
+    }
+
+    return accessToken;
+  } catch (error) {
+    authStore.clearAll();
+    window.dispatchEvent(new Event(ERROR_CODES.AUTH_SESSION_EXPIRED));
+    console.log(error);
+    throw error;
+  }
+}
+
+// ============================================
+// RESPONSE INTERCEPTOR: Handle 401 & Refresh
+// ============================================
+axiosInstance.interceptors.response.use(
+  (response) => response,
   async (error: AxiosError) => {
-    const original = error.config as AxiosRequestConfig & { _retry?: boolean };
-    console.log(original);
-    if (error.response?.status === 401 && !original?._retry) {
-      original._retry = true;
-      try {
-        if (!isRefreshing) {
-          isRefreshing = true;
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (!isRefreshing) {
+        isRefreshing = true;
+
+        try {
           const newToken = await refreshTokenRequest();
           isRefreshing = false;
-          onRefreshed(newToken);
-        } else {
-          await new Promise<string>((resolve) => addSubscriber(resolve));
+
+          onTokenRefreshed(newToken);
+
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
+          return axiosInstance(originalRequest);
+        } catch (refreshError) {
+          isRefreshing = false;
+          refreshSubscribers = [];
+          return Promise.reject(toProblem(refreshError));
         }
-        return axiosInstance(original);
-      } catch (e) {
-        isRefreshing = false;
-        authStore.clearAll();
-        return Promise.reject(toProblem(e));
+      } else {
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber((token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            axiosInstance(originalRequest)
+              .then(resolve)
+              .catch(reject);
+          });
+        });
       }
     }
+
     return Promise.reject(toProblem(error));
-  },
+  }
 );
-export const httpPrivate = {
-  get: <T>(url: string, cfg?: AxiosRequestConfig) =>
-    axiosInstance.get<T>(url, cfg),
-  post: <T>(url: string, body?: any, cfg?: AxiosRequestConfig) =>
-    axiosInstance.post<T>(url, body, cfg),
-  put: <T>(url: string, body?: any, cfg?: AxiosRequestConfig) =>
-    axiosInstance.put<T>(url, body, cfg),
-  del: <T>(url: string, cfg?: AxiosRequestConfig) =>
-    axiosInstance.delete<T>(url, cfg),
-};
+
+export const axiosPrivate = axiosInstance;

@@ -1,12 +1,36 @@
-import z from "zod";
+import { z } from "zod";
+import {
+    statusSchema,
+    pageResponseSchema,
+    type BaseFilterParams,
+} from "@/shared/api/schemas";
 
-export const couponStatusEnum = ["ACTIVE", "INACTIVE"] as const;
+// ============================================
+// CONSTANTS
+// ============================================
+
+export const COUPON_CONSTANTS = Object.freeze({
+    CODE: {
+        MIN_LENGTH: 3,
+        MAX_LENGTH: 50,
+        REGEX: /^[A-Z0-9_-]+$/,
+    },
+    DESCRIPTION: {
+        MAX_LENGTH: 255, // Assumed
+    },
+    SORT_FIELDS: ["id", "code", "validFrom", "validTo", "createdAt", "updatedAt"] as const,
+} as const);
+
 export const couponTypeEnum = ["PERCENT", "AMOUNT"] as const;
+
+// ============================================
+// DOMAIN SCHEMAS
+// ============================================
 
 export const couponSchema = z.object({
     id: z.number(),
     code: z.string(),
-    description: z.string().nullable(),
+    description: z.string().nullable().optional(),
     type: z.enum(couponTypeEnum),
     value: z.number(),
     minOrderValue: z.number().nullable(),
@@ -15,37 +39,39 @@ export const couponSchema = z.object({
     usedCount: z.number(),
     validFrom: z.string(),
     validTo: z.string(),
-    status: z.enum(couponStatusEnum),
+    status: statusSchema,
     createdAt: z.string().nullable().optional(),
     updatedAt: z.string().nullable().optional(),
 });
 
-export type Coupon = z.infer<typeof couponSchema>;
-export type CouponStatus = typeof couponStatusEnum[number];
-export type CouponType = typeof couponTypeEnum[number];
+// ============================================
+// RESPONSE SCHEMAS
+// ============================================
 
-export const couponsResponseSchema = z.object({
-    contents: z.array(couponSchema),
-    page: z.number(),
-    size: z.number(),
-    totalPages: z.number(),
-    totalElements: z.number(),
-});
+export const couponsResponseSchema = pageResponseSchema(couponSchema);
+
+// ============================================
+// INPUT SCHEMAS
+// ============================================
 
 export const createCouponSchema = z.object({
     code: z
         .string()
-        .min(3, "Code must be at least 3 characters")
-        .max(50, "Code cannot exceed 50 characters")
+        .min(
+            COUPON_CONSTANTS.CODE.MIN_LENGTH,
+            `Code must be at least ${COUPON_CONSTANTS.CODE.MIN_LENGTH} characters`
+        )
+        .max(
+            COUPON_CONSTANTS.CODE.MAX_LENGTH,
+            `Code cannot exceed ${COUPON_CONSTANTS.CODE.MAX_LENGTH} characters`
+        )
         .regex(
-            /^[A-Z0-9_-]+$/,
-            "Code can only contain uppercase letters, numbers, - and _",
+            COUPON_CONSTANTS.CODE.REGEX,
+            "Code can only contain uppercase letters, numbers, - and _"
         ),
     description: z.string().optional().or(z.literal("")),
     type: z.enum(couponTypeEnum, { message: "Coupon type is required" }),
-    value: z
-        .number()
-        .positive("Value must be positive"),
+    value: z.number().positive("Value must be positive"),
     minOrderValue: z
         .number()
         .positive("Minimum order value must be positive")
@@ -64,15 +90,13 @@ export const createCouponSchema = z.object({
         .or(z.literal(0)),
     validFrom: z.string().min(1, "Valid from date is required"),
     validTo: z.string().min(1, "Valid to date is required"),
-    status: z.enum(couponStatusEnum),
+    status: statusSchema,
 });
 
 export const updateCouponSchema = z.object({
     description: z.string().optional().or(z.literal("")),
     type: z.enum(couponTypeEnum, { message: "Coupon type is required" }),
-    value: z
-        .number()
-        .positive("Value must be positive"),
+    value: z.number().positive("Value must be positive"),
     minOrderValue: z
         .number()
         .positive("Minimum order value must be positive")
@@ -91,15 +115,51 @@ export const updateCouponSchema = z.object({
         .or(z.literal(0)),
     validFrom: z.string().min(1, "Valid from date is required"),
     validTo: z.string().min(1, "Valid to date is required"),
-    status: z.enum(couponStatusEnum),
+    status: statusSchema,
 });
 
 export const updateCouponStatusSchema = z.object({
-    status: z.string().min(2, "Status is required"),
+    status: statusSchema,
 });
 
-// Feature-specific types
+export const bulkUpdateStatusCouponSchema = z.object({
+    ids: z.array(z.number()).min(1, "Select at least one coupon"),
+    status: statusSchema,
+});
+
+export const bulkDeleteCouponSchema = z.object({
+    ids: z.array(z.number()).min(1, "Select at least one coupon"),
+});
+
+// ============================================
+// FILTER PARAMS SCHEMA
+// ============================================
+
+export interface CouponFilterParams extends BaseFilterParams {
+    type?: string;
+}
+
+export const couponFilterParamsSchema = z.object({
+    page: z.number().min(0).default(0),
+    size: z.number().min(1).max(100).default(10),
+    sortBy: z.enum(COUPON_CONSTANTS.SORT_FIELDS).default("createdAt"),
+    sortDir: z.enum(["ASC", "DESC"]).default("DESC"),
+    search: z.string().optional(),
+    status: z.array(statusSchema).optional(),
+    type: z.enum(couponTypeEnum).optional(),
+});
+
+// ============================================
+// TYPESCRIPT TYPES
+// ============================================
+
+export type Coupon = z.infer<typeof couponSchema>;
+export type CouponStatus = z.infer<typeof statusSchema>;
+export type CouponType = typeof couponTypeEnum[number];
 export type CouponsResponse = z.infer<typeof couponsResponseSchema>;
+
 export type CreateCouponInput = z.infer<typeof createCouponSchema>;
 export type UpdateCouponInput = z.infer<typeof updateCouponSchema>;
 export type UpdateCouponStatusInput = z.infer<typeof updateCouponStatusSchema>;
+export type BulkUpdateStatusCouponInput = z.infer<typeof bulkUpdateStatusCouponSchema>;
+export type BulkDeleteCouponInput = z.infer<typeof bulkDeleteCouponSchema>;

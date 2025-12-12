@@ -7,17 +7,15 @@ import {
     getProducts,
     updateProduct,
     updateProductStatus,
-    getCategories,
     getBrands,
-    getMaterials,
     getStyles,
     type GetProductsParams,
-    type GetCategoriesParams,
     type GetBrandsParams,
-    type GetMaterialsParams,
     type GetStylesParams,
 } from "../api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
+import type { BaseMutationOptions } from "@/shared/api/types";
 import type { UpdateProductInput, UpdateProductStatusInput } from "../model/schemas";
 
 export function useProducts(params: GetProductsParams) {
@@ -28,67 +26,69 @@ export function useProducts(params: GetProductsParams) {
     });
 }
 
-export function useCreateProduct() {
+export function useCreateProduct(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: createProduct,
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: () => { },
     });
 }
 
-export function useUpdateProduct() {
+export function useUpdateProduct(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: ({ id, data }: { id: number; data: UpdateProductInput }) =>
             updateProduct(id, data),
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: () => { },
     });
 }
 
-export function useUpdateProductStatus() {
+export function useUpdateProductStatus(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: ({ id, data }: { id: number; data: UpdateProductStatusInput }) =>
             updateProductStatus(id, data),
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: () => { },
     });
 }
 
-export function useDeleteProduct() {
+export function useDeleteProduct(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: deleteProduct,
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
-        onError: () => { },
     });
 }
 
-export function useBulkUpdateProductStatus() {
+export function useBulkUpdateProductStatus(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
             bulkUpdateProductStatus(ids, status),
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
     });
 }
 
-export function useBulkDeleteProducts() {
+export function useBulkDeleteProducts(options?: BaseMutationOptions) {
     const qc = useQueryClient();
-    return useMutation({
+    return useGlobalMutation({
         mutationFn: bulkDeleteProducts,
+        setError: options?.setError,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["products"] });
         },
@@ -107,19 +107,7 @@ export function useProductDetail(id: number) {
 // Helper Entities Hooks - For Product Creation/Editing
 // -----------------
 
-export function useCategories(params: GetCategoriesParams = {}) {
-    const defaultParams: GetCategoriesParams = {
-        status: ["ACTIVE"], // Only fetch active categories by default
-        size: 100,
-        ...params,
-    };
 
-    return useQuery({
-        queryKey: ["categories", defaultParams],
-        queryFn: () => getCategories(defaultParams),
-        staleTime: 5 * 60 * 1000, // 5 minutes - categories change less frequently
-    });
-}
 
 export function useBrands(params: GetBrandsParams = {}) {
     const defaultParams: GetBrandsParams = {
@@ -132,20 +120,6 @@ export function useBrands(params: GetBrandsParams = {}) {
         queryKey: ["brands", defaultParams],
         queryFn: () => getBrands(defaultParams),
         staleTime: 5 * 60 * 1000, // 5 minutes - brands change less frequently
-    });
-}
-
-export function useMaterials(params: GetMaterialsParams = {}) {
-    const defaultParams: GetMaterialsParams = {
-        status: ["ACTIVE"], // Only fetch active materials by default
-        size: 100,
-        ...params,
-    };
-
-    return useQuery({
-        queryKey: ["materials", defaultParams],
-        queryFn: () => getMaterials(defaultParams),
-        staleTime: 5 * 60 * 1000, // 5 minutes - materials change less frequently
     });
 }
 

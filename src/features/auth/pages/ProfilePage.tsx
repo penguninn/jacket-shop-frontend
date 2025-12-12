@@ -1,22 +1,153 @@
-import { useEffect } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { updateProfileSchema } from "../model/schemas";
-import type { UpdateProfileInput } from "../model/types";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { useMe, useUpdateProfile } from "../hooks";
+import { updateProfileSchema, type UpdateProfileInput } from "../model";
+import type { User } from "@/features/users/model";
 
+// ============================================
+// CONSTANTS
+// ============================================
+const PAGE_CONFIG = {
+  TITLE: 'My Profile',
+  SUBTITLE: 'Manage and protect your account',
+  LABELS: {
+    USERNAME: 'Username',
+    FULL_NAME: 'Name',
+    PHONE: 'Phone Number',
+  },
+  PLACEHOLDERS: {
+    FULL_NAME: 'Your name',
+  },
+  BUTTONS: {
+    SAVE: 'Save',
+    CHANGE: 'Change',
+  },
+  MESSAGES: {
+    LOADING: 'Loading profile...',
+    ERROR: 'Failed to load profile',
+    NOT_SET: 'Not set',
+  },
+} as const;
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+const ROUTES = {
+  CHANGE_PHONE: '#',
+} as const;
 
-export default function Profile() {
-  const { data: profile, isLoading: isLoadingProfile } = useMe();
-  const { mutate: doUpdateProfile, isPending } = useUpdateProfile();
+function createFormDefaults(profile?: User): UpdateProfileInput {
+  return {
+    fullName: profile?.fullName || '',
+  };
+}
 
+interface PageHeaderProps {
+  title: string;
+  subtitle: string;
+}
+
+function PageHeader({ title, subtitle }: PageHeaderProps) {
+  return (
+    <div className="border-b px-6 py-4">
+      <h2 className="text-lg font-medium">{title}</h2>
+      <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+    </div>
+  );
+}
+
+interface FormRowProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function FormRow({ children, className = '' }: FormRowProps) {
+  return (
+    <div
+      className={`flex flex-col md:flex-row md:items-start gap-2 md:gap-0 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+interface ReadOnlyFieldProps {
+  label: string;
+  value: string;
+}
+
+function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
+  return (
+    <FormRow>
+      <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
+        {label}
+      </Label>
+      <div className="flex-1 text-sm font-medium">{value}</div>
+    </FormRow>
+  );
+}
+
+interface EditableFieldProps {
+  label: string;
+  value: string;
+  linkText: string;
+  linkTo: string;
+}
+
+function EditableField({ label, value, linkText, linkTo }: EditableFieldProps) {
+  return (
+    <FormRow>
+      <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
+        {label}
+      </Label>
+      <div className="flex-1 flex items-center gap-4">
+        <div className="text-sm font-medium">{value}</div>
+        <Button
+          variant="link"
+          asChild
+          className="p-0 h-auto text-sm text-primary underline-offset-4 hover:underline"
+        >
+          <Link to={linkTo}>{linkText}</Link>
+        </Button>
+      </div>
+    </FormRow>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="flex flex-col h-full bg-background rounded-lg overflow-hidden">
+      <div className="border-b px-6 py-4">
+        <Skeleton className="h-6 w-32 mb-2" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <div className="flex-1 p-6 space-y-6">
+        <Skeleton className="h-10 w-full max-w-3xl" />
+        <Skeleton className="h-10 w-full max-w-3xl" />
+        <Skeleton className="h-10 w-full max-w-3xl" />
+      </div>
+    </div>
+  );
+}
+
+interface ErrorStateProps {
+  message: string;
+}
+
+function ErrorState({ message }: ErrorStateProps) {
+  return (
+    <div className="flex h-full items-center justify-center p-8">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ProfilePage() {
   const {
     register,
     handleSubmit,
@@ -25,79 +156,71 @@ export default function Profile() {
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
-    defaultValues: { fullName: "" },
+    defaultValues: { fullName: '' },
   });
 
-  useEffect(() => {
-    if (profile) {
-      reset({ fullName: profile.fullName });
-    }
-  }, [profile, reset]);
+  const { data: profile, isLoading, isError } = useMe();
+  const { mutate: updateProfile, isPending } = useUpdateProfile({ setError: setError as any });
+
 
   const busy = isSubmitting || isPending;
 
-  const onSubmit = (data: UpdateProfileInput) => {
-    doUpdateProfile(data, {
-      onSuccess: () => {
-        reset();
-      },
-      onError: (e: any) => {
-        mapProblemToForm(e, setError);
-      },
-    });
-  };
+  const formDefaults = useMemo(() => {
+    return createFormDefaults(profile);
+  }, [profile]);
 
-  if (isLoadingProfile) {
-    return (
-      <div className="flex h-full items-center justify-center p-8">
-        <p>Loading profile...</p>
-      </div>
-    );
+  useEffect(() => {
+    if (profile) {
+      reset(formDefaults);
+    }
+  }, [profile, formDefaults, reset]);
+
+  const onSubmit = useCallback(
+    (data: UpdateProfileInput) => {
+      updateProfile(data, {
+        onSuccess: () => {
+          reset(data);
+        }
+      });
+    },
+    [updateProfile, reset]
+  );
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
   }
 
-  if (!profile) {
-    return (
-      <div className="flex h-full items-center justify-center p-8">
-        <p>Failed to load profile</p>
-      </div>
-    );
+  if (isError || !profile) {
+    return <ErrorState message={PAGE_CONFIG.MESSAGES.ERROR} />;
   }
 
   return (
     <div className="flex flex-col h-full bg-background rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4">
-        <h2 className="text-lg font-medium">My Profile</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manage and protect your account
-        </p>
-      </div>
+      <PageHeader
+        title={PAGE_CONFIG.TITLE}
+        subtitle={PAGE_CONFIG.SUBTITLE}
+      />
 
-      {/* Content */}
       <div className="flex-1 p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl">
-          <FormError errors={errors} />
-
           <div className="space-y-6 mt-6">
-            <Row>
-              <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
-                Username
-              </Label>
-              <div className="flex-1 text-sm font-medium">{profile.username}</div>
-            </Row>
+            <ReadOnlyField
+              label={PAGE_CONFIG.LABELS.USERNAME}
+              value={profile.username}
+            />
 
-            <Row>
+            <FormRow>
               <Label
                 htmlFor="fullName"
                 className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground pt-2"
               >
-                Name
+                {PAGE_CONFIG.LABELS.FULL_NAME}
               </Label>
               <div className="flex-1 space-y-2">
                 <Input
                   id="fullName"
-                  placeholder="Your name"
-                  {...register("fullName")}
+                  placeholder={PAGE_CONFIG.PLACEHOLDERS.FULL_NAME}
+                  {...register('fullName')}
                   className="max-w-md"
                 />
                 {errors.fullName && (
@@ -106,45 +229,26 @@ export default function Profile() {
                   </p>
                 )}
               </div>
-            </Row>
+            </FormRow>
 
-            <Row>
-              <Label className="w-full md:w-1/4 md:text-right md:pr-8 text-muted-foreground">
-                Phone Number
-              </Label>
-              <div className="flex-1 flex items-center gap-4">
-                <div className="text-sm font-medium">{profile.phone || "Not set"}</div>
-                <Button variant="link" asChild className="p-0 h-auto text-sm text-primary underline-offset-4 hover:underline">
-                  <Link to="#">Change</Link>
-                </Button>
-              </div>
-            </Row>
+            <EditableField
+              label={PAGE_CONFIG.LABELS.PHONE}
+              value={profile.phone || PAGE_CONFIG.MESSAGES.NOT_SET}
+              linkText={PAGE_CONFIG.BUTTONS.CHANGE}
+              linkTo={ROUTES.CHANGE_PHONE}
+            />
 
-            <Row>
-              <div className="w-full md:w-1/4" /> {/* Spacer */}
+            <FormRow>
+              <div className="w-full md:w-1/4" />
               <div className="flex-1">
                 <Button type="submit" disabled={busy || !isDirty}>
-                  Save
+                  {PAGE_CONFIG.BUTTONS.SAVE}
                 </Button>
               </div>
-            </Row>
+            </FormRow>
           </div>
         </form>
-      </div >
-    </div >
-  );
-}
-
-function Row({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col md:flex-row md:items-start gap-2 md:gap-0 ${className}`}>
-      {children}
+      </div>
     </div>
   );
 }

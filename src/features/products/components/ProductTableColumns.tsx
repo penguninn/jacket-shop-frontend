@@ -51,16 +51,25 @@ export const columns: ColumnDef<Product>[] = [
         ),
     },
     {
-        accessorKey: "category",
-        header: "Category",
+        accessorKey: "thumbnail",
+        header: "Thumbnail",
         cell: ({ row }) => {
-            const category = row.original.category;
-            return <div>{category?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const category = row.original.category;
-            if (!category) return false;
-            return value.includes(category.id.toString());
+            const thumbnail = row.getValue("thumbnail") as string | null;
+            return (
+                <div className="relative size-10 overflow-hidden rounded border">
+                    {thumbnail ? (
+                        <img
+                            src={thumbnail}
+                            alt={row.getValue("name")}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+                            No Img
+                        </div>
+                    )}
+                </div>
+            );
         },
     },
     {
@@ -74,19 +83,6 @@ export const columns: ColumnDef<Product>[] = [
             const brand = row.original.brand;
             if (!brand) return false;
             return value.includes(brand.id.toString());
-        },
-    },
-    {
-        accessorKey: "material",
-        header: "Material",
-        cell: ({ row }) => {
-            const material = row.original.material;
-            return <div>{material?.name || "—"}</div>;
-        },
-        filterFn: (row, _id, value) => {
-            const material = row.original.material;
-            if (!material) return false;
-            return value.includes(material.id.toString());
         },
     },
     {

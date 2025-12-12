@@ -22,11 +22,10 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateMaterialSchema, type UpdateMaterialInput, type MaterialStatus } from "../model/schemas";
-import type { Material } from "../model/schemas";
-import { useUpdateMaterial } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+import { updateMaterialSchema, type UpdateMaterialInput, type MaterialStatus } from "../../model/schemas";
+import type { Material } from "../../model/schemas";
+import { useUpdateMaterial } from "../../hooks";
+
 
 interface Props {
     material: Material;
@@ -35,15 +34,14 @@ interface Props {
 
 export function MaterialEditForm({ material, children }: Props) {
     const [open, setOpen] = useState(false);
-    const { mutate: doUpdateMaterial, isPending } = useUpdateMaterial();
-
     const {
         register,
         handleSubmit,
-        setError,
+
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting, isDirty },
     } = useForm<UpdateMaterialInput>({
         resolver: zodResolver(updateMaterialSchema),
@@ -53,6 +51,8 @@ export function MaterialEditForm({ material, children }: Props) {
             status: "ACTIVE",
         },
     });
+
+    const { mutate: doUpdateMaterial, isPending } = useUpdateMaterial({ setError: setError as any });
 
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
@@ -74,7 +74,6 @@ export function MaterialEditForm({ material, children }: Props) {
                 onSuccess: () => {
                     setOpen(false);
                 },
-                onError: (e: any) => mapProblemToForm(e, setError),
             }
         );
     };
@@ -91,8 +90,12 @@ export function MaterialEditForm({ material, children }: Props) {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="edit-material-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
@@ -124,7 +127,11 @@ export function MaterialEditForm({ material, children }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as MaterialStatus, { shouldDirty: true })}
+                                onValueChange={(value) =>
+                                    setValue("status", value as MaterialStatus, {
+                                        shouldDirty: true,
+                                    })
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue />
@@ -135,7 +142,9 @@ export function MaterialEditForm({ material, children }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -151,7 +160,8 @@ export function MaterialEditForm({ material, children }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-material-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { X } from "lucide-react";
 import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
-import { useCategories, useBrands, useMaterials, useStyles } from "../hooks";
+import { useBrands, useStyles } from "../hooks";
 import { useMemo } from "react";
 
 const statusOptions = [
@@ -20,20 +20,10 @@ export function ProductTableToolbar<TData>({ table }: Props<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0;
 
     // Fetch filter options data
-    const { data: categoriesData } = useCategories();
     const { data: brandsData } = useBrands();
-    const { data: materialsData } = useMaterials();
     const { data: stylesData } = useStyles();
 
     // Convert to filter options format
-    const categoryOptions = useMemo(
-        () =>
-            categoriesData?.contents.map((cat) => ({
-                label: cat.name,
-                value: cat.id.toString(),
-            })) ?? [],
-        [categoriesData]
-    );
 
     const brandOptions = useMemo(
         () =>
@@ -42,15 +32,6 @@ export function ProductTableToolbar<TData>({ table }: Props<TData>) {
                 value: brand.id.toString(),
             })) ?? [],
         [brandsData]
-    );
-
-    const materialOptions = useMemo(
-        () =>
-            materialsData?.contents.map((material) => ({
-                label: material.name,
-                value: material.id.toString(),
-            })) ?? [],
-        [materialsData]
     );
 
     const styleOptions = useMemo(
@@ -73,25 +54,11 @@ export function ProductTableToolbar<TData>({ table }: Props<TData>) {
                     }
                     className="h-8 w-[200px] lg:w-[250px]"
                 />
-                {table.getColumn("category") && (
-                    <DataTableFacetedFilter
-                        column={table.getColumn("category")}
-                        title="Category"
-                        options={categoryOptions}
-                    />
-                )}
                 {table.getColumn("brand") && (
                     <DataTableFacetedFilter
                         column={table.getColumn("brand")}
                         title="Brand"
                         options={brandOptions}
-                    />
-                )}
-                {table.getColumn("material") && (
-                    <DataTableFacetedFilter
-                        column={table.getColumn("material")}
-                        title="Material"
-                        options={materialOptions}
                     />
                 )}
                 {table.getColumn("style") && (

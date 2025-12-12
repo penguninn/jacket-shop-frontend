@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// features/users/components/UserEditForm.tsx
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -23,24 +24,154 @@ import {
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { updateUserSchema, type UpdateUserInput } from "../model/schemas";
-import type { User } from "../model/schemas";
-
+import { updateUserSchema, type UpdateUserInput, type User, type Role } from "../model/schemas";
 import { useUpdateUser } from "../hooks";
 import { useRoles } from "@/features/roles/hooks";
+import type { Status } from "@/shared/api/schemas";
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+  PLACEHOLDERS: {
+    FULL_NAME: 'John Doe',
+    PHONE: '0987654321',
+  },
+  LABELS: {
+    USERNAME: 'Username',
+    FULL_NAME: 'Full Name *',
+    PHONE: 'Phone',
+    STATUS: 'Status *',
+    ROLES: 'Roles *',
+  },
+  MESSAGES: {
+    LOADING_ROLES: 'Loading roles...',
+    SAVING: 'Saving...',
+    SAVE: 'Save Changes',
+    SELECTED_ROLES: 'Selected:',
+  },
+} as const;
 
-interface Props {
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+function toggleArrayItem<T>(array: T[], item: T): T[] {
+  return array.includes(item)
+    ? array.filter((i) => i !== item)
+    : [...array, item];
+}
+
+/**
+ * Map role objects to role IDs
+ */
+function mapRoleNamesToIds(
+  roleObjects: Array<{ id: number; name: string }>,
+  allRoles?: Role[]
+): number[] {
+  if (!allRoles) return [];
+
+  return roleObjects
+    .map((roleObj) => {
+      const foundRole = allRoles.find((r) => r.name === roleObj.name);
+      return foundRole?.id;
+    })
+    .filter((id): id is number => id !== undefined);
+}
+
+/**
+ * Create form defaults from user data
+ */
+function createFormDefaults(user: User, roles?: Role[]): UpdateUserInput {
+  return {
+    fullName: user.fullName,
+    phone: user.phone || "",
+    status: user.status,
+    roleIds: mapRoleNamesToIds(user.roles, roles),
+  };
+}
+
+// ============================================
+// SUB-COMPONENTS
+// ============================================
+interface RolesSelectorProps {
+  roles?: Role[];
+  selectedRoleIds: number[];
+  onToggleRole: (roleId: number) => void;
+  error?: string;
+  isLoading: boolean;
+}
+
+function RolesSelector({
+  roles,
+  selectedRoleIds,
+  onToggleRole,
+  error,
+  isLoading,
+}: RolesSelectorProps) {
+  if (isLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        {FORM_CONFIG.MESSAGES.LOADING_ROLES}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-2">
+        {roles?.map((role) => (
+          <div key={role.id} className="flex items-center space-x-2">
+            <Checkbox
+              id={`role-${role.id}`}
+              checked={selectedRoleIds.includes(role.id)}
+              onCheckedChange={() => onToggleRole(role.id)}
+            />
+            <Label
+              htmlFor={`role-${role.id}`}
+              className="cursor-pointer font-normal"
+            >
+              {role.name}
+            </Label>
+          </div>
+        ))}
+      </div>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      {/* Selected Roles Preview */}
+      {selectedRoleIds.length > 0 && (
+        <div className="mt-3">
+          <div className="text-sm text-muted-foreground mb-2">
+            {FORM_CONFIG.MESSAGES.SELECTED_ROLES}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {selectedRoleIds.map((id) => {
+              const role = roles?.find((r) => r.id === id);
+              return role ? (
+                <Badge key={id} variant="secondary">
+                  {role.name}
+                </Badge>
+              ) : null;
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+interface UserEditFormProps {
   user: User;
   children: React.ReactNode;
 }
 
-export function UserEditForm({ user, children }: Props) {
+export function UserEditForm({ user, children }: UserEditFormProps) {
   const [open, setOpen] = useState(false);
-  const { mutate: doUpdateUser, isPending } = useUpdateUser();
-  const { data: roles, isLoading: rolesLoading } = useRoles();
+
+
 
   const {
     register,
@@ -60,50 +191,57 @@ export function UserEditForm({ user, children }: Props) {
     },
   });
 
+  const { mutate: updateUser, isPending } = useUpdateUser({ setError: setError as any });
+  const { data: roles, isLoading: rolesLoading } = useRoles();
+
   const selectedRoleIds = watch("roleIds");
   const currentStatus = watch("status");
   const busy = isSubmitting || isPending;
 
+  const formDefaults = useMemo(() => {
+    return createFormDefaults(user, roles);
+  }, [user, roles]);
+
   useEffect(() => {
-    if (open && user && roles) {
-      const roleIds = user.roles
-        .map((roleName) => {
-          const foundRole = roles.find((r) => r.name === roleName);
-          return foundRole?.id;
-        })
-        .filter((id): id is number => id !== undefined);
-
-      reset({
-        fullName: user.fullName,
-        phone: user.phone || "",
-        status: user.status,
-        roleIds,
-      });
+    if (open && roles) {
+      reset(formDefaults);
     }
-  }, [open, user, roles, reset]);
+  }, [open, roles, formDefaults, reset]);
 
-  const toggleRole = (roleId: number) => {
-    const current = selectedRoleIds || [];
-    const updated = current.includes(roleId)
-      ? current.filter((id) => id !== roleId)
-      : [...current, roleId];
-    setValue("roleIds", updated, { shouldDirty: true });
-  };
+  const toggleRole = useCallback(
+    (roleId: number) => {
+      const updated = toggleArrayItem(selectedRoleIds || [], roleId);
+      setValue("roleIds", updated, { shouldDirty: true, shouldValidate: true });
+    },
+    [selectedRoleIds, setValue]
+  );
 
-  const onSubmit = (data: UpdateUserInput) => {
-    doUpdateUser(
-      { id: user.id, data },
-      {
-        onSuccess: () => {
-          setOpen(false);
-        },
-        onError: (e: any) => mapProblemToForm(e, setError),
+  const onSubmit = useCallback(
+    (data: UpdateUserInput) => {
+      updateUser(
+        { id: user.id, data },
+        {
+          onSuccess: () => {
+            setOpen(false);
+          },
+        }
+      );
+    },
+    [updateUser, user.id]
+  );
+
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      setOpen(newOpen);
+      if (!newOpen) {
+        reset(formDefaults);
       }
-    );
-  };
+    },
+    [reset, formDefaults]
+  );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -114,11 +252,15 @@ export function UserEditForm({ user, children }: Props) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-            <FormError errors={errors} />
-            {/* Username (Read-only) */}
+          <form
+            id="edit-user-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="username-readonly">Username</Label>
+              <Label htmlFor="username-readonly">
+                {FORM_CONFIG.LABELS.USERNAME}
+              </Label>
               <Input
                 id="username-readonly"
                 value={user.username}
@@ -127,26 +269,26 @@ export function UserEditForm({ user, children }: Props) {
               />
             </div>
 
-            {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="fullName">{FORM_CONFIG.LABELS.FULL_NAME}</Label>
               <Input
                 id="fullName"
-                placeholder="John Doe"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.FULL_NAME}
                 {...register("fullName")}
               />
               {errors.fullName && (
-                <p className="text-xs text-red-500">{errors.fullName.message}</p>
+                <p className="text-xs text-red-500">
+                  {errors.fullName.message}
+                </p>
               )}
             </div>
 
-            {/* Phone */}
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{FORM_CONFIG.LABELS.PHONE}</Label>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="0987654321"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.PHONE}
                 {...register("phone")}
               />
               {errors.phone && (
@@ -154,12 +296,15 @@ export function UserEditForm({ user, children }: Props) {
               )}
             </div>
 
-            {/* Status */}
             <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
+              <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
               <Select
                 value={currentStatus}
-                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                onValueChange={(value) =>
+                  setValue("status", value as Status, {
+                    shouldDirty: true,
+                  })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -174,50 +319,15 @@ export function UserEditForm({ user, children }: Props) {
               )}
             </div>
 
-            {/* Roles */}
-            <div className="space-y-2">
-              <Label>Roles *</Label>
-              {rolesLoading ? (
-                <div className="text-sm text-muted-foreground">Loading roles...</div>
-              ) : (
-                <div className="space-y-2">
-                  {roles?.map((role) => (
-                    <div key={role.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`role-${role.id}`}
-                        checked={selectedRoleIds?.includes(role.id)}
-                        onCheckedChange={() => toggleRole(role.id)}
-                      />
-                      <Label
-                        htmlFor={`role-${role.id}`}
-                        className="cursor-pointer font-normal"
-                      >
-                        {role.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {errors.roleIds && (
-                <p className="text-xs text-red-500">{errors.roleIds.message}</p>
-              )}
-
-              {/* Selected Roles Preview */}
-              {selectedRoleIds && selectedRoleIds.length > 0 && (
-                <div className="mt-3">
-                  <div className="text-sm text-muted-foreground mb-2">Selected:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedRoleIds.map((id) => {
-                      const role = roles?.find((r) => r.id === id);
-                      return role ? (
-                        <Badge key={id} variant="secondary">
-                          {role.name}
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
+            <div className="space--2">
+              <Label>{FORM_CONFIG.LABELS.ROLES}</Label>
+              <RolesSelector
+                roles={roles}
+                selectedRoleIds={selectedRoleIds || []}
+                onToggleRole={toggleRole}
+                error={errors.roleIds?.message}
+                isLoading={rolesLoading}
+              />
             </div>
           </form>
         </ScrollArea>
@@ -232,14 +342,14 @@ export function UserEditForm({ user, children }: Props) {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="edit-user-form"
             disabled={busy || !isDirty}
           >
-            {busy ? "Saving..." : "Save Changes"}
+            {busy ? FORM_CONFIG.MESSAGES.SAVING : FORM_CONFIG.MESSAGES.SAVE}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

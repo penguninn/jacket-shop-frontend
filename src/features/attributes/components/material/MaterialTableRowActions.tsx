@@ -7,7 +7,6 @@ import {
     Trash,
     XCircle,
     CheckCircle,
-    Eye,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
@@ -17,10 +16,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { useDeleteMaterial, useUpdateMaterialStatus } from "@/features/materials/hooks";
-import { type UpdateMaterialStatusInput, type Material } from "@/features/materials/model/schemas";
+import { useDeleteMaterial, useBulkUpdateStatusMaterials } from "../../hooks";
+import { type Material } from "../../model/schemas";
 import { MaterialEditForm } from "./MaterialEditForm";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
     row: Row<Material>;
@@ -28,20 +26,16 @@ interface Props {
 
 export function MaterialTableRowActions({ row }: Props) {
     const material = row.original;
-    const updateMaterialStatusMutation = useUpdateMaterialStatus();
+    const bulkUpdateStatusMutation = useBulkUpdateStatusMaterials();
     const deleteMaterialMutation = useDeleteMaterial();
-    const navigate = useNavigate();
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleToggleStatus = () => {
         const newStatus = material.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-        const payload: UpdateMaterialStatusInput = {
+        bulkUpdateStatusMutation.mutate({
+            ids: [material.id],
             status: newStatus,
-        };
-        updateMaterialStatusMutation.mutate({
-            id: material.id,
-            data: payload,
         });
     };
 
@@ -74,10 +68,6 @@ export function MaterialTableRowActions({ row }: Props) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/admin/materials/${material.id}`)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
-                    </DropdownMenuItem>
                     <MaterialEditForm material={material}>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                             <Edit className="mr-2 h-4 w-4" />

@@ -18,7 +18,7 @@ export default function Navbar() {
   const { mutate: doLogout } = useLogoutMutation();
 
   const hasRole = (role: string) => {
-    return user?.roles?.includes(role) ?? false;
+    return user?.roles?.some((r) => r.name === role) ?? false;
   };
 
   return (

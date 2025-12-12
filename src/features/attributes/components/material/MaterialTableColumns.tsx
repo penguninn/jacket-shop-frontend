@@ -5,7 +5,7 @@ import { ArrowUpDown } from "lucide-react";
 import { StatusBadge } from "@/shared/components/StatusBadge";
 import { MaterialTableRowActions } from "./MaterialTableRowActions";
 import { formatDistanceToNow } from "date-fns";
-import { type Material } from "@/features/materials/model/schemas";
+import { type Material } from "../../model/schemas";
 
 export const columns: ColumnDef<Material>[] = [
     {

@@ -1,16 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Chrome, Smartphone, Globe } from "lucide-react";
+import { Chrome, Smartphone, Globe, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useUserAuditLogs, useUserLoginHistory } from "@/features/users/hooks";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 
 interface Props {
   userId: number;
 }
 
 export function ActivityTab({ userId }: Props) {
-  const { data: loginHistory, isLoading: loadingHistory } = useUserLoginHistory(userId);
-  const { data: auditLogs, isLoading: loadingLogs } = useUserAuditLogs(userId);
+  const { data: loginHistory, isLoading: loadingHistory, isError: historyError } = useUserLoginHistory(userId);
+  const { data: auditLogs, isLoading: loadingLogs, isError: logsError } = useUserAuditLogs(userId);
+
+  if (historyError || logsError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load activity data. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">

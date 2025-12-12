@@ -1,17 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { useUserStatistics } from "@/features/users/hooks";
-import { DollarSign, Package, Clock, Star } from "lucide-react";
+import { DollarSign, Package, Clock, Star, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 
 interface Props {
   userId: number;
 }
 
 export function StatisticsTab({ userId }: Props) {
-  const { data: stats, isLoading } = useUserStatistics(userId, true);
+  const { data: stats, isLoading, isError } = useUserStatistics(userId, true);
 
   if (isLoading) {
     return <LoadingSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load user statistics. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   if (!stats) {

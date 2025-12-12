@@ -1,46 +1,71 @@
 import { z } from "zod";
-import { toProblem } from "./error";
-import { httpPrivate } from "./axios.private";
-import { httpPublic } from "./axios.public";
+import { axiosPrivate } from "./axios.private";
+import { axiosPublic } from "./axios.public";
+import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import { ERROR_CODES, type Problem } from "./error";
 
-async function parseWithSchema<T extends z.ZodTypeAny>(
-  promise: Promise<any>,
-  schema: T,
-): Promise<z.infer<T>> {
-  try {
-    const data = await promise;
-    const parsed = schema.safeParse(data);
-    if (!parsed.success) {
+class HttpTypedClient {
+
+  private axios: AxiosInstance;
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
+  }
+
+  private safeParse<T>(data: unknown, schema: z.ZodSchema<T>, url: string): T {
+    const result = schema.safeParse(data);
+
+    if (!result.success) {
+      if (import.meta.env.DEV) {
+        console.group("Schema Validation Failed");
+        console.error("Endpoint:", url);
+        console.error("Received Data:", data);
+        console.table(
+          result.error.issues.map((e: z.ZodIssue) => ({
+            Path: e.path.join("."),
+            Message: e.message,
+          }))
+        );
+        console.groupEnd();
+      }
+
       throw {
-        message: "Invalid server response",
-        raw: data,
-        cause: parsed.error,
-      };
+        type: "about:blank",
+        title: "Schema Validation Error",
+        status: 422,
+        detail: `Response from ${url} does not match expected schema`,
+        instance: url,
+        errorCode: ERROR_CODES.SCHEMA_VALIDATION_ERROR,
+      } as Problem;
     }
-    return parsed.data;
-  } catch (e: any) {
-    throw toProblem(e);
+
+    return result.data;
+  }
+
+  async get<T>(url: string, schema: z.ZodSchema<T>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axios.get(url, config);
+    return this.safeParse(response.data.data, schema, url);
+  }
+
+  async post<T>(url: string, data: unknown, schema: z.ZodSchema<T>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axios.post(url, data, config);
+    return this.safeParse(response.data.data, schema, url);
+  }
+
+  async put<T>(url: string, data: unknown, schema: z.ZodSchema<T>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axios.put(url, data, config);
+    return this.safeParse(response.data.data, schema, url);
+  }
+
+  async patch<T>(url: string, data: unknown, schema: z.ZodSchema<T>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axios.patch(url, data, config);
+    return this.safeParse(response.data.data, schema, url);
+  }
+
+  async del<T>(url: string, schema: z.ZodSchema<T>, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axios.delete(url, config);
+    return this.safeParse(response.data.data, schema, url);
   }
 }
 
-export const httpPublicTyped = {
-  get: <T extends z.ZodTypeAny>(url: string, schema: T) =>
-    parseWithSchema(httpPublic.get(url), schema),
-  post: <T extends z.ZodTypeAny>(url: string, body: any, schema: T) =>
-    parseWithSchema(httpPublic.post(url, body), schema),
-  put: <T extends z.ZodTypeAny>(url: string, body: any, schema: T) =>
-    parseWithSchema(httpPublic.put(url, body), schema),
-  del: <T extends z.ZodTypeAny>(url: string, schema: T) =>
-    parseWithSchema(httpPublic.del(url), schema),
-};
-
-export const httpPrivateTyped = {
-  get: <T extends z.ZodTypeAny>(url: string, schema: T) =>
-    parseWithSchema(httpPrivate.get(url), schema),
-  post: <T extends z.ZodTypeAny>(url: string, body: any, schema: T) =>
-    parseWithSchema(httpPrivate.post(url, body), schema),
-  put: <T extends z.ZodTypeAny>(url: string, body: any, schema: T) =>
-    parseWithSchema(httpPrivate.put(url, body), schema),
-  del: <T extends z.ZodTypeAny>(url: string, schema: T) =>
-    parseWithSchema(httpPrivate.del(url), schema),
-};
+export const httpPrivateTyped = new HttpTypedClient(axiosPrivate);
+export const httpPublicTyped = new HttpTypedClient(axiosPublic);

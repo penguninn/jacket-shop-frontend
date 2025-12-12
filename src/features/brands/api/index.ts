@@ -76,7 +76,7 @@ export async function bulkUpdateBrandStatus(ids: number[], status: string) {
     await httpPrivateTyped.post(
         `/brands/bulk/status`,
         { ids, status },
-        z.null(),
+        z.array(brandSchema),
     );
 }
 

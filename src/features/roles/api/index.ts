@@ -1,13 +1,7 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import z from "zod";
+import { rolesResponseSchema, type RolesResponse } from "../model/schemas";
 
 export async function getRoles() {
-  const roleSchema = z.array(
-    z.object({
-      id: z.number(),
-      name: z.string(),
-    }),
-  );
-  const res = await httpPrivateTyped.get("/roles", roleSchema);
+  const res = await httpPrivateTyped.get<RolesResponse>("/roles", rolesResponseSchema);
   return res;
 }

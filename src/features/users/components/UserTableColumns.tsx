@@ -6,7 +6,7 @@ import { UserRoleBadge } from "./UserRoleBadge";
 import { UserStatusBadge } from "./UserStatusBadge";
 import { UserTableRowActions } from "./UserTableRowActions";
 import { formatDistanceToNow } from "date-fns";
-import type { User } from "@/features/users/model/schemas";
+import type { User, Role } from "@/features/users/model/schemas";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -75,18 +75,19 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: "roles",
     header: "Roles",
     cell: ({ row }) => {
-      const roles = row.getValue("roles") as string[];
+      const roles = row.getValue("roles") as Role[];
       return (
         <div className="flex flex-wrap gap-1">
           {roles.map((role) => (
-            <UserRoleBadge key={role} role={role} />
+            <UserRoleBadge key={role.id} role={role.name} />
           ))}
         </div>
       );
     },
     filterFn: (row, id, value) => {
-      const roles = row.getValue(id) as string[];
-      return value.some((v: string) => roles.includes(v));
+      const roles = row.getValue(id) as Role[];
+      // Check if any of the user's roles (by name) are in the selected filter values
+      return value.some((v: string) => roles.some(r => r.name === v));
     },
   },
   {

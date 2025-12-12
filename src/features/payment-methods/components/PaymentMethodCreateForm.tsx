@@ -25,20 +25,17 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreatePaymentMethod } from "../hooks";
 import { createPaymentMethodSchema, type CreatePaymentMethodInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
 
 export function PaymentMethodCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreate, isPending } = useCreatePaymentMethod();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
+        watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreatePaymentMethodInput>({
         resolver: zodResolver(createPaymentMethodSchema),
@@ -50,6 +47,9 @@ export function PaymentMethodCreateForm() {
         },
     });
 
+    const { mutate: doCreate, isPending } = useCreatePaymentMethod({ setError: setError as any });
+
+    const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
     const onSubmit = (data: CreatePaymentMethodInput) => {
@@ -58,7 +58,6 @@ export function PaymentMethodCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -86,9 +85,11 @@ export function PaymentMethodCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
-                        {/* Name */}
+                    <form
+                        id="create-payment-method-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
                             <Input
@@ -129,7 +130,9 @@ export function PaymentMethodCreateForm() {
                                 {...register("configJson")}
                             />
                             {errors.configJson && (
-                                <p className="text-xs text-red-500">{errors.configJson.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.configJson.message}
+                                </p>
                             )}
                         </div>
 
@@ -137,8 +140,10 @@ export function PaymentMethodCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as any)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -149,7 +154,9 @@ export function PaymentMethodCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -164,7 +171,11 @@ export function PaymentMethodCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-payment-method-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Payment Method"}
                     </Button>
                 </DialogFooter>

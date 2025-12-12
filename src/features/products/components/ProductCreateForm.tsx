@@ -23,36 +23,48 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
+import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
+import { useUpload } from "@/shared/hooks/use-upload";
 
-import { useCreateProduct, useCategories, useBrands, useMaterials, useStyles } from "../hooks";
+import { useCreateProduct, useBrands, useStyles } from "../hooks";
 import { createProductSchema, type CreateProductInput } from "../model/schemas";
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+    LABELS: {
+        NAME: "Product Name *",
+        DESCRIPTION: "Description",
+        BRAND: "Brand",
+        STYLE: "Style",
+        STATUS: "Status *",
+    },
+    PLACEHOLDERS: {
+        NAME: "Classic Leather Jacket",
+        DESCRIPTION: "Product description...",
+        SELECT_BRAND: "Select brand",
+        SELECT_STYLE: "Select style",
+        SELECT_STATUS: "Select status",
+    },
+    MESSAGES: {
+        CREATE: "Create Product",
+        CREATING: "Creating...",
+        UPLOAD_SUCCESS: "Thumbnail uploaded successfully",
+    },
+} as const;
 
 export function ProductCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateProduct, isPending } = useCreateProduct();
-
-    // Fetch helper entities for dropdowns
-    const { data: categoriesResponse } = useCategories();
-    const { data: brandsResponse } = useBrands();
-    const { data: materialsResponse } = useMaterials();
-    const { data: stylesResponse } = useStyles();
-
-    // Extract contents from paginated responses
-    const categories = categoriesResponse?.contents ?? [];
-    const brands = brandsResponse?.contents ?? [];
-    const materials = materialsResponse?.contents ?? [];
-    const styles = stylesResponse?.contents ?? [];
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
+        watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateProductInput>({
         resolver: zodResolver(createProductSchema),
@@ -60,9 +72,26 @@ export function ProductCreateForm() {
             name: "",
             description: "",
             status: "ACTIVE",
+            thumbnail: "",
         },
     });
 
+    const { upload, isUploading, progress } = useUpload();
+    const thumbnail = watch("thumbnail");
+
+    const { mutate: doCreateProduct, isPending } = useCreateProduct({ setError: setError as any });
+
+    // Fetch helper entities for dropdowns
+    const { data: brandsResponse } = useBrands();
+    const { data: stylesResponse } = useStyles();
+
+    // Extract contents from paginated responses
+    const brands = brandsResponse?.contents ?? [];
+    const styles = stylesResponse?.contents ?? [];
+
+    const brandId = watch("brandId");
+    const styleId = watch("styleId");
+    const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
     const onSubmit = (data: CreateProductInput) => {
@@ -71,7 +100,6 @@ export function ProductCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -99,14 +127,18 @@ export function ProductCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[70vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="create-product-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="name">Product Name *</Label>
+                            <Label htmlFor="name">{FORM_CONFIG.LABELS.NAME}</Label>
                             <Input
                                 id="name"
-                                placeholder="Classic Leather Jacket"
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.NAME}
                                 {...register("name")}
                                 autoFocus
                             />
@@ -119,10 +151,10 @@ export function ProductCreateForm() {
 
                         {/* Description */}
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{FORM_CONFIG.LABELS.DESCRIPTION}</Label>
                             <Textarea
                                 id="description"
-                                placeholder="Product description..."
+                                placeholder={FORM_CONFIG.PLACEHOLDERS.DESCRIPTION}
                                 {...register("description")}
                             />
                             {errors.description && (
@@ -132,58 +164,62 @@ export function ProductCreateForm() {
                             )}
                         </div>
 
+                        {/* Thumbnail Upload */}
+                        <div className="space-y-2">
+                            <Label>Product Thumbnail</Label>
+                            <Dropzone
+                                onDrop={(files) => {
+                                    if (files.length > 0) {
+                                        upload(files[0], {
+                                            onSuccess: (data) => {
+                                                setValue("thumbnail", data.url, { shouldDirty: true });
+                                            }
+                                        });
+                                    }
+                                }}
+                                accept={{ "image/*": [] }}
+                                maxSize={5 * 1024 * 1024}
+                                className={isUploading ? "pointer-events-none opacity-50" : ""}
+                            >
+                                {isUploading ? (
+                                    <div className="flex flex-col items-center justify-center p-8 text-sm text-muted-foreground">
+                                        <p>Uploading... {progress}%</p>
+                                    </div>
+                                ) : thumbnail ? (
+                                    <div className="flex flex-col items-center justify-center p-4">
+                                        <div className="relative aspect-square w-32 overflow-hidden rounded-md border">
+                                            <img src={thumbnail} alt="Thumbnail" className="h-full w-full object-cover" />
+                                        </div>
+                                        <p className="mt-2 text-xs text-muted-foreground">Click or drag to replace</p>
+                                    </div>
+                                ) : (
+                                    <DropzoneEmptyState />
+                                )}
+                            </Dropzone>
+                            <input type="hidden" {...register("thumbnail")} />
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Category */}
-                            <div className="space-y-2">
-                                <Label htmlFor="categoryId">Category</Label>
-                                <Select
-                                    onValueChange={(value) => setValue("categoryId", Number(value))}
-                                >
-                                    <SelectTrigger id="categoryId">
-                                        <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories?.map((c) => (
-                                            <SelectItem key={c.id} value={String(c.id)}>
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
 
                             {/* Brand */}
                             <div className="space-y-2">
                                 <Label htmlFor="brandId">Brand</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("brandId", Number(value))}
+                                    value={brandId ? String(brandId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("brandId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="brandId">
                                         <SelectValue placeholder="Select brand" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {brands?.map((b) => (
-                                            <SelectItem key={b.id} value={String(b.id)}>
+                                            <SelectItem
+                                                key={b.id}
+                                                value={String(b.id)}
+                                            >
                                                 {b.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Material */}
-                            <div className="space-y-2">
-                                <Label htmlFor="materialId">Material</Label>
-                                <Select
-                                    onValueChange={(value) => setValue("materialId", Number(value))}
-                                >
-                                    <SelectTrigger id="materialId">
-                                        <SelectValue placeholder="Select material" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {materials?.map((m) => (
-                                            <SelectItem key={m.id} value={String(m.id)}>
-                                                {m.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -194,14 +230,20 @@ export function ProductCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="styleId">Style</Label>
                                 <Select
-                                    onValueChange={(value) => setValue("styleId", Number(value))}
+                                    value={styleId ? String(styleId) : undefined}
+                                    onValueChange={(value) =>
+                                        setValue("styleId", Number(value))
+                                    }
                                 >
                                     <SelectTrigger id="styleId">
                                         <SelectValue placeholder="Select style" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {styles?.map((s) => (
-                                            <SelectItem key={s.id} value={String(s.id)}>
+                                            <SelectItem
+                                                key={s.id}
+                                                value={String(s.id)}
+                                            >
                                                 {s.name}
                                             </SelectItem>
                                         ))}
@@ -212,13 +254,15 @@ export function ProductCreateForm() {
 
                         {/* Status */}
                         <div className="space-y-2">
-                            <Label htmlFor="status">Status *</Label>
+                            <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as any)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
                             >
                                 <SelectTrigger id="status">
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder={FORM_CONFIG.PLACEHOLDERS.SELECT_STATUS} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
@@ -226,7 +270,9 @@ export function ProductCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -241,8 +287,12 @@ export function ProductCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
-                        {busy ? "Creating..." : "Create Product"}
+                    <Button
+                        type="submit"
+                        form="create-product-form"
+                        disabled={busy}
+                    >
+                        {busy ? FORM_CONFIG.MESSAGES.CREATING : FORM_CONFIG.MESSAGES.CREATE}
                     </Button>
                 </DialogFooter>
             </DialogContent>

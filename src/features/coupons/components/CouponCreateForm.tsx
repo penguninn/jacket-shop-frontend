@@ -25,21 +25,18 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateCoupon } from "../hooks";
 import { createCouponSchema, type CreateCouponInput } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 export function CouponCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateCoupon, isPending } = useCreateCoupon();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateCouponInput>({
         resolver: zodResolver(createCouponSchema),
@@ -57,7 +54,10 @@ export function CouponCreateForm() {
         },
     });
 
+    const { mutate: doCreateCoupon, isPending } = useCreateCoupon({ setError: setError as any });
+
     const couponType = watch("type");
+    const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
 
     const onSubmit = (data: CreateCouponInput) => {
@@ -65,9 +65,18 @@ export function CouponCreateForm() {
         const payload = {
             ...data,
             description: data.description || undefined,
-            minOrderValue: data.minOrderValue && data.minOrderValue > 0 ? data.minOrderValue : undefined,
-            maxDiscount: data.maxDiscount && data.maxDiscount > 0 ? data.maxDiscount : undefined,
-            usageLimit: data.usageLimit && data.usageLimit > 0 ? data.usageLimit : undefined,
+            minOrderValue:
+                data.minOrderValue && data.minOrderValue > 0
+                    ? data.minOrderValue
+                    : undefined,
+            maxDiscount:
+                data.maxDiscount && data.maxDiscount > 0
+                    ? data.maxDiscount
+                    : undefined,
+            usageLimit:
+                data.usageLimit && data.usageLimit > 0
+                    ? data.usageLimit
+                    : undefined,
             validFrom: new Date(data.validFrom).toISOString(),
             validTo: new Date(data.validTo).toISOString(),
         };
@@ -77,7 +86,6 @@ export function CouponCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -105,8 +113,12 @@ export function CouponCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="create-coupon-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Code */}
                         <div className="space-y-2">
                             <Label htmlFor="code">Code *</Label>
@@ -149,8 +161,10 @@ export function CouponCreateForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="type">Type *</Label>
                                 <Select
-                                    defaultValue="PERCENT"
-                                    onValueChange={(value) => setValue("type", value as any)}
+                                    value={couponType}
+                                    onValueChange={(value) =>
+                                        setValue("type", value as any)
+                                    }
                                 >
                                     <SelectTrigger id="type">
                                         <SelectValue placeholder="Select type" />
@@ -161,7 +175,9 @@ export function CouponCreateForm() {
                                     </SelectContent>
                                 </Select>
                                 {errors.type && (
-                                    <p className="text-xs text-red-500">{errors.type.message}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.type.message}
+                                    </p>
                                 )}
                             </div>
 
@@ -174,11 +190,15 @@ export function CouponCreateForm() {
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    placeholder={couponType === "PERCENT" ? "10" : "50.00"}
+                                    placeholder={
+                                        couponType === "PERCENT" ? "10" : "50.00"
+                                    }
                                     {...register("value", { valueAsNumber: true })}
                                 />
                                 {errors.value && (
-                                    <p className="text-xs text-red-500">{errors.value.message}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.value.message}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -186,14 +206,18 @@ export function CouponCreateForm() {
                         {/* Min Order Value and Max Discount */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="minOrderValue">Min Order Value ($)</Label>
+                                <Label htmlFor="minOrderValue">
+                                    Min Order Value ($)
+                                </Label>
                                 <Input
                                     id="minOrderValue"
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     placeholder="100.00"
-                                    {...register("minOrderValue", { valueAsNumber: true })}
+                                    {...register("minOrderValue", {
+                                        valueAsNumber: true,
+                                    })}
                                 />
                                 {errors.minOrderValue && (
                                     <p className="text-xs text-red-500">
@@ -210,7 +234,9 @@ export function CouponCreateForm() {
                                     step="0.01"
                                     min="0"
                                     placeholder="50.00"
-                                    {...register("maxDiscount", { valueAsNumber: true })}
+                                    {...register("maxDiscount", {
+                                        valueAsNumber: true,
+                                    })}
                                 />
                                 {errors.maxDiscount && (
                                     <p className="text-xs text-red-500">
@@ -275,8 +301,10 @@ export function CouponCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as any)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -287,7 +315,9 @@ export function CouponCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -302,7 +332,11 @@ export function CouponCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-coupon-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Coupon"}
                     </Button>
                 </DialogFooter>

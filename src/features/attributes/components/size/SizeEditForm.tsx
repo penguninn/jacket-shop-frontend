@@ -26,10 +26,10 @@ import {
   updateSizeSchema,
   type UpdateSizeInput,
   type Size,
+  type SizeStatus,
 } from "../../model/schemas";
 import { useUpdateSize } from "../../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 interface Props {
   size: Size;
@@ -38,15 +38,14 @@ interface Props {
 
 export function SizeEditForm({ size, children }: Props) {
   const [open, setOpen] = useState(false);
-  const { mutate: doUpdate, isPending } = useUpdateSize();
-
   const {
     register,
     handleSubmit,
-    setError,
+
     setValue,
     watch,
     reset,
+    setError,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateSizeInput>({
     resolver: zodResolver(updateSizeSchema),
@@ -56,6 +55,8 @@ export function SizeEditForm({ size, children }: Props) {
       status: "ACTIVE",
     },
   });
+
+  const { mutate: doUpdate, isPending } = useUpdateSize({ setError: setError as any });
 
   const currentStatus = watch("status");
   const busy = isSubmitting || isPending;
@@ -77,7 +78,6 @@ export function SizeEditForm({ size, children }: Props) {
         onSuccess: () => {
           setOpen(false);
         },
-        onError: (e: any) => mapProblemToForm(e, setError),
       }
     );
   };
@@ -94,8 +94,12 @@ export function SizeEditForm({ size, children }: Props) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-            <FormError errors={errors} />
+          <form
+            id="edit-size-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
@@ -131,7 +135,7 @@ export function SizeEditForm({ size, children }: Props) {
               <Select
                 value={currentStatus}
                 onValueChange={(value) =>
-                  setValue("status", value as any, { shouldDirty: true })
+                  setValue("status", value as SizeStatus, { shouldDirty: true })
                 }
               >
                 <SelectTrigger id="status">
@@ -159,7 +163,8 @@ export function SizeEditForm({ size, children }: Props) {
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="edit-size-form"
             disabled={busy || !isDirty}
           >
             {busy ? "Saving..." : "Save Changes"}

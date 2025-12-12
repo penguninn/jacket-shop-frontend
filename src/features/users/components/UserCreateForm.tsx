@@ -1,4 +1,5 @@
-import { useState } from "react";
+// features/users/components/UserCreateForm.tsx
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Plus } from "lucide-react";
@@ -24,21 +25,172 @@ import {
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Badge } from "@/shared/ui/badge";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-
 import { useCreateUser } from "../hooks";
 import { useRoles } from "@/features/roles/hooks";
 import { createUserSchema, type CreateUserInput } from "../model/schemas";
+import type { Status } from "@/shared/api/schemas";
 
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+// ============================================
+// CONSTANTS
+// ============================================
+const FORM_CONFIG = {
+  PLACEHOLDERS: {
+    USERNAME: 'johndoe',
+    FULL_NAME: 'John Doe',
+    PHONE: '0987654321',
+    PASSWORD: '••••••••',
+  },
+  LABELS: {
+    USERNAME: 'Username *',
+    FULL_NAME: 'Full Name *',
+    PHONE: 'Phone (Optional)',
+    PASSWORD: 'Password *',
+    CONFIRM_PASSWORD: 'Confirm Password *',
+    STATUS: 'Status *',
+    ROLES: 'Roles * (Select at least one)',
+  },
+  MESSAGES: {
+    LOADING_ROLES: 'Loading roles...',
+    CREATING: 'Creating...',
+    CREATE: 'Create User',
+    SELECTED_ROLES: 'Selected:',
+  },
+} as const;
+
+const DEFAULT_VALUES: CreateUserInput = {
+  username: "",
+  fullName: "",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+  status: "ACTIVE",
+  roleIds: [],
+};
+
+function toggleArrayItem<T>(array: T[], item: T): T[] {
+  return array.includes(item)
+    ? array.filter((i) => i !== item)
+    : [...array, item];
+}
+
+interface PasswordInputProps {
+  id: string;
+  label: string;
+  placeholder: string;
+  register: any;
+  error?: string;
+  showPassword: boolean;
+  onToggleVisibility: () => void;
+}
+
+function PasswordInput({
+  id,
+  label,
+  placeholder,
+  register,
+  error,
+  showPassword,
+  onToggleVisibility,
+}: PasswordInputProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={showPassword ? "text" : "password"}
+          placeholder={placeholder}
+          {...register}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+          onClick={onToggleVisibility}
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
+
+interface RolesSelectorProps {
+  roles?: Array<{ id: number; name: string }>;
+  selectedRoleIds: number[];
+  onToggleRole: (roleId: number) => void;
+  error?: string;
+  isLoading: boolean;
+}
+
+function RolesSelector({
+  roles,
+  selectedRoleIds,
+  onToggleRole,
+  error,
+  isLoading,
+}: RolesSelectorProps) {
+  if (isLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        {FORM_CONFIG.MESSAGES.LOADING_ROLES}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-2">
+        {roles?.map((role) => (
+          <div key={role.id} className="flex items-center space-x-2">
+            <Checkbox
+              id={`role-${role.id}`}
+              checked={selectedRoleIds.includes(role.id)}
+              onCheckedChange={() => onToggleRole(role.id)}
+            />
+            <Label
+              htmlFor={`role-${role.id}`}
+              className="cursor-pointer font-normal"
+            >
+              {role.name}
+            </Label>
+          </div>
+        ))}
+      </div>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      {selectedRoleIds.length > 0 && (
+        <div className="mt-3">
+          <div className="text-sm text-muted-foreground mb-2">
+            {FORM_CONFIG.MESSAGES.SELECTED_ROLES}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {selectedRoleIds.map((id) => {
+              const role = roles?.find((r) => r.id === id);
+              return role ? (
+                <Badge key={id} variant="secondary">
+                  {role.name}
+                </Badge>
+              ) : null;
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export function UserCreateForm() {
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const { mutate: doCreateUser, isPending } = useCreateUser();
-  const { data: roles, isLoading: rolesLoading } = useRoles();
 
   const {
     register,
@@ -50,46 +202,49 @@ export function UserCreateForm() {
     formState: { errors, isSubmitting },
   } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      username: "",
-      fullName: "",
-      phone: "",
-      password: "",
-      confirmPassword: "",
-      status: "ACTIVE",
-      roleIds: [],
-    },
+    defaultValues: DEFAULT_VALUES,
   });
 
+  const { mutate: createUser, isPending } = useCreateUser({ setError: setError as any });
+  const { data: roles, isLoading: rolesLoading } = useRoles();
+
   const selectedRoleIds = watch("roleIds");
+  const currentStatus = watch("status");
   const busy = isSubmitting || isPending;
 
-  const toggleRole = (roleId: number) => {
-    const current = selectedRoleIds || [];
-    const updated = current.includes(roleId)
-      ? current.filter((id) => id !== roleId)
-      : [...current, roleId];
-    setValue("roleIds", updated);
-  };
+  const toggleRole = useCallback(
+    (roleId: number) => {
+      const updated = toggleArrayItem(selectedRoleIds || [], roleId);
+      setValue("roleIds", updated, { shouldValidate: true });
+    },
+    [selectedRoleIds, setValue]
+  );
 
-  const onSubmit = (data: CreateUserInput) => {
-    doCreateUser(data, {
-      onSuccess: () => {
-        setOpen(false);
-        reset();
-      },
-      onError: (e: any) => mapProblemToForm(e, setError),
-    });
-  };
+  const onSubmit = useCallback(
+    (data: CreateUserInput) => {
+      createUser(data, {
+        onSuccess: () => {
+          setOpen(false);
+          reset(DEFAULT_VALUES);
+          setShowPassword(false);
+          setShowConfirmPassword(false);
+        }
+      });
+    },
+    [createUser, reset]
+  );
 
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      reset();
-      setShowPassword(false);
-      setShowConfirmPassword(false);
-    }
-    setOpen(newOpen);
-  };
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      if (!newOpen) {
+        reset(DEFAULT_VALUES);
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+      }
+      setOpen(newOpen);
+    },
+    [reset]
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -108,14 +263,16 @@ export function UserCreateForm() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-            <FormError errors={errors} />
-            {/* Username */}
+          <form
+            id="create-user-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="username">Username *</Label>
+              <Label htmlFor="username">{FORM_CONFIG.LABELS.USERNAME}</Label>
               <Input
                 id="username"
-                placeholder="johndoe"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.USERNAME}
                 {...register("username")}
                 autoFocus
               />
@@ -126,12 +283,11 @@ export function UserCreateForm() {
               )}
             </div>
 
-            {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="fullName">{FORM_CONFIG.LABELS.FULL_NAME}</Label>
               <Input
                 id="fullName"
-                placeholder="John Doe"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.FULL_NAME}
                 {...register("fullName")}
               />
               {errors.fullName && (
@@ -141,13 +297,12 @@ export function UserCreateForm() {
               )}
             </div>
 
-            {/* Phone */}
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (Optional)</Label>
+              <Label htmlFor="phone">{FORM_CONFIG.LABELS.PHONE}</Label>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="0987654321"
+                placeholder={FORM_CONFIG.PLACEHOLDERS.PHONE}
                 {...register("phone")}
               />
               {errors.phone && (
@@ -155,74 +310,33 @@ export function UserCreateForm() {
               )}
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password *</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  {...register("password")}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.password && (
-                <p className="text-xs text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            <PasswordInput
+              id="password"
+              label={FORM_CONFIG.LABELS.PASSWORD}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.PASSWORD}
+              register={register("password")}
+              error={errors.password?.message}
+              showPassword={showPassword}
+              onToggleVisibility={() => setShowPassword(!showPassword)}
+            />
 
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password *</Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  {...register("confirmPassword")}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-xs text-red-500">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
+            <PasswordInput
+              id="confirmPassword"
+              label={FORM_CONFIG.LABELS.CONFIRM_PASSWORD}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.PASSWORD}
+              register={register("confirmPassword")}
+              error={errors.confirmPassword?.message}
+              showPassword={showConfirmPassword}
+              onToggleVisibility={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+            />
 
-            {/* Status */}
             <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
+              <Label htmlFor="status">{FORM_CONFIG.LABELS.STATUS}</Label>
               <Select
-                defaultValue="ACTIVE"
-                onValueChange={(value) => setValue("status", value as any)}
+                value={currentStatus}
+                onValueChange={(value) => setValue("status", value as Status)}
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
@@ -237,54 +351,15 @@ export function UserCreateForm() {
               )}
             </div>
 
-            {/* Roles */}
             <div className="space-y-2">
-              <Label>Roles * (Select at least one)</Label>
-              {rolesLoading ? (
-                <div className="text-sm text-muted-foreground">
-                  Loading roles...
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {roles?.map((role) => (
-                    <div key={role.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`role-${role.id}`}
-                        checked={selectedRoleIds?.includes(role.id)}
-                        onCheckedChange={() => toggleRole(role.id)}
-                      />
-                      <Label
-                        htmlFor={`role-${role.id}`}
-                        className="cursor-pointer font-normal"
-                      >
-                        {role.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {errors.roleIds && (
-                <p className="text-xs text-red-500">{errors.roleIds.message}</p>
-              )}
-
-              {/* Selected Roles Preview */}
-              {selectedRoleIds && selectedRoleIds.length > 0 && (
-                <div className="mt-3">
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Selected:
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedRoleIds.map((id) => {
-                      const role = roles?.find((r) => r.id === id);
-                      return role ? (
-                        <Badge key={id} variant="secondary">
-                          {role.name}
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              )}
+              <Label>{FORM_CONFIG.LABELS.ROLES}</Label>
+              <RolesSelector
+                roles={roles}
+                selectedRoleIds={selectedRoleIds || []}
+                onToggleRole={toggleRole}
+                error={errors.roleIds?.message}
+                isLoading={rolesLoading}
+              />
             </div>
           </form>
         </ScrollArea>
@@ -298,8 +373,8 @@ export function UserCreateForm() {
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
-            {busy ? "Creating..." : "Create User"}
+          <Button type="submit" form="create-user-form" disabled={busy}>
+            {busy ? FORM_CONFIG.MESSAGES.CREATING : FORM_CONFIG.MESSAGES.CREATE}
           </Button>
         </DialogFooter>
       </DialogContent>

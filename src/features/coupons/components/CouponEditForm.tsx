@@ -25,8 +25,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updateCouponSchema, type UpdateCouponInput } from "../model/schemas";
 import type { Coupon } from "../model/schemas";
 import { useUpdateCoupon } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 interface Props {
     coupon: Coupon;
@@ -35,15 +34,14 @@ interface Props {
 
 export function CouponEditForm({ coupon, children }: Props) {
     const [open, setOpen] = useState(false);
-    const { mutate: doUpdateCoupon, isPending } = useUpdateCoupon();
 
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting, isDirty },
     } = useForm<UpdateCouponInput>({
         resolver: zodResolver(updateCouponSchema),
@@ -59,6 +57,8 @@ export function CouponEditForm({ coupon, children }: Props) {
             status: "ACTIVE",
         },
     });
+
+    const { mutate: doUpdateCoupon, isPending } = useUpdateCoupon({ setError: setError as any });
 
     const couponType = watch("type");
     const currentStatus = watch("status");
@@ -104,7 +104,6 @@ export function CouponEditForm({ coupon, children }: Props) {
                 onSuccess: () => {
                     setOpen(false);
                 },
-                onError: (e: any) => mapProblemToForm(e, setError),
             }
         );
     };
@@ -121,8 +120,12 @@ export function CouponEditForm({ coupon, children }: Props) {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="edit-coupon-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Code (Read-only) */}
                         <div className="space-y-2">
                             <Label htmlFor="code-readonly">Code</Label>
@@ -144,7 +147,9 @@ export function CouponEditForm({ coupon, children }: Props) {
                                 rows={2}
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description.message}
+                                </p>
                             )}
                         </div>
 
@@ -154,7 +159,11 @@ export function CouponEditForm({ coupon, children }: Props) {
                                 <Label htmlFor="type">Type *</Label>
                                 <Select
                                     value={couponType}
-                                    onValueChange={(value) => setValue("type", value as any, { shouldDirty: true })}
+                                    onValueChange={(value) =>
+                                        setValue("type", value as any, {
+                                            shouldDirty: true,
+                                        })
+                                    }
                                 >
                                     <SelectTrigger id="type">
                                         <SelectValue />
@@ -165,7 +174,9 @@ export function CouponEditForm({ coupon, children }: Props) {
                                     </SelectContent>
                                 </Select>
                                 {errors.type && (
-                                    <p className="text-xs text-red-500">{errors.type.message}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.type.message}
+                                    </p>
                                 )}
                             </div>
 
@@ -178,11 +189,15 @@ export function CouponEditForm({ coupon, children }: Props) {
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    placeholder={couponType === "PERCENT" ? "10" : "50.00"}
+                                    placeholder={
+                                        couponType === "PERCENT" ? "10" : "50.00"
+                                    }
                                     {...register("value", { valueAsNumber: true })}
                                 />
                                 {errors.value && (
-                                    <p className="text-xs text-red-500">{errors.value.message}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.value.message}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -190,14 +205,18 @@ export function CouponEditForm({ coupon, children }: Props) {
                         {/* Min Order Value and Max Discount */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="minOrderValue">Min Order Value ($)</Label>
+                                <Label htmlFor="minOrderValue">
+                                    Min Order Value ($)
+                                </Label>
                                 <Input
                                     id="minOrderValue"
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     placeholder="100.00"
-                                    {...register("minOrderValue", { valueAsNumber: true })}
+                                    {...register("minOrderValue", {
+                                        valueAsNumber: true,
+                                    })}
                                 />
                                 {errors.minOrderValue && (
                                     <p className="text-xs text-red-500">
@@ -214,7 +233,9 @@ export function CouponEditForm({ coupon, children }: Props) {
                                     step="0.01"
                                     min="0"
                                     placeholder="50.00"
-                                    {...register("maxDiscount", { valueAsNumber: true })}
+                                    {...register("maxDiscount", {
+                                        valueAsNumber: true,
+                                    })}
                                 />
                                 {errors.maxDiscount && (
                                     <p className="text-xs text-red-500">
@@ -235,7 +256,8 @@ export function CouponEditForm({ coupon, children }: Props) {
                                 {...register("usageLimit", { valueAsNumber: true })}
                             />
                             <p className="text-xs text-muted-foreground">
-                                Current usage: {coupon.usedCount} / {coupon.usageLimit || "∞"}
+                                Current usage: {coupon.usedCount} /{" "}
+                                {coupon.usageLimit || "∞"}
                             </p>
                             {errors.usageLimit && (
                                 <p className="text-xs text-red-500">
@@ -280,7 +302,11 @@ export function CouponEditForm({ coupon, children }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any, {
+                                        shouldDirty: true,
+                                    })
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue />
@@ -291,7 +317,9 @@ export function CouponEditForm({ coupon, children }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -307,7 +335,8 @@ export function CouponEditForm({ coupon, children }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-coupon-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

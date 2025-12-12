@@ -25,8 +25,7 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 import { updatePaymentMethodSchema, type UpdatePaymentMethodInput } from "../model/schemas";
 import type { PaymentMethod } from "../model/schemas";
 import { useUpdatePaymentMethod } from "../hooks";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+
 
 interface Props {
     paymentMethod: PaymentMethod;
@@ -35,15 +34,13 @@ interface Props {
 
 export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
     const [open, setOpen] = useState(false);
-    const { mutate: doUpdate, isPending } = useUpdatePaymentMethod();
-
     const {
         register,
         handleSubmit,
-        setError,
         setValue,
         watch,
         reset,
+        setError,
         formState: { errors, isSubmitting, isDirty },
     } = useForm<UpdatePaymentMethodInput>({
         resolver: zodResolver(updatePaymentMethodSchema),
@@ -54,6 +51,8 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
             status: "ACTIVE",
         },
     });
+
+    const { mutate: doUpdate, isPending } = useUpdatePaymentMethod({ setError: setError as any });
 
     const currentStatus = watch("status");
     const busy = isSubmitting || isPending;
@@ -76,7 +75,6 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                 onSuccess: () => {
                     setOpen(false);
                 },
-                onError: (e: any) => mapProblemToForm(e, setError),
             }
         );
     };
@@ -86,15 +84,21 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Payment Method: {paymentMethod.name}</DialogTitle>
+                    <DialogTitle>
+                        Edit Payment Method: {paymentMethod.name}
+                    </DialogTitle>
                     <DialogDescription>
                         Update payment method information.
                     </DialogDescription>
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="edit-payment-method-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
@@ -135,7 +139,9 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                                 {...register("configJson")}
                             />
                             {errors.configJson && (
-                                <p className="text-xs text-red-500">{errors.configJson.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.configJson.message}
+                                </p>
                             )}
                         </div>
 
@@ -144,7 +150,11 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                             <Label htmlFor="status">Status *</Label>
                             <Select
                                 value={currentStatus}
-                                onValueChange={(value) => setValue("status", value as any, { shouldDirty: true })}
+                                onValueChange={(value) =>
+                                    setValue("status", value as any, {
+                                        shouldDirty: true,
+                                    })
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue />
@@ -155,7 +165,9 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -171,7 +183,8 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        type="submit"
+                        form="edit-payment-method-form"
                         disabled={busy || !isDirty}
                     >
                         {busy ? "Saving..." : "Save Changes"}

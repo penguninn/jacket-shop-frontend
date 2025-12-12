@@ -76,7 +76,7 @@ export async function bulkUpdateStyleStatus(ids: number[], status: string) {
     await httpPrivateTyped.post(
         `/styles/bulk/status`,
         { ids, status },
-        z.null(),
+        z.array(styleSchema),
     );
 }
 

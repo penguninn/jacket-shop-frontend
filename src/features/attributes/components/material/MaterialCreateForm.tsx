@@ -23,22 +23,21 @@ import {
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
-import { useCreateMaterial } from "../hooks";
-import { createMaterialSchema, type CreateMaterialInput, type MaterialStatus } from "../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+import { useCreateMaterial } from "../../hooks";
+import { createMaterialSchema, type CreateMaterialInput, type MaterialStatus } from "../../model/schemas";
+
 
 export function MaterialCreateForm() {
     const [open, setOpen] = useState(false);
 
-    const { mutate: doCreateMaterial, isPending } = useCreateMaterial();
-
     const {
         register,
         handleSubmit,
-        setError,
+
         setValue,
         reset,
+        watch,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<CreateMaterialInput>({
         resolver: zodResolver(createMaterialSchema),
@@ -49,7 +48,10 @@ export function MaterialCreateForm() {
         },
     });
 
+    const { mutate: doCreateMaterial, isPending } = useCreateMaterial({ setError: setError as any });
+
     const busy = isSubmitting || isPending;
+    const currentStatus = watch("status");
 
     const onSubmit = (data: CreateMaterialInput) => {
         doCreateMaterial(data, {
@@ -57,7 +59,6 @@ export function MaterialCreateForm() {
                 setOpen(false);
                 reset();
             },
-            onError: (e: any) => mapProblemToForm(e, setError),
         });
     };
 
@@ -85,8 +86,12 @@ export function MaterialCreateForm() {
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[60vh]">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-                        <FormError errors={errors} />
+                    <form
+                        id="create-material-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-4 pr-4"
+                    >
+
                         {/* Name */}
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
@@ -112,7 +117,9 @@ export function MaterialCreateForm() {
                                 {...register("description")}
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description.message}
+                                </p>
                             )}
                         </div>
 
@@ -120,8 +127,10 @@ export function MaterialCreateForm() {
                         <div className="space-y-2">
                             <Label htmlFor="status">Status *</Label>
                             <Select
-                                defaultValue="ACTIVE"
-                                onValueChange={(value) => setValue("status", value as MaterialStatus)}
+                                value={currentStatus}
+                                onValueChange={(value) =>
+                                    setValue("status", value as MaterialStatus)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -132,7 +141,9 @@ export function MaterialCreateForm() {
                                 </SelectContent>
                             </Select>
                             {errors.status && (
-                                <p className="text-xs text-red-500">{errors.status.message}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.status.message}
+                                </p>
                             )}
                         </div>
                     </form>
@@ -147,7 +158,11 @@ export function MaterialCreateForm() {
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+                    <Button
+                        type="submit"
+                        form="create-material-form"
+                        disabled={busy}
+                    >
                         {busy ? "Creating..." : "Create Material"}
                     </Button>
                 </DialogFooter>

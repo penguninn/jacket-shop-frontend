@@ -24,20 +24,19 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { useCreateColor } from "../../hooks";
-import { createColorSchema, type CreateColorInput } from "../../model/schemas";
-import { mapProblemToForm } from "@/shared/utils/form";
-import { FormError } from "@/shared/ui/form-error";
+import { createColorSchema, type ColorStatus, type CreateColorInput } from "../../model/schemas";
+
 
 export function ColorCreateForm() {
   const [open, setOpen] = useState(false);
-  const { mutate: doCreate, isPending } = useCreateColor();
-
   const {
     register,
     handleSubmit,
-    setError,
+
     setValue,
+    watch,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CreateColorInput>({
     resolver: zodResolver(createColorSchema),
@@ -48,7 +47,10 @@ export function ColorCreateForm() {
     },
   });
 
+  const { mutate: doCreate, isPending } = useCreateColor({ setError: setError as any });
+
   const busy = isSubmitting || isPending;
+  const currentStatus = watch("status");
 
   const onSubmit = (data: CreateColorInput) => {
     doCreate(data, {
@@ -56,7 +58,6 @@ export function ColorCreateForm() {
         setOpen(false);
         reset();
       },
-      onError: (e: any) => mapProblemToForm(e, setError),
     });
   };
 
@@ -82,8 +83,12 @@ export function ColorCreateForm() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pr-4">
-            <FormError errors={errors} />
+          <form
+            id="create-color-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 pr-4"
+          >
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
@@ -118,8 +123,10 @@ export function ColorCreateForm() {
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
-                defaultValue="ACTIVE"
-                onValueChange={(value) => setValue("status", value as any)}
+                value={currentStatus}
+                onValueChange={(value) =>
+                  setValue("status", value as ColorStatus, { shouldDirty: true })
+                }
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
@@ -145,7 +152,7 @@ export function ColorCreateForm() {
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={busy}>
+          <Button type="submit" form="create-color-form" disabled={busy}>
             {busy ? "Creating..." : "Create Color"}
           </Button>
         </DialogFooter>

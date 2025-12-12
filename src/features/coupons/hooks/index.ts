@@ -1,96 +1,100 @@
 import {
-    bulkDelete,
-    bulkUpdateStatus,
     createCoupon,
     deleteCoupon,
     getCouponById,
     getCoupons,
-    updateStatus,
     updateCoupon,
+    updateStatus,
+    bulkDelete,
+    bulkUpdateStatus,
     type GetCouponsParams,
 } from "../api";
-import type { UpdateCouponInput, UpdateCouponStatusInput } from "../model/schemas";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
+import type { BaseMutationOptions } from "@/shared/api/types";
+import type { CreateCouponInput, UpdateCouponInput, UpdateCouponStatusInput } from "../model/schemas";
 
 export function useCoupons(params: GetCouponsParams) {
     return useQuery({
         queryKey: ["coupons", params],
         queryFn: () => getCoupons(params),
-        staleTime: 30 * 1000,
-    });
-}
-
-export function useCreateCoupon() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: createCoupon,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useUpdateCoupon() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdateCouponInput }) =>
-            updateCoupon(id, data),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useUpdateCouponStatus() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdateCouponStatusInput }) =>
-            updateStatus(id, data),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useDeleteCoupon() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: deleteCoupon,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
-        onError: () => { },
-    });
-}
-
-export function useBulkUpdateStatus() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
-            bulkUpdateStatus(ids, status),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
-    });
-}
-
-export function useBulkDelete() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: bulkDelete,
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ["coupons"] });
-        },
     });
 }
 
 export function useCouponDetail(id: number) {
     return useQuery({
-        queryKey: ["coupon", id],
+        queryKey: ["coupons", id],
         queryFn: () => getCouponById(id),
         enabled: !!id,
+    });
+}
+
+export function useCreateCoupon(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: (data: CreateCouponInput) => createCoupon(data),
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["coupons"] });
+        },
+    });
+}
+
+export function useUpdateCoupon(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdateCouponInput }) =>
+            updateCoupon(id, data),
+        setError: options?.setError,
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["coupons"] });
+            queryClient.invalidateQueries({ queryKey: ["coupons", variables.id] });
+        },
+    });
+}
+
+export function useUpdateCouponStatus(options?: BaseMutationOptions) {
+    const qc = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdateCouponStatusInput }) =>
+            updateStatus(id, data),
+        setError: options?.setError,
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["coupons"] });
+        },
+    });
+}
+
+export function useDeleteCoupon(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: deleteCoupon,
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["coupons"] });
+        },
+    });
+}
+
+export function useBulkDeleteCoupons(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: bulkDelete,
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["coupons"] });
+        },
+    });
+}
+
+export function useBulkUpdateCouponStatus(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: ({ ids, status }: { ids: number[]; status: string }) =>
+            bulkUpdateStatus(ids, status),
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["coupons"] });
+        },
     });
 }
