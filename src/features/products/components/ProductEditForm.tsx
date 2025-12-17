@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -22,6 +24,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { useUpload } from "@/shared/hooks/use-upload";
 import { updateProductSchema, type UpdateProductInput, type Product, type ProductStatus } from "../model/schemas";
 import { useUpdateProduct, useBrands, useStyles } from "../hooks";
@@ -75,6 +78,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
             description: "",
             status: "ACTIVE",
             thumbnail: "",
+            isFeatured: false,
         },
     });
 
@@ -105,6 +109,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                 styleId: product.style?.id,
                 status: product.status,
                 thumbnail: product.thumbnail || "",
+                isFeatured: product.isFeatured || false,
             });
         }
     }, [open, product, reset]);
@@ -136,6 +141,12 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
+                        {errors.root && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{errors.root.message}</AlertDescription>
+                            </Alert>
+                        )}
 
                         {/* Name */}
                         <div className="space-y-2">
@@ -283,6 +294,25 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                     {errors.status.message}
                                 </p>
                             )}
+                        </div>
+
+                        {/* Featured */}
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isFeatured"
+                                onCheckedChange={(checked) =>
+                                    setValue("isFeatured", checked as boolean, {
+                                        shouldDirty: true,
+                                    })
+                                }
+                                checked={watch("isFeatured")}
+                            />
+                            <Label
+                                htmlFor="isFeatured"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Featured Product
+                            </Label>
                         </div>
                     </form>
                 </ScrollArea>

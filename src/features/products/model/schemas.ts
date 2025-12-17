@@ -12,12 +12,12 @@ import {
 export const PRODUCT_CONSTANTS = Object.freeze({
   NAME: {
     MIN_LENGTH: 1,
-    MAX_LENGTH: 255, // Assuming standard max length
+    MAX_LENGTH: 200,
   },
   DESCRIPTION: {
-    MAX_LENGTH: 1000, // Assuming standard max length
+    MAX_LENGTH: 5000, // Text field, generous limit
   },
-  SORT_FIELDS: ["id", "name", "price", "createdAt", "updatedAt"] as const,
+  SORT_FIELDS: ["id", "name", "price", "createdAt", "updatedAt", "soldCount"] as const,
 } as const);
 
 // ============================================
@@ -49,11 +49,17 @@ export const styleResponseSchema = z.object({
 export const productSchema = z.object({
   id: z.number(),
   name: z.string(),
-  brand: brandResponseSchema.nullable().optional(),
+  brand: brandResponseSchema, // Spec says nullable=false
+  style: styleResponseSchema, // Spec says nullable=false
   description: z.string().nullable().optional(),
-  style: styleResponseSchema.nullable().optional(),
   thumbnail: z.string().nullable().optional(),
-  imagesJson: z.string().nullable().optional(),
+
+  // New fields from spec
+  isFeatured: z.boolean().nullish().transform((v) => v ?? false),
+  soldCount: z.number().nullish().transform((v) => v ?? 0),
+  ratingAverage: z.number().nullish().transform((v) => v ?? 0.00),
+  ratingCount: z.number().nullish().transform((v) => v ?? 0),
+
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
@@ -77,13 +83,14 @@ export const createProductSchema = z.object({
     .min(
       PRODUCT_CONSTANTS.NAME.MIN_LENGTH,
       `Name must be at least ${PRODUCT_CONSTANTS.NAME.MIN_LENGTH} characters`
-    ),
-  brandId: z.number().optional(),
+    )
+    .max(PRODUCT_CONSTANTS.NAME.MAX_LENGTH, `Name must be at most ${PRODUCT_CONSTANTS.NAME.MAX_LENGTH} characters`),
+  brandId: z.number(),
+  styleId: z.number(),
   description: z.string().optional(),
-  styleId: z.number().optional(),
   thumbnail: z.string().optional(),
-  imagesJson: z.string().optional(),
   status: statusSchema,
+  isFeatured: z.boolean(),
 });
 
 export const updateProductSchema = z.object({
@@ -92,13 +99,14 @@ export const updateProductSchema = z.object({
     .min(
       PRODUCT_CONSTANTS.NAME.MIN_LENGTH,
       `Name must be at least ${PRODUCT_CONSTANTS.NAME.MIN_LENGTH} characters`
-    ),
+    )
+    .max(PRODUCT_CONSTANTS.NAME.MAX_LENGTH, `Name must be at most ${PRODUCT_CONSTANTS.NAME.MAX_LENGTH} characters`),
   brandId: z.number().optional(),
-  description: z.string().optional(),
   styleId: z.number().optional(),
+  description: z.string().optional(),
   thumbnail: z.string().optional(),
-  imagesJson: z.string().optional(),
-  status: statusSchema,
+  status: statusSchema.optional(),
+  isFeatured: z.boolean().optional(),
 });
 
 export const updateProductStatusSchema = z.object({

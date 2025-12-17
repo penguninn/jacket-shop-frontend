@@ -2,6 +2,8 @@ import { useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -203,6 +205,12 @@ export default function ProfilePage() {
 
       <div className="flex-1 p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl">
+          {errors.root && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.root.message}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-6 mt-6">
             <ReadOnlyField
               label={PAGE_CONFIG.LABELS.USERNAME}

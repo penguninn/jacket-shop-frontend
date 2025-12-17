@@ -2,7 +2,8 @@
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Plus } from "lucide-react";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle, Eye, EyeOff, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -268,6 +269,12 @@ export function UserCreateForm() {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-4 pr-4"
           >
+            {errors.root && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errors.root.message}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <Label htmlFor="username">{FORM_CONFIG.LABELS.USERNAME}</Label>
               <Input

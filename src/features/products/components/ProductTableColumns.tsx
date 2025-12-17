@@ -1,7 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Star } from "lucide-react";
 
 import { ProductTableRowActions } from "./ProductTableRowActions";
 import { StatusBadge } from "@/shared/components/StatusBadge";
@@ -96,6 +96,22 @@ export const columns: ColumnDef<Product>[] = [
             const style = row.original.style;
             if (!style) return false;
             return value.includes(style.id.toString());
+        },
+    },
+    {
+        accessorKey: "isFeatured",
+        header: "Featured",
+        cell: ({ row }) => {
+            const isFeatured = row.getValue("isFeatured");
+            return (
+                <div className="flex justify-center">
+                    {isFeatured ? (
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                        <div className="h-4 w-4" /> // Empty placeholder
+                    )}
+                </div>
+            );
         },
     },
     {

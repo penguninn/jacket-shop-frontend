@@ -1,17 +1,47 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Package, Star } from "lucide-react";
 import { useProductDetail } from "@/features/products/hooks";
 import { Button } from "@/shared/ui/button";
 import { StatusBadge } from "@/shared/components/StatusBadge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { useProductVariantsByProduct } from "../hooks";
+import { ProductVariantCreateForm } from "../components/ProductVariantCreateForm";
+import { DataTable } from "@/shared/components/data-table/DataTable";
+import { columns } from "../components/ProductVariantsTableColumns";
+import {
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+    type SortingState,
+} from "@tanstack/react-table";
+import { useState } from "react";
 
 export default function ProductVariantPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const productId = Number(id);
 
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 100 });
+
     const { data: product, isLoading, error } = useProductDetail(productId);
+    const { data: variants, isLoading: isVariantsLoading } = useProductVariantsByProduct(productId);
+
+    const table = useReactTable({
+        data: variants ?? [],
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        onSortingChange: setSorting,
+        onPaginationChange: setPagination,
+        state: {
+            sorting,
+            pagination,
+        },
+    });
 
     if (isLoading) {
         return <LoadingSkeleton />;
@@ -43,52 +73,77 @@ export default function ProductVariantPage() {
                     Back to Products
                 </Button>
 
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold">
-                            {product.name}
-                        </h1>
-                        <div className="mt-2 flex items-center gap-3">
-                            <StatusBadge status={product.status} />
-                            <span className="text-muted-foreground">
-                                {product.brand?.name}
-                            </span>
+                <div className="flex gap-6">
+                    {/* Thumbnail */}
+                    <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg border bg-muted">
+                        {product.thumbnail ? (
+                            <img
+                                src={product.thumbnail}
+                                alt={product.name}
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                No Img
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
+                                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">{product.brand?.name}</span>
+                                    <span>•</span>
+                                    <span>{product.style?.name}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <StatusBadge status={product.status} />
+                                {product.isFeatured && (
+                                    <Badge variant="secondary" className="font-normal">
+                                        Featured
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
+
+                        {product.description && (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                                {product.description}
+                            </p>
+                        )}
+
+                        <div className="flex items-center gap-6 text-sm">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <Package className="h-4 w-4" />
+                                <span>{product.soldCount ?? 0} sold</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <Star className={`h-4 w-4 ${product.ratingAverage && product.ratingAverage > 0 ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                                <span className={product.ratingAverage && product.ratingAverage > 0 ? "font-medium" : "text-muted-foreground"}>
+                                    {product.ratingAverage?.toFixed(1) ?? "0.0"}
+                                    <span className="ml-1 font-normal text-muted-foreground">
+                                        ({product.ratingCount ?? 0} reviews)
+                                    </span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="variants" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="variants">Variants</TabsTrigger>
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                </TabsList>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold tracking-tight">Product Variants</h2>
+                    <ProductVariantCreateForm productId={productId} />
+                </div>
 
-                <TabsContent value="variants">
-                    <div className="rounded-md border p-4">
-                        <p className="text-muted-foreground">Product variants management will be implemented here.</p>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="details">
-                    <div className="rounded-md border p-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h3 className="font-semibold">Description</h3>
-                                <p className="text-sm text-muted-foreground">{product.description || "No description"}</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Attributes</h3>
-                                <ul className="text-sm text-muted-foreground">
-
-                                    <li>Style: {product.style?.name || "N/A"}</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </TabsContent>
-            </Tabs>
+                <DataTable table={table} columns={columns} isLoading={isVariantsLoading} />
+            </div>
         </div>
     );
 }

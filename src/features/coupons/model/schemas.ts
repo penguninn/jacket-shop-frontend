@@ -69,50 +69,26 @@ export const createCouponSchema = z.object({
             COUPON_CONSTANTS.CODE.REGEX,
             "Code can only contain uppercase letters, numbers, - and _"
         ),
-    description: z.string().optional().or(z.literal("")),
+    description: z.string().max(255).optional().or(z.literal("")),
     type: z.enum(couponTypeEnum, { message: "Coupon type is required" }),
-    value: z.number().positive("Value must be positive"),
-    minOrderValue: z
-        .number()
-        .positive("Minimum order value must be positive")
-        .optional()
-        .or(z.literal(0)),
-    maxDiscount: z
-        .number()
-        .positive("Maximum discount must be positive")
-        .optional()
-        .or(z.literal(0)),
-    usageLimit: z
-        .number()
-        .int("Usage limit must be an integer")
-        .positive("Usage limit must be positive")
-        .optional()
-        .or(z.literal(0)),
+    value: z.number().min(0, "Value cannot be negative"),
+    minOrderValue: z.number().min(0).optional().or(z.literal(0)),
+    maxDiscount: z.number().min(0).optional().or(z.literal(0)),
+    usageLimit: z.number().int().min(0).optional().or(z.literal(0)),
+    usedCount: z.number().int().min(0).optional().or(z.literal(0)), // Added based on DTO
     validFrom: z.string().min(1, "Valid from date is required"),
     validTo: z.string().min(1, "Valid to date is required"),
     status: statusSchema,
 });
 
 export const updateCouponSchema = z.object({
-    description: z.string().optional().or(z.literal("")),
+    description: z.string().max(255).optional().or(z.literal("")),
     type: z.enum(couponTypeEnum, { message: "Coupon type is required" }),
-    value: z.number().positive("Value must be positive"),
-    minOrderValue: z
-        .number()
-        .positive("Minimum order value must be positive")
-        .optional()
-        .or(z.literal(0)),
-    maxDiscount: z
-        .number()
-        .positive("Maximum discount must be positive")
-        .optional()
-        .or(z.literal(0)),
-    usageLimit: z
-        .number()
-        .int("Usage limit must be an integer")
-        .positive("Usage limit must be positive")
-        .optional()
-        .or(z.literal(0)),
+    value: z.number().min(0, "Value cannot be negative"),
+    minOrderValue: z.number().min(0).optional().or(z.literal(0)),
+    maxDiscount: z.number().min(0).optional().or(z.literal(0)),
+    usageLimit: z.number().int().min(0).optional().or(z.literal(0)),
+    usedCount: z.number().int().min(0).optional().or(z.literal(0)), // Added based on DTO
     validFrom: z.string().min(1, "Valid from date is required"),
     validTo: z.string().min(1, "Valid to date is required"),
     status: statusSchema,

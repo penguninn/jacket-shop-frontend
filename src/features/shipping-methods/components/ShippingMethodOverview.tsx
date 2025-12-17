@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit2, Save, X } from "lucide-react";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle, Edit2, Save, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -114,6 +115,12 @@ export function ShippingMethodOverview({ shippingMethod }: Props) {
                     )}
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {errors.root && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{errors.root.message}</AlertDescription>
+                        </Alert>
+                    )}
                     {/* Name */}
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
