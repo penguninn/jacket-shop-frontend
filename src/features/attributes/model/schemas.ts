@@ -5,9 +5,6 @@ import {
   type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const ATTRIBUTE_CONSTANTS = Object.freeze({
   NAME: {
@@ -20,13 +17,11 @@ export const ATTRIBUTE_CONSTANTS = Object.freeze({
   SORT_FIELDS: ["id", "name", "createdAt", "updatedAt"] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const colorSchema = z.object({
   id: z.number(),
   name: z.string(),
+  hexCode: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
@@ -51,17 +46,11 @@ export const materialSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const colorsResponseSchema = pageResponseSchema(colorSchema);
 export const sizesResponseSchema = pageResponseSchema(sizeSchema);
 export const materialsResponseSchema = pageResponseSchema(materialSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 // --- Color ---
 export const createColorSchema = z.object({
@@ -73,6 +62,10 @@ export const createColorSchema = z.object({
     .string()
     .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
     .optional(),
+  hexCode: z
+    .string()
+    .max(20, "Hex code is too long")
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex code"),
   status: statusSchema,
 });
 
@@ -85,6 +78,10 @@ export const updateColorSchema = z.object({
     .string()
     .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
     .optional(),
+  hexCode: z
+    .string()
+    .max(20, "Hex code is too long")
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex code"),
   status: statusSchema,
 });
 
@@ -177,9 +174,6 @@ export const bulkDeleteMaterialSchema = z.object({
   ids: z.array(z.number()).min(1, "Select at least one material"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
 export interface AttributeFilterParams extends BaseFilterParams { }
 
@@ -192,9 +186,6 @@ export const attributeFilterParamsSchema = z.object({
   status: z.array(statusSchema).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type Color = z.infer<typeof colorSchema>;
 export type ColorStatus = z.infer<typeof statusSchema>;

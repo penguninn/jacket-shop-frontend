@@ -11,9 +11,6 @@ import {
     type UpdateProfileInput,
 } from "../model";
 
-// ============================================
-// API ENDPOINTS CONSTANTS
-// ============================================
 const ENDPOINTS = Object.freeze({
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
@@ -21,9 +18,6 @@ const ENDPOINTS = Object.freeze({
     ME: '/users/me',
 } as const);
 
-// ============================================
-// AUTHENTICATION API
-// ============================================
 export async function signIn(payload: SignInInput) {
     const response = await httpPublicTyped.post(
         ENDPOINTS.LOGIN,
@@ -58,9 +52,6 @@ export async function logout(payload: { token: string }) {
     return response;
 }
 
-// ============================================
-// USER PROFILE API
-// ============================================
 export async function getMe() {
     const response = await httpPrivateTyped.get(ENDPOINTS.ME, userSchema);
     return response;

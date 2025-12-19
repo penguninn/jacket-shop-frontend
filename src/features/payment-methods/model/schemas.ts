@@ -5,9 +5,6 @@ import {
     type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const PAYMENT_METHOD_CONSTANTS = Object.freeze({
     NAME: {
@@ -20,9 +17,6 @@ export const PAYMENT_METHOD_CONSTANTS = Object.freeze({
     SORT_FIELDS: ["id", "name", "createdAt", "updatedAt"] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const paymentMethodSchema = z.object({
     id: z.number(),
@@ -34,15 +28,9 @@ export const paymentMethodSchema = z.object({
     updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const paymentMethodsResponseSchema = pageResponseSchema(paymentMethodSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createPaymentMethodSchema = z.object({
     name: z
@@ -103,11 +91,8 @@ export const bulkDeletePaymentMethodSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one payment method"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
-export interface PaymentMethodFilterParams extends BaseFilterParams { }
+export type PaymentMethodFilterParams = BaseFilterParams;
 
 export const paymentMethodFilterParamsSchema = z.object({
     page: z.number().min(0).default(0),
@@ -118,9 +103,6 @@ export const paymentMethodFilterParamsSchema = z.object({
     status: z.array(statusSchema).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 export type PaymentMethodStatus = z.infer<typeof statusSchema>;

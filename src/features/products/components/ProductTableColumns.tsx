@@ -1,12 +1,13 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Button } from "@/shared/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Star } from "lucide-react";
 
 import { ProductTableRowActions } from "./ProductTableRowActions";
 import { StatusBadge } from "@/shared/components/StatusBadge";
 import { formatDistanceToNow } from "date-fns";
 import type { Product } from "@/features/products/model/schemas";
+import { formatCurrency } from "@/shared/utils/format";
 
 export const columns: ColumnDef<Product>[] = [
     {
@@ -99,12 +100,65 @@ export const columns: ColumnDef<Product>[] = [
         },
     },
     {
+        accessorKey: "isFeatured",
+        header: "Featured",
+        cell: ({ row }) => {
+            const isFeatured = row.getValue("isFeatured");
+            return (
+                <div className="flex justify-center">
+                    {isFeatured ? (
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ) : (
+                        <div className="h-4 w-4" /> // Empty placeholder
+                    )}
+                </div>
+            );
+        },
+    },
+    {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },
+    },
+    {
+        accessorKey: "price", // Virtual accessor for sorting if needed, or use custom id
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                Price
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ row }) => {
+            const min = row.original.minPrice || 0;
+            const max = row.original.maxPrice || 0;
+            if (min === max) {
+                return <div className="font-medium">{formatCurrency(min)}</div>;
+            }
+            return (
+                <div className="font-medium">
+                    {formatCurrency(min)} - {formatCurrency(max)}
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "soldCount",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                Sold
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ row }) => <div>{row.getValue("soldCount")}</div>,
     },
     {
         accessorKey: "createdAt",

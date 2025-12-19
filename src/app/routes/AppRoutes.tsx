@@ -9,7 +9,7 @@ export const routes: RouteObject[] = [
     element: <ClientRoutesLoader />,
   },
   {
-    path: "/admin/*",
+    path: "/dashboard/*",
     element: <AdminRoutesLoader />,
   },
   { path: "*", element: <Navigate to="/" replace /> },

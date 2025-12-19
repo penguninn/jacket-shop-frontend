@@ -1,4 +1,4 @@
-import { httpPrivateTyped } from "@/shared/api/http-typed";
+import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
 import { brandSchema, brandsResponseSchema, type CreateBrandInput, type UpdateBrandInput, type UpdateBrandStatusInput } from "../model/schemas";
 import z from "zod";
 
@@ -36,6 +36,33 @@ export async function getBrands(params: GetBrandsParams) {
     }
 
     const res = await httpPrivateTyped.get(
+        `/brands?${queryParams.toString()}`,
+        brandsResponseSchema,
+    );
+    return res;
+}
+
+// Get all public brands
+export async function getPublicBrands(params: GetBrandsParams) {
+    const queryParams = new URLSearchParams({
+        page: params.page.toString(),
+        size: params.size.toString(),
+    });
+
+    const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+    const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+    queryParams.append("sortBy", sortBy);
+    queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+    if (params.search) {
+        queryParams.append("search", params.search);
+    }
+    if (params.status?.length) {
+        params.status.forEach((s) => queryParams.append("status", s));
+    }
+
+    const res = await httpPublicTyped.get(
         `/brands?${queryParams.toString()}`,
         brandsResponseSchema,
     );

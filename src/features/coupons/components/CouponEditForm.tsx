@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -55,6 +57,7 @@ export function CouponEditForm({ coupon, children }: Props) {
             validFrom: "",
             validTo: "",
             status: "ACTIVE",
+            usedCount: 0,
         },
     });
 
@@ -82,6 +85,7 @@ export function CouponEditForm({ coupon, children }: Props) {
                 validFrom: formatDateForInput(coupon.validFrom),
                 validTo: formatDateForInput(coupon.validTo),
                 status: coupon.status,
+                usedCount: coupon.usedCount || 0,
             });
         }
     }, [open, coupon, reset]);
@@ -91,9 +95,10 @@ export function CouponEditForm({ coupon, children }: Props) {
         const payload = {
             ...data,
             description: data.description || undefined,
-            minOrderValue: data.minOrderValue && data.minOrderValue > 0 ? data.minOrderValue : undefined,
-            maxDiscount: data.maxDiscount && data.maxDiscount > 0 ? data.maxDiscount : undefined,
-            usageLimit: data.usageLimit && data.usageLimit > 0 ? data.usageLimit : undefined,
+            minOrderValue: data.minOrderValue ?? undefined,
+            maxDiscount: data.maxDiscount ?? undefined,
+            usageLimit: data.usageLimit ?? undefined,
+            usedCount: data.usedCount ?? 0,
             validFrom: new Date(data.validFrom).toISOString(),
             validTo: new Date(data.validTo).toISOString(),
         };
@@ -125,6 +130,12 @@ export function CouponEditForm({ coupon, children }: Props) {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
+                        {errors.root && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{errors.root.message}</AlertDescription>
+                            </Alert>
+                        )}
 
                         {/* Code (Read-only) */}
                         <div className="space-y-2">

@@ -6,9 +6,6 @@ import {
   type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const USER_CONSTANTS = Object.freeze({
   USERNAME: {
@@ -16,7 +13,7 @@ export const USER_CONSTANTS = Object.freeze({
     REGEX: /^[a-zA-Z0-9._-]+$/,
   },
   FULL_NAME: {
-    MIN_LENGTH: 0,
+    MIN_LENGTH: 2,
   },
   PHONE: {
     REGEX: /^[0-9]{10,15}$/,
@@ -29,9 +26,6 @@ export const USER_CONSTANTS = Object.freeze({
   SORT_FIELDS: ['id', 'username', 'fullName', 'createdAt', 'updatedAt'] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const roleSchema = z.object({
   id: z.number(),
@@ -49,9 +43,6 @@ export const userSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const usersResponseSchema = pageResponseSchema(userSchema);
 
@@ -77,9 +68,6 @@ export const userStatisticsSchema = z.object({
   customerRating: z.number().nullable(),
 });
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createUserSchema = z
   .object({
@@ -156,9 +144,6 @@ export const bulkDeleteSchema = z.object({
   ids: z.array(z.number()).min(1, "Select at least one user"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
 export interface UserFilterParams extends BaseFilterParams {
   roles?: string[];
@@ -174,9 +159,6 @@ export const userFilterParamsSchema = z.object({
   roles: z.array(z.string()).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type User = z.infer<typeof userSchema>;
 export type Role = z.infer<typeof roleSchema>;

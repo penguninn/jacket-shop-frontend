@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Bell, Home, ShoppingCart, User } from "lucide-react";
+import { Bell, Home, User } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { authStore, useAuthStore } from "@/app/store/auth";
+import { CartSheet } from "@/features/cart/components";
 
 import { Button } from "@/shared/ui/button";
 import {
@@ -42,11 +43,7 @@ export default function Navbar() {
           <Bell className="h-5 w-5 text-zinc-600" />
         </Button>
 
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/cart" aria-label="Cart">
-            <ShoppingCart className="h-5 w-5 text-zinc-600" />
-          </Link>
-        </Button>
+        <CartSheet />
 
         {/* Auth area */}
         {user ? (
@@ -65,9 +62,9 @@ export default function Navbar() {
                 <Link to="/orders">My purchase</Link>
               </DropdownMenuItem>
 
-              {hasRole("ADMIN") && (
+              {(hasRole("ADMIN") || hasRole("STAFF")) && (
                 <DropdownMenuItem asChild>
-                  <Link to="/admin">Management Dashboard</Link>
+                  <Link to="/dashboard">Management Dashboard</Link>
                 </DropdownMenuItem>
               )}
 

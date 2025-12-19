@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/shared/components/StatusBadge";
+import { formatDistanceToNow } from "date-fns";
 import { Checkbox } from "@/shared/ui/checkbox";
 import type { Color } from "../../model/schemas";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -30,9 +31,36 @@ export const columns: ColumnDef<Color>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "id",
+    header: "ID",
+    cell: ({ row }) => <div className="w-[60px]">{row.getValue("id")}</div>,
+  },
+  {
     accessorKey: "name",
     header: "Name",
     cell: (info) => <span>{info.getValue<string>()}</span>,
+  },
+  {
+    accessorKey: "hexCode",
+    header: "Hex Code",
+    cell: (info) => {
+      const hex = info.getValue<string | null>();
+      return (
+        <div className="flex items-center gap-2">
+          {hex ? (
+            <>
+              <div
+                className="w-4 h-4 rounded-full border"
+                style={{ backgroundColor: hex }}
+              />
+              <span className="font-mono text-xs">{hex}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "description",
@@ -46,6 +74,20 @@ export const columns: ColumnDef<Color>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => {
+      const dateStr = row.getValue("createdAt") as string | null;
+      if (!dateStr) return <span className="text-muted-foreground">—</span>;
+      const date = new Date(dateStr);
+      return (
+        <span className="text-muted-foreground">
+          {formatDistanceToNow(date, { addSuffix: true })}
+        </span>
+      );
+    },
   },
   {
     id: "actions",

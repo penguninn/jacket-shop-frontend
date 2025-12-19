@@ -5,9 +5,6 @@ import {
   type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const BRAND_CONSTANTS = Object.freeze({
   NAME: {
@@ -23,9 +20,6 @@ export const BRAND_CONSTANTS = Object.freeze({
   SORT_FIELDS: ["id", "name", "createdAt", "updatedAt"] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const brandSchema = z.object({
   id: z.number(),
@@ -37,15 +31,9 @@ export const brandSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const brandsResponseSchema = pageResponseSchema(brandSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createBrandSchema = z.object({
   name: z
@@ -120,11 +108,8 @@ export const bulkDeleteSchema = z.object({
   ids: z.array(z.number()).min(1, "Select at least one brand"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
-export interface BrandFilterParams extends BaseFilterParams { }
+export type BrandFilterParams = BaseFilterParams;
 
 export const brandFilterParamsSchema = z.object({
   page: z.number().min(0).default(0),
@@ -135,9 +120,6 @@ export const brandFilterParamsSchema = z.object({
   status: z.array(statusSchema).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type Brand = z.infer<typeof brandSchema>;
 export type BrandStatus = z.infer<typeof statusSchema>;

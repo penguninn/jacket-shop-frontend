@@ -25,9 +25,6 @@ export const authKeys = {
 } as const;
 
 
-// ============================================
-// QUERIES
-// ============================================
 
 export function useMe() {
     return useQuery({
@@ -36,9 +33,6 @@ export function useMe() {
     });
 }
 
-// ============================================
-// MUTATIONS
-// ============================================
 
 export function useSignIn(options?: BaseMutationOptions) {
     return useGlobalMutation<SignInResponse, SignInInput>({

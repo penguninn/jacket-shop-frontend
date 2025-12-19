@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/shared/utils/format";
 import { ArrowLeft } from "lucide-react";
 import { useShippingMethodDetail } from "../hooks";
 import { Button } from "@/shared/ui/button";
@@ -23,7 +24,7 @@ export default function ShippingMethodDetail() {
             <div className="container mx-auto py-8">
                 <div className="text-center">
                     <p className="text-red-500">Failed to load shipping method details</p>
-                    <Button onClick={() => navigate("/admin/shipping-methods")} className="mt-4">
+                    <Button onClick={() => navigate("/dashboard/shipping-methods")} className="mt-4">
                         Back to Shipping Methods
                     </Button>
                 </div>
@@ -37,7 +38,7 @@ export default function ShippingMethodDetail() {
             <div className="mb-6">
                 <Button
                     variant="ghost"
-                    onClick={() => navigate("/admin/shipping-methods")}
+                    onClick={() => navigate("/dashboard/shipping-methods")}
                     className="mb-4"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -52,7 +53,7 @@ export default function ShippingMethodDetail() {
                         <div className="mt-2 flex items-center gap-3">
                             <StatusBadge status={shippingMethod.status} />
                             <div className="text-muted-foreground">
-                                Fee: {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(shippingMethod.fee)}
+                                Fee: {formatCurrency(shippingMethod.fee)}
                             </div>
                         </div>
                     </div>

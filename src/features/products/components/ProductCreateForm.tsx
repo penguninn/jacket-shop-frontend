@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle, Plus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -24,15 +25,13 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { useUpload } from "@/shared/hooks/use-upload";
 
 import { useCreateProduct, useBrands, useStyles } from "../hooks";
 import { createProductSchema, type CreateProductInput } from "../model/schemas";
 
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
     LABELS: {
         NAME: "Product Name *",
@@ -73,6 +72,11 @@ export function ProductCreateForm() {
             description: "",
             status: "ACTIVE",
             thumbnail: "",
+            isFeatured: false,
+            // Initialize required number fields as undefined to force user selection
+            // Explicit cast needed because TS expects number
+            brandId: undefined as unknown as number,
+            styleId: undefined as unknown as number,
         },
     });
 
@@ -132,6 +136,12 @@ export function ProductCreateForm() {
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-4 pr-4"
                     >
+                        {errors.root && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>{errors.root.message}</AlertDescription>
+                            </Alert>
+                        )}
 
                         {/* Name */}
                         <div className="space-y-2">
@@ -224,6 +234,11 @@ export function ProductCreateForm() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.brandId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.brandId.message}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Style */}
@@ -249,6 +264,11 @@ export function ProductCreateForm() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.styleId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.styleId.message}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -274,6 +294,22 @@ export function ProductCreateForm() {
                                     {errors.status.message}
                                 </p>
                             )}
+                        </div>
+
+                        {/* Featured */}
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isFeatured"
+                                onCheckedChange={(checked) =>
+                                    setValue("isFeatured", checked as boolean)
+                                }
+                            />
+                            <Label
+                                htmlFor="isFeatured"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Featured Product
+                            </Label>
                         </div>
                     </form>
                 </ScrollArea>

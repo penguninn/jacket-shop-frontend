@@ -21,9 +21,6 @@ import { DataTableBulkActions } from "@/shared/components/data-table/DataTableBu
 import type { UserFilterParams } from "../model/schemas";
 import type { Status } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const USER_TABLE_CONFIG = {
   DEFAULT_PAGE_SIZE: 10,
   DEFAULT_SORT: {

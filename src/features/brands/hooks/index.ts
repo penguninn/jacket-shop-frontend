@@ -1,5 +1,6 @@
 import {
   getBrands,
+  getPublicBrands,
   getBrandById,
   createBrand,
   updateBrand,
@@ -21,6 +22,13 @@ export function useBrands(params: GetBrandsParams) {
   return useQuery({
     queryKey: ["brands", params],
     queryFn: () => getBrands(params),
+  });
+}
+
+export function usePublicBrands(params: GetBrandsParams) {
+  return useQuery({
+    queryKey: ["public-brands", params],
+    queryFn: () => getPublicBrands(params),
   });
 }
 

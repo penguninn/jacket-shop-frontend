@@ -12,9 +12,6 @@ import { useSignIn } from "../hooks";
 import { signInSchema, type SignInInput } from "../model";
 
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
   TITLE: 'Welcome Back',
   SUBTITLE: 'Sign in to your account to continue',

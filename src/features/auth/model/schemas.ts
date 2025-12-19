@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { userSchema } from "@/features/users/model";
 
-// ============================================
-// CONSTANTS
-// ============================================
 export const AUTH_VALIDATION = {
     USERNAME: {
         MIN_LENGTH: 6,
@@ -23,9 +20,6 @@ export const AUTH_VALIDATION = {
     },
 } as const;
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 export const signInResponseSchema = z.object({
     accessToken: z.string().min(10),
     refreshToken: z.string().min(10),
@@ -35,9 +29,6 @@ export const signInResponseSchema = z.object({
 export const signUpResponseSchema = z.null().optional();
 export const logoutResponseSchema = z.null().optional();
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 export const signInSchema = z.object({
     username: z
         .string()
@@ -68,9 +59,6 @@ export const updateProfileSchema = z.object({
         .min(AUTH_VALIDATION.FULL_NAME.MIN_LENGTH, AUTH_VALIDATION.FULL_NAME.MESSAGE),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

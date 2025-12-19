@@ -11,12 +11,14 @@ import Attributes from "@/features/attributes/pages/AttributesPage";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import ProductVariant from "@/features/product-variants/pages/ProductVariantPage";
 import Coupons from "@/features/coupons/pages/CouponsPage";
+import { SalePage } from "@/features/sale";
 import RequireAuth from "./RequireAuth";
 import {
   ShippingMethodsPage as ShippingMethods,
   ShippingMethodDetailPage as ShippingMethodDetail,
 } from "@/features/shipping-methods";
 import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
+import Inventories from "@/features/product-variants/pages/InventoriesPage";
 
 export default function AdminRoutes() {
   return (
@@ -83,6 +85,14 @@ export default function AdminRoutes() {
           }
         />
         <Route
+          path="sales"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <SalePage />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="shipping-methods"
           element={
             <RequireAuth roles={["ADMIN"]}>
@@ -106,8 +116,16 @@ export default function AdminRoutes() {
             </RequireAuth>
           }
         />
+        <Route
+          path="inventories"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <Inventories />
+            </RequireAuth>
+          }
+        />
 
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>
   );

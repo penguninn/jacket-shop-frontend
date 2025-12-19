@@ -14,9 +14,6 @@ import {
 } from "../model/schemas";
 import { z } from "zod";
 
-// ============================================
-// API ENDPOINTS CONSTANTS
-// ============================================
 
 const ENDPOINTS = Object.freeze({
   USERS: '/users',
@@ -60,9 +57,6 @@ function buildQueryParams(params: UserFilterParams): URLSearchParams {
   return queryParams;
 }
 
-// ============================================
-// API FUNCTIONS
-// ============================================
 
 // Queries
 export async function getUsers(params: UserFilterParams) {

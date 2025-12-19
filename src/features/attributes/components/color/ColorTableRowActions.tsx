@@ -37,6 +37,7 @@ export function ColorTableRowActions({ row }: Props) {
             id: color.id,
             data: {
                 name: color.name,
+                hexCode: color.hexCode || "#000000",
                 status: newStatus,
             },
         });

@@ -5,29 +5,24 @@ import {
   type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const PRODUCT_CONSTANTS = Object.freeze({
   NAME: {
     MIN_LENGTH: 1,
-    MAX_LENGTH: 255, // Assuming standard max length
+    MAX_LENGTH: 200,
   },
   DESCRIPTION: {
-    MAX_LENGTH: 1000, // Assuming standard max length
+    MAX_LENGTH: 5000, // Text field, generous limit
   },
-  SORT_FIELDS: ["id", "name", "price", "createdAt", "updatedAt"] as const,
+  SORT_FIELDS: ["id", "name", "price", "createdAt", "updatedAt", "soldCount"] as const,
 } as const);
 
-// ============================================
-// HELPER SCHEMAS
-// ============================================
 
 export const brandResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
   logoUrl: z.string().nullable().optional(),
+  description: z.string().nullable().optional(), // Added based on API response
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
@@ -42,34 +37,63 @@ export const styleResponseSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const productSchema = z.object({
   id: z.number(),
   name: z.string(),
-  brand: brandResponseSchema.nullable().optional(),
+  brand: brandResponseSchema,
+  style: styleResponseSchema,
   description: z.string().nullable().optional(),
-  style: styleResponseSchema.nullable().optional(),
   thumbnail: z.string().nullable().optional(),
-  imagesJson: z.string().nullable().optional(),
+
+  // New fields from spec
+  isFeatured: z.boolean().nullish().transform((v) => v ?? false),
+  soldCount: z.number().nullish().transform((v) => v ?? 0),
+  ratingAverage: z.number().nullish().transform((v) => v ?? 0.00),
+  ratingCount: z.number().nullish().transform((v) => v ?? 0),
+
+  minPrice: z.number().nullish().transform((v) => v ?? 0),
+  maxPrice: z.number().nullish().transform((v) => v ?? 0),
+
+  // Nested attribute arrays from API
+  colors: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    hexCode: z.string().optional(),
+    status: statusSchema,
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })).optional().default([]),
+
+  sizes: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: statusSchema,
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })).optional().default([]),
+
+  materials: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: statusSchema,
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })).optional().default([]),
+
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const productsResponseSchema = pageResponseSchema(productSchema);
 export const brandsResponseSchema = pageResponseSchema(brandResponseSchema);
 export const stylesResponseSchema = pageResponseSchema(styleResponseSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createProductSchema = z.object({
   name: z
@@ -77,13 +101,14 @@ export const createProductSchema = z.object({
     .min(
       PRODUCT_CONSTANTS.NAME.MIN_LENGTH,
       `Name must be at least ${PRODUCT_CONSTANTS.NAME.MIN_LENGTH} characters`
-    ),
-  brandId: z.number().optional(),
-  description: z.string().optional(),
-  styleId: z.number().optional(),
+    )
+    .max(PRODUCT_CONSTANTS.NAME.MAX_LENGTH, `Name must be at most ${PRODUCT_CONSTANTS.NAME.MAX_LENGTH} characters`),
+  brandId: z.number().min(1, "Brand is required"),
+  styleId: z.number().min(1, "Style is required"),
+  description: z.string().max(PRODUCT_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long").optional(),
   thumbnail: z.string().optional(),
-  imagesJson: z.string().optional(),
   status: statusSchema,
+  isFeatured: z.boolean(),
 });
 
 export const updateProductSchema = z.object({
@@ -92,13 +117,14 @@ export const updateProductSchema = z.object({
     .min(
       PRODUCT_CONSTANTS.NAME.MIN_LENGTH,
       `Name must be at least ${PRODUCT_CONSTANTS.NAME.MIN_LENGTH} characters`
-    ),
+    )
+    .max(PRODUCT_CONSTANTS.NAME.MAX_LENGTH, `Name must be at most ${PRODUCT_CONSTANTS.NAME.MAX_LENGTH} characters`),
   brandId: z.number().optional(),
-  description: z.string().optional(),
   styleId: z.number().optional(),
+  description: z.string().max(PRODUCT_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long").optional(),
   thumbnail: z.string().optional(),
-  imagesJson: z.string().optional(),
-  status: statusSchema,
+  status: statusSchema.optional(),
+  isFeatured: z.boolean().optional(),
 });
 
 export const updateProductStatusSchema = z.object({
@@ -114,13 +140,15 @@ export const bulkDeleteProductSchema = z.object({
   ids: z.array(z.number()).min(1, "Select at least one product"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
 export interface ProductFilterParams extends BaseFilterParams {
   brandIds?: number[];
   styleIds?: number[];
+  colorIds?: number[];
+  sizeIds?: number[];
+  materialIds?: number[];
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export const productFilterParamsSchema = z.object({
@@ -132,11 +160,13 @@ export const productFilterParamsSchema = z.object({
   status: z.array(statusSchema).optional(),
   brandIds: z.array(z.number()).optional(),
   styleIds: z.array(z.number()).optional(),
+  colorIds: z.array(z.number()).optional(),
+  sizeIds: z.array(z.number()).optional(),
+  materialIds: z.array(z.number()).optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type Product = z.infer<typeof productSchema>;
 export type ProductStatus = z.infer<typeof statusSchema>;

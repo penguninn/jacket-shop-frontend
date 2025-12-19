@@ -2,6 +2,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,9 +31,6 @@ import { useUpdateUser } from "../hooks";
 import { useRoles } from "@/features/roles/hooks";
 import type { Status } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
   PLACEHOLDERS: {
     FULL_NAME: 'John Doe',
@@ -52,9 +51,6 @@ const FORM_CONFIG = {
   },
 } as const;
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 function toggleArrayItem<T>(array: T[], item: T): T[] {
   return array.includes(item)
     ? array.filter((i) => i !== item)
@@ -90,9 +86,7 @@ function createFormDefaults(user: User, roles?: Role[]): UpdateUserInput {
   };
 }
 
-// ============================================
 // SUB-COMPONENTS
-// ============================================
 interface RolesSelectorProps {
   roles?: Role[];
   selectedRoleIds: number[];
@@ -160,9 +154,6 @@ function RolesSelector({
   );
 }
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
 interface UserEditFormProps {
   user: User;
   children: React.ReactNode;
@@ -257,6 +248,12 @@ export function UserEditForm({ user, children }: UserEditFormProps) {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-4 pr-4"
           >
+            {errors.root && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errors.root.message}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <Label htmlFor="username-readonly">
                 {FORM_CONFIG.LABELS.USERNAME}

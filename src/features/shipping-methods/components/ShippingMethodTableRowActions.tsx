@@ -74,7 +74,7 @@ export function ShippingMethodTableRowActions({ row }: Props) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/admin/shipping-methods/${shippingMethod.id}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/shipping-methods/${shippingMethod.id}`)}>
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                     </DropdownMenuItem>
