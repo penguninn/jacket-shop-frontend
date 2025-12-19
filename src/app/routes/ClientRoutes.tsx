@@ -1,11 +1,12 @@
 import ClientLayout from "@/app/layouts/ClientLayout";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "@/pages/client/Home";
-// import Products from "@/features/products/pages/ClientProductsPage";
-// import ProductDetail from "@/features/products/pages/ProductDetailPage";
+import Search from "@/pages/client/Search";
+import ProductDetail from "@/pages/client/ProductDetail";
 import Profile from "@/features/auth/pages/ProfilePage";
 import Address from "@/features/auth/pages/AddressPage";
 import Cart from "@/pages/client/Cart";
+import Checkout from "@/pages/client/Checkout";
 import SignIn from "@/features/auth/pages/SignInPage";
 import SignUp from "@/features/auth/pages/SignUpPage";
 import RequireAuth from "./RequireAuth";
@@ -22,15 +23,23 @@ export default function ClientRoutes() {
     <Routes>
       <Route element={<ClientLayout />}>
         <Route index element={<Home />} />
-        {/*
-  <Route path="products" element={<Products />} />
-  <Route path="products/:id" element={<ProductDetail />} /> */}
+
+        <Route path="search" element={<Search />} />
+        <Route path="products/:id" element={<ProductDetail />} />
 
         <Route
           path="cart"
           element={
             <RequireAuth>
               <Cart />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="checkout"
+          element={
+            <RequireAuth>
+              <Checkout />
             </RequireAuth>
           }
         />
@@ -46,10 +55,7 @@ export default function ClientRoutes() {
           <Route path="account/profile" element={<Profile />} />
           <Route path="account/address" element={<Address />} />
           <Route path="account/change-password" element={<ChangePassword />} />
-          {/* <Route path="account/payment" element={<PaymentMethods />} /> */}
-          {/* <Route path="account/notifications" element={<NotificationSettings />} /> */}
           <Route path="purchase" element={<Purchase />} />
-          {/* <Route path="purchase/:id" element={<PurchaseDetail />} /> */}
           <Route path="coupons" element={<MyVouchers />} />
           <Route index element={<Navigate to="account/profile" replace />} />
         </Route>

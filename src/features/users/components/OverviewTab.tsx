@@ -73,7 +73,7 @@ export function OverviewTab({ user }: Props) {
     if (confirm(`Are you sure you want to delete user "${user.username}"?`)) {
       deleteUser(user.id, {
         onSuccess: () => {
-          navigate("/admin/users");
+          navigate("/dashboard/users");
         },
       });
     }

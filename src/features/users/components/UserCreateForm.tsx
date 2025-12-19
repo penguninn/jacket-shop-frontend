@@ -31,9 +31,6 @@ import { useRoles } from "@/features/roles/hooks";
 import { createUserSchema, type CreateUserInput } from "../model/schemas";
 import type { Status } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
   PLACEHOLDERS: {
     USERNAME: 'johndoe',

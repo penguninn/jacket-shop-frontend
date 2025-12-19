@@ -5,9 +5,6 @@ import {
     type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const COUPON_CONSTANTS = Object.freeze({
     CODE: {
@@ -23,9 +20,6 @@ export const COUPON_CONSTANTS = Object.freeze({
 
 export const couponTypeEnum = ["PERCENT", "AMOUNT"] as const;
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const couponSchema = z.object({
     id: z.number(),
@@ -44,15 +38,9 @@ export const couponSchema = z.object({
     updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const couponsResponseSchema = pageResponseSchema(couponSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createCouponSchema = z.object({
     code: z
@@ -107,9 +95,6 @@ export const bulkDeleteCouponSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one coupon"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
 export interface CouponFilterParams extends BaseFilterParams {
     type?: string;
@@ -125,9 +110,6 @@ export const couponFilterParamsSchema = z.object({
     type: z.enum(couponTypeEnum).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type Coupon = z.infer<typeof couponSchema>;
 export type CouponStatus = z.infer<typeof statusSchema>;

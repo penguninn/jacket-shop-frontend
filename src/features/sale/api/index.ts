@@ -1,42 +1,62 @@
 import { httpPrivateTyped } from "@/shared/api/http-typed";
 import { z } from "zod";
-import { saleResponseSchema, type CreateSaleInput } from "../model/schemas";
+import {
+    saleResponseSchema,
+    type SaleRequest,
+    type SaleFilterParams,
+} from "../model/schemas";
+import { pageResponseSchema } from "@/shared/api/schemas";
 
-// ============================================
-// API ENDPOINTS CONSTANTS
-// ============================================
 
 const ENDPOINTS = Object.freeze({
     SALES: '/sales',
     SALE_BY_ID: (id: number) => `/sales/${id}`,
+    BULK_DELETE: '/sales/bulk/delete',
 } as const);
 
-// ============================================
-// API FUNCTIONS
-// ============================================
 
-export async function getAllSales() {
+export async function getAllSales(params?: SaleFilterParams) {
     return await httpPrivateTyped.get(
         ENDPOINTS.SALES,
-        z.array(saleResponseSchema)
+        pageResponseSchema(saleResponseSchema),
+        { params }
     );
 }
 
-export async function applySale(payload: CreateSaleInput) {
+export async function getSaleById(id: number) {
+    return await httpPrivateTyped.get(
+        ENDPOINTS.SALE_BY_ID(id),
+        saleResponseSchema
+    );
+}
+
+export async function createSale(payload: SaleRequest) {
     return await httpPrivateTyped.post(
         ENDPOINTS.SALES,
         payload,
-        saleResponseSchema // Backend returns SaleResponse
+        saleResponseSchema
     );
 }
 
-export async function removeSale(variantId: number) {
+export async function updateSale({ id, data }: { id: number; data: SaleRequest }) {
+    return await httpPrivateTyped.put(
+        ENDPOINTS.SALE_BY_ID(id),
+        data,
+        saleResponseSchema
+    );
+}
+
+export async function deleteSale(id: number) {
     return await httpPrivateTyped.del(
-        ENDPOINTS.SALE_BY_ID(variantId),
+        ENDPOINTS.SALE_BY_ID(id),
         z.null()
     );
 }
-// Note: httpPrivateTyped usually expects the schema of the 'data' field of ApiResponse.
-// In removeSale: .data(response) is NOT called? actually `saleService.removeSale(variantId)` returns void.
-// Controller: `return ApiResponse.builder()...build();` (data is missing/null).
-// So schema should be z.null().
+
+export async function bulkDeleteSales(ids: number[]) {
+    return await httpPrivateTyped.post(
+        ENDPOINTS.BULK_DELETE,
+        { ids },
+        z.null()
+    );
+}

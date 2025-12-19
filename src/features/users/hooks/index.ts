@@ -25,9 +25,6 @@ import type {
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
-// ============================================
-// QUERY KEY FACTORY
-// ============================================
 
 export const userKeys = {
   all: ['users'] as const,
@@ -40,9 +37,6 @@ export const userKeys = {
   statistics: (id: number) => [...userKeys.detail(id), 'statistics'] as const,
 } as const;
 
-// ============================================
-// QUERIES
-// ============================================
 
 export function useUsers(params: UserFilterParams) {
   return useQuery({
@@ -83,9 +77,6 @@ export function useUserStatistics(id: number, enabled = true) {
   });
 }
 
-// ============================================
-// MUTATIONS
-// ============================================
 
 export function useCreateUser(options?: BaseMutationOptions) {
   return useGlobalMutation<User, CreateUserInput>({

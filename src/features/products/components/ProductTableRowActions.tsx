@@ -81,7 +81,7 @@ export function ProductTableRowActions<TData>({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">
-                    <DropdownMenuItem onClick={() => navigate(`/admin/products/${product.id}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/products/${product.id}`)}>
                         <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
                         View Details
                     </DropdownMenuItem>

@@ -6,9 +6,6 @@ import {
 } from "@/shared/api/schemas";
 import { productSchema } from "@/features/products/model/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const PRODUCT_VARIANT_CONSTANTS = {
     SKU: {
@@ -17,26 +14,44 @@ export const PRODUCT_VARIANT_CONSTANTS = {
     SORT_FIELDS: ["id", "sku", "price", "costPrice", "quantity", "createdAt", "updatedAt"] as const,
 } as const;
 
-// ============================================
-// HELPER SCHEMAS
-// ============================================
 
-const simpleAttributeSchema = z.object({
+// Redefine nested schemas to match richer API response
+const colorSchema = z.object({
     id: z.number(),
     name: z.string(),
+    description: z.string().optional(), // From API
+    hexCode: z.string().optional(), // From API
+    status: statusSchema.optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
 });
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
+const sizeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: statusSchema.optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
+
+const materialSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: statusSchema.optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
 
 export const productVariantSchema = z.object({
     id: z.number(),
     sku: z.string().nullable().optional(),
-    product: productSchema.optional(),
-    size: simpleAttributeSchema,
-    color: simpleAttributeSchema,
-    material: simpleAttributeSchema,
+    productId: z.number().optional(), // Added from API
+    product: productSchema.optional(), // Keep compatible
+    size: sizeSchema,
+    color: colorSchema,
+    material: materialSchema,
     price: z.number(),
     costPrice: z.number(),
 
@@ -46,6 +61,10 @@ export const productVariantSchema = z.object({
 
     soldCount: z.number().nullish().transform((v) => v ?? 0),
     returnCount: z.number().nullish().transform((v) => v ?? 0),
+
+    // New API Fields
+    salePrice: z.number().nullable().optional(),
+    discountPercentage: z.number().nullable().optional(),
 
     status: statusSchema,
     image: z.string().nullable().optional(),
@@ -59,21 +78,15 @@ export const productVariantSchema = z.object({
     updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const productVariantsResponseSchema = pageResponseSchema(productVariantSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createProductVariantSchema = z.object({
-    productId: z.number(),
-    sizeId: z.number(),
-    colorId: z.number(),
-    materialId: z.number(),
+    productId: z.number().min(1, "Product is required"),
+    sizeId: z.number().min(1, "Size is required"),
+    colorId: z.number().min(1, "Color is required"),
+    materialId: z.number().min(1, "Material is required"),
     price: z.number().min(0, "Price must be non-negative"),
     costPrice: z.number().min(0, "Cost Price must be non-negative"),
     quantity: z.number().min(0).default(0),
@@ -110,9 +123,6 @@ export const bulkDeleteProductVariantSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one variant"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
 export interface ProductVariantFilterParams extends BaseFilterParams {
     colorIds?: number[];
@@ -136,9 +146,6 @@ export const productVariantFilterParamsSchema = z.object({
     toPrice: z.number().optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type ProductVariant = z.infer<typeof productVariantSchema>;
 export type ProductVariantsResponse = z.infer<typeof productVariantsResponseSchema>;

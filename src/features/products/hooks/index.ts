@@ -11,6 +11,8 @@ import {
     bulkDeleteProducts,
     getBrands,
     getStyles,
+    getPublicProducts,
+    getPublicProductById,
     type HelperEntityParams,
 } from "../api";
 import type {
@@ -24,9 +26,6 @@ import type {
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
-// ============================================
-// QUERY KEY FACTORY
-// ============================================
 
 export const productKeys = {
     all: ['products'] as const,
@@ -39,9 +38,6 @@ export const productKeys = {
     styles: (params: HelperEntityParams) => ['styles', 'list', params] as const,
 } as const;
 
-// ============================================
-// QUERIES
-// ============================================
 
 export function useProducts(params: ProductFilterParams) {
     return useQuery({
@@ -50,10 +46,25 @@ export function useProducts(params: ProductFilterParams) {
     });
 }
 
+export function usePublicProducts(params: ProductFilterParams) {
+    return useQuery({
+        queryKey: [...productKeys.list(params), 'public'],
+        queryFn: () => getPublicProducts(params),
+    });
+}
+
 export function useProductDetail(id: number, enabled = true) {
     return useQuery({
         queryKey: productKeys.detail(id),
         queryFn: () => getProductById(id),
+        enabled: enabled && !!id,
+    });
+}
+
+export function usePublicProductDetail(id: number, enabled = true) {
+    return useQuery({
+        queryKey: [...productKeys.detail(id), 'public'],
+        queryFn: () => getPublicProductById(id),
         enabled: enabled && !!id,
     });
 }
@@ -84,9 +95,6 @@ export function useStyles(params: HelperEntityParams = {}) {
     });
 }
 
-// ============================================
-// MUTATIONS
-// ============================================
 
 export function useCreateProduct(options?: BaseMutationOptions) {
     return useGlobalMutation<Product, CreateProductInput>({

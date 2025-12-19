@@ -41,6 +41,28 @@ export const columns: ColumnDef<Color>[] = [
     cell: (info) => <span>{info.getValue<string>()}</span>,
   },
   {
+    accessorKey: "hexCode",
+    header: "Hex Code",
+    cell: (info) => {
+      const hex = info.getValue<string | null>();
+      return (
+        <div className="flex items-center gap-2">
+          {hex ? (
+            <>
+              <div
+                className="w-4 h-4 rounded-full border"
+                style={{ backgroundColor: hex }}
+              />
+              <span className="font-mono text-xs">{hex}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "description",
     header: "Description",
     cell: (info) => {

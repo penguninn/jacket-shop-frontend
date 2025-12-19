@@ -30,9 +30,6 @@ import { useCreateProductVariant } from "../hooks";
 import { useColors, useMaterials, useSizes } from "@/features/attributes/hooks";
 
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
     LABELS: {
 

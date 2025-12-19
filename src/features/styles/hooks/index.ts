@@ -1,5 +1,6 @@
 import {
     getStyles,
+    getPublicStyles,
     getStyleById,
     createStyle,
     updateStyle,
@@ -18,6 +19,13 @@ export function useStyles(params: GetStylesParams) {
     return useQuery({
         queryKey: ["styles", params],
         queryFn: () => getStyles(params),
+    });
+}
+
+export function usePublicStyles(params: GetStylesParams) {
+    return useQuery({
+        queryKey: ["public-styles", params],
+        queryFn: () => getPublicStyles(params),
     });
 }
 

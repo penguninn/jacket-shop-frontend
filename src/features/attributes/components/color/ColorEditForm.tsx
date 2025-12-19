@@ -53,6 +53,7 @@ export function ColorEditForm({ color, children }: Props) {
     resolver: zodResolver(updateColorSchema),
     defaultValues: {
       name: "",
+      hexCode: "",
       description: "",
       status: "ACTIVE",
     },
@@ -67,6 +68,7 @@ export function ColorEditForm({ color, children }: Props) {
     if (open && color) {
       reset({
         name: color.name,
+        hexCode: color.hexCode ?? "",
         description: color.description || "",
         status: color.status,
       });
@@ -120,6 +122,44 @@ export function ColorEditForm({ color, children }: Props) {
               />
               {errors.name && (
                 <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Hex Code */}
+            <div className="space-y-2">
+              <Label htmlFor="hexCode">Hex Code *</Label>
+              <div className="flex gap-2">
+                <div className="relative w-10 h-10 rounded border overflow-hidden shrink-0">
+                  <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: watch("hexCode") || "#ffffff" }}
+                  />
+                  <Input
+                    type="color"
+                    className="absolute inset-0 opacity-0 cursor-pointer p-0 border-none h-full w-full"
+                    value={watch("hexCode") || "#ffffff"}
+                    onChange={(e) => {
+                      setValue("hexCode", e.target.value, { shouldValidate: true, shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <Input
+                  id="hexCode"
+                  placeholder="#000000"
+                  value={watch("hexCode") || ""}
+                  className="flex-1 font-mono uppercase"
+                  maxLength={7}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    if (value && !value.startsWith("#")) {
+                      value = "#" + value;
+                    }
+                    setValue("hexCode", value, { shouldValidate: true, shouldDirty: true });
+                  }}
+                />
+              </div>
+              {errors.hexCode && (
+                <p className="text-xs text-red-500">{errors.hexCode.message}</p>
               )}
             </div>
 

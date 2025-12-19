@@ -6,6 +6,7 @@ import { ArrowUpDown } from "lucide-react";
 import { ProductVariantsTableRowActions } from "./ProductVariantsTableRowActions";
 import { StatusBadge } from "@/shared/components/StatusBadge";
 import { formatDistanceToNow } from "date-fns";
+import { formatCurrency } from "@/shared/utils/format";
 import type { ProductVariant } from "@/features/product-variants/model/schemas";
 
 export const columns: ColumnDef<ProductVariant>[] = [
@@ -114,10 +115,7 @@ export const columns: ColumnDef<ProductVariant>[] = [
         header: "Cost Price",
         cell: ({ row }) => {
             const price = parseFloat(row.getValue("costPrice"));
-            const formatted = new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-            }).format(price);
+            const formatted = formatCurrency(price);
             return <div>{formatted}</div>;
         },
     },
@@ -134,10 +132,7 @@ export const columns: ColumnDef<ProductVariant>[] = [
         ),
         cell: ({ row }) => {
             const price = parseFloat(row.getValue("price"));
-            const formatted = new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-            }).format(price);
+            const formatted = formatCurrency(price);
             return <div className="font-medium">{formatted}</div>;
         },
     },

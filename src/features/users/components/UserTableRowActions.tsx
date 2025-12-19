@@ -74,7 +74,7 @@ export function UserTableRowActions({ row }: Props) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
+          <DropdownMenuItem onClick={() => navigate(`/dashboard/users/${user.id}`)}>
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </DropdownMenuItem>

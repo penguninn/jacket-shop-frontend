@@ -8,9 +8,9 @@ import {
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
-import { type Row } from "@tanstack/react-table";
+
 import { type SaleResponse } from "../model/schemas";
-import { removeSale } from "../api";
+import { deleteSale } from "../api";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
@@ -18,17 +18,16 @@ import { useState } from "react";
 import { SaleFormDialog } from "./SaleFormDialog";
 
 interface SaleActionsProps {
-    row: Row<SaleResponse>;
+    sale: SaleResponse;
 }
 
-export function SaleActions({ row }: SaleActionsProps) {
-    const sale = row.original;
+export function SaleActions({ sale }: SaleActionsProps) {
     const queryClient = useQueryClient();
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
 
     const deleteMutation = useMutation({
-        mutationFn: removeSale,
+        mutationFn: deleteSale,
         onSuccess: () => {
             toast.success("Sale removed successfully");
             queryClient.invalidateQueries({ queryKey: ["sales"] });
@@ -69,8 +68,8 @@ export function SaleActions({ row }: SaleActionsProps) {
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
                 title="Remove Sale"
-                description={`Are you sure you want to remove the sale for "${sale.productName}"? This action cannot be undone.`}
-                onConfirm={() => deleteMutation.mutate(sale.variantId)}
+                description={`Are you sure you want to remove the sale "${sale.name}"? This action cannot be undone.`}
+                onConfirm={() => deleteMutation.mutate(sale.id)}
                 isLoading={deleteMutation.isPending}
             />
 

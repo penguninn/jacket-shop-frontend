@@ -5,6 +5,7 @@ import { ArrowUpDown } from "lucide-react";
 import { StatusBadge } from "@/shared/components/StatusBadge";
 import { ShippingMethodTableRowActions } from "./ShippingMethodTableRowActions";
 import { formatDistanceToNow } from "date-fns";
+import { formatCurrency } from "@/shared/utils/format";
 import type { ShippingMethod } from "../model/schemas";
 
 export const columns: ColumnDef<ShippingMethod>[] = [
@@ -69,7 +70,7 @@ export const columns: ColumnDef<ShippingMethod>[] = [
         },
         cell: ({ row }) => {
             const fee = parseFloat(row.getValue("fee"));
-            return <div>{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(fee)}</div>;
+            return <div>{formatCurrency(fee)}</div>;
         },
     },
     {

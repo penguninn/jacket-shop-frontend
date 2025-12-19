@@ -5,9 +5,6 @@ import {
     type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const STYLE_CONSTANTS = Object.freeze({
     NAME: {
@@ -20,9 +17,6 @@ export const STYLE_CONSTANTS = Object.freeze({
     SORT_FIELDS: ["id", "name", "createdAt", "updatedAt"] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const styleSchema = z.object({
     id: z.number(),
@@ -33,15 +27,9 @@ export const styleSchema = z.object({
     updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const stylesResponseSchema = pageResponseSchema(styleSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createStyleSchema = z.object({
     name: z
@@ -98,11 +86,8 @@ export const bulkDeleteStyleSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one style"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
-export interface StyleFilterParams extends BaseFilterParams { }
+export type StyleFilterParams = BaseFilterParams;
 
 export const styleFilterParamsSchema = z.object({
     page: z.number().min(0).default(0),
@@ -113,9 +98,6 @@ export const styleFilterParamsSchema = z.object({
     status: z.array(statusSchema).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type Style = z.infer<typeof styleSchema>;
 export type StyleStatus = z.infer<typeof statusSchema>;

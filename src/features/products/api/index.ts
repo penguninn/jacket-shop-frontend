@@ -1,4 +1,4 @@
-import { httpPrivateTyped } from "@/shared/api/http-typed";
+import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
 import {
     productSchema,
     productsResponseSchema,
@@ -13,9 +13,6 @@ import {
 } from "../model/schemas";
 import { z } from "zod";
 
-// ============================================
-// API ENDPOINTS CONSTANTS
-// ============================================
 
 const ENDPOINTS = Object.freeze({
     PRODUCTS: '/products',
@@ -27,9 +24,6 @@ const ENDPOINTS = Object.freeze({
     STYLES: '/styles',
 } as const);
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 function buildQueryParams(params: ProductFilterParams): URLSearchParams {
     const queryParams = new URLSearchParams({
@@ -61,12 +55,29 @@ function buildQueryParams(params: ProductFilterParams): URLSearchParams {
         params.styleIds.forEach((id) => queryParams.append("styleIds", id.toString()));
     }
 
+    if (params.colorIds?.length) {
+        params.colorIds.forEach((id) => queryParams.append("colorIds", id.toString()));
+    }
+
+    if (params.sizeIds?.length) {
+        params.sizeIds.forEach((id) => queryParams.append("sizeIds", id.toString()));
+    }
+
+    if (params.materialIds?.length) {
+        params.materialIds.forEach((id) => queryParams.append("materialIds", id.toString()));
+    }
+
+    if (params.minPrice !== undefined) {
+        queryParams.append("minPrice", params.minPrice.toString());
+    }
+
+    if (params.maxPrice !== undefined) {
+        queryParams.append("maxPrice", params.maxPrice.toString());
+    }
+
     return queryParams;
 }
 
-// ============================================
-// API FUNCTIONS
-// ============================================
 
 // Queries
 export async function getProducts(params: ProductFilterParams) {
@@ -77,8 +88,23 @@ export async function getProducts(params: ProductFilterParams) {
     );
 }
 
+export async function getPublicProducts(params: ProductFilterParams) {
+    const queryParams = buildQueryParams(params);
+    return await httpPublicTyped.get(
+        `${ENDPOINTS.PRODUCTS}?${queryParams.toString()}`,
+        productsResponseSchema
+    );
+}
+
 export async function getProductById(id: number) {
     return await httpPrivateTyped.get(
+        ENDPOINTS.PRODUCT_BY_ID(id),
+        productSchema
+    );
+}
+
+export async function getPublicProductById(id: number) {
+    return await httpPublicTyped.get(
         ENDPOINTS.PRODUCT_BY_ID(id),
         productSchema
     );

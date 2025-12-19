@@ -9,9 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { LogOut, Settings, User } from "lucide-react";
+import { Home, User } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { authStore } from "@/app/store/auth";
+import { useLogoutMutation } from "@/features/auth/hooks";
 
 export default function Navbar() {
+  const { mutate: doLogout } = useLogoutMutation();
+
   return (
     <nav className="p-4 flex items-center justify-between sticky top-0 bg-background z-10 border-b">
       {/* LEFT */}
@@ -19,12 +24,11 @@ export default function Navbar() {
 
       {/* RIGHT */}
       <div className="flex items-center gap-4">
-        <Link
-          to="/admin"
-          className="text-sm hover:text-primary transition-colors"
-        >
-          Dashboard
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link to="/" aria-label="Home">
+            <Home className="h-5 w-5 text-zinc-600" />
+          </Link>
+        </Button>
 
         {/* USER MENU */}
         <DropdownMenu>
@@ -41,12 +45,14 @@ export default function Navbar() {
               <User className="h-[1.2rem] w-[1.2rem] mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              <LogOut className="h-[1.2rem] w-[1.2rem] mr-2" />
+            <DropdownMenuItem
+              onClick={() =>
+                doLogout({
+                  token: authStore.getRefresh() || "",
+                })
+              }
+              className="text-red-600 focus:text-red-700"
+            >
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

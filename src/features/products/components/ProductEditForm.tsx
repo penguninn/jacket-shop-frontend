@@ -30,9 +30,6 @@ import { updateProductSchema, type UpdateProductInput, type Product, type Produc
 import { useUpdateProduct, useBrands, useStyles } from "../hooks";
 
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
     LABELS: {
         NAME: "Product Name *",
@@ -240,6 +237,11 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.brandId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.brandId.message}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Style */}
@@ -267,6 +269,11 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.styleId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.styleId.message}
+                                    </p>
+                                )}
                             </div>
                         </div>
 

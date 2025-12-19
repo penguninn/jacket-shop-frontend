@@ -5,9 +5,6 @@ import {
     type BaseFilterParams,
 } from "@/shared/api/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 
 export const SHIPPING_METHOD_CONSTANTS = Object.freeze({
     NAME: {
@@ -27,9 +24,6 @@ export const SHIPPING_METHOD_CONSTANTS = Object.freeze({
     SORT_FIELDS: ["id", "name", "fee", "createdAt", "updatedAt"] as const,
 } as const);
 
-// ============================================
-// DOMAIN SCHEMAS
-// ============================================
 
 export const shippingMethodSchema = z.object({
     id: z.number(),
@@ -42,15 +36,9 @@ export const shippingMethodSchema = z.object({
     updatedAt: z.string().nullable().optional(),
 });
 
-// ============================================
-// RESPONSE SCHEMAS
-// ============================================
 
 export const shippingMethodsResponseSchema = pageResponseSchema(shippingMethodSchema);
 
-// ============================================
-// INPUT SCHEMAS
-// ============================================
 
 export const createShippingMethodSchema = z.object({
     name: z
@@ -133,11 +121,8 @@ export const bulkDeleteShippingMethodSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one shipping method"),
 });
 
-// ============================================
-// FILTER PARAMS SCHEMA
-// ============================================
 
-export interface ShippingMethodFilterParams extends BaseFilterParams { }
+export type ShippingMethodFilterParams = BaseFilterParams;
 
 export const shippingMethodFilterParamsSchema = z.object({
     page: z.number().min(0).default(0),
@@ -148,9 +133,6 @@ export const shippingMethodFilterParamsSchema = z.object({
     status: z.array(statusSchema).optional(),
 });
 
-// ============================================
-// TYPESCRIPT TYPES
-// ============================================
 
 export type ShippingMethod = z.infer<typeof shippingMethodSchema>;
 export type ShippingMethodStatus = z.infer<typeof statusSchema>;

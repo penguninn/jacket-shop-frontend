@@ -32,9 +32,6 @@ import { useCreateProduct, useBrands, useStyles } from "../hooks";
 import { createProductSchema, type CreateProductInput } from "../model/schemas";
 
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
     LABELS: {
         NAME: "Product Name *",
@@ -237,6 +234,11 @@ export function ProductCreateForm() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.brandId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.brandId.message}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Style */}
@@ -262,6 +264,11 @@ export function ProductCreateForm() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.styleId && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.styleId.message}
+                                    </p>
+                                )}
                             </div>
                         </div>
 

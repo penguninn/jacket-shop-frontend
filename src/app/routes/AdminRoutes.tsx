@@ -87,7 +87,7 @@ export default function AdminRoutes() {
         <Route
           path="sales"
           element={
-            <RequireAuth roles={["ADMIN", "STAFF"]}>
+            <RequireAuth roles={["ADMIN"]}>
               <SalePage />
             </RequireAuth>
           }
@@ -119,13 +119,13 @@ export default function AdminRoutes() {
         <Route
           path="inventories"
           element={
-            <RequireAuth roles={["ADMIN", "STAFF"]}>
+            <RequireAuth roles={["ADMIN"]}>
               <Inventories />
             </RequireAuth>
           }
         />
 
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>
   );

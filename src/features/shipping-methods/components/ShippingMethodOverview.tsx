@@ -71,7 +71,7 @@ export function ShippingMethodOverview({ shippingMethod }: Props) {
         if (confirm(`Are you sure you want to delete shipping method "${shippingMethod.name}"?`)) {
             deleteMutation.mutate(shippingMethod.id, {
                 onSuccess: () => {
-                    navigate("/admin/shipping-methods");
+                    navigate("/dashboard/shipping-methods");
                 },
             });
         }

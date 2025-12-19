@@ -3,7 +3,7 @@ import { ERROR_CODES, toProblem } from "./error";
 import { authStore } from "@/app/store/auth";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
-const TIMEOUT = 15000;
+const TIMEOUT = 60000;
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: `${BASE_URL}/api`,
@@ -13,9 +13,6 @@ const axiosInstance: AxiosInstance = axios.create({
   timeout: TIMEOUT,
 });
 
-// ============================================
-// REFRESH TOKEN QUEUE
-// ============================================
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
@@ -28,9 +25,6 @@ function addRefreshSubscriber(callback: (token: string) => void) {
   refreshSubscribers.push(callback);
 }
 
-// ============================================
-// REQUEST INTERCEPTOR
-// ============================================
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = authStore.getAccess();
@@ -68,9 +62,7 @@ async function refreshTokenRequest(): Promise<string> {
   }
 }
 
-// ============================================
 // RESPONSE INTERCEPTOR: Handle 401 & Refresh
-// ============================================
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {

@@ -1,6 +1,6 @@
 // src/api/attribute.ts
 import { z } from "zod";
-import { httpPrivateTyped } from "@/shared/api/http-typed";
+import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
 import { colorSchema, sizeSchema, materialSchema } from "@/features/attributes/model";
 import {
   colorsResponseSchema,
@@ -53,6 +53,29 @@ export async function getColors(params: GetColorsParams) {
   }
 
   return httpPrivateTyped.get(`/colors?${queryParams.toString()}`, colorsResponseSchema);
+}
+
+
+export async function getPublicColors(params: GetColorsParams) {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+  const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+  queryParams.append("sortBy", sortBy);
+  queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+  if (params.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params.status?.length) {
+    params.status.forEach((s) => queryParams.append("status", s));
+  }
+
+  return httpPublicTyped.get(`/colors?${queryParams.toString()}`, colorsResponseSchema);
 }
 
 export async function createColor(payload: CreateColorInput) {
@@ -109,6 +132,29 @@ export async function getSizes(params: GetSizesParams) {
   return httpPrivateTyped.get(`/sizes?${queryParams.toString()}`, sizesResponseSchema);
 }
 
+
+export async function getPublicSizes(params: GetSizesParams) {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+  const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+  queryParams.append("sortBy", sortBy);
+  queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+  if (params.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params.status?.length) {
+    params.status.forEach((s) => queryParams.append("status", s));
+  }
+
+  return httpPublicTyped.get(`/sizes?${queryParams.toString()}`, sizesResponseSchema);
+}
+
 export async function createSize(payload: CreateSizeInput) {
   return httpPrivateTyped.post("/sizes", payload, sizeSchema);
 }
@@ -161,6 +207,28 @@ export async function getMaterials(params: GetMaterialsParams) {
   }
 
   return httpPrivateTyped.get(`/materials?${queryParams.toString()}`, materialsResponseSchema);
+}
+
+export async function getPublicMaterials(params: GetMaterialsParams) {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  const sortBy = params.sortBy ?? DEFAULT_SORT_BY;
+  const sortDir = params.sortDir ?? DEFAULT_SORT_DIR;
+
+  queryParams.append("sortBy", sortBy);
+  queryParams.append("sortDir", sortDir.toUpperCase() as "ASC" | "DESC");
+
+  if (params.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params.status?.length) {
+    params.status.forEach((s) => queryParams.append("status", s));
+  }
+
+  return httpPublicTyped.get(`/materials?${queryParams.toString()}`, materialsResponseSchema);
 }
 
 export async function createMaterial(payload: CreateMaterialInput) {

@@ -52,7 +52,7 @@ export default function ProductVariantPage() {
             <div className="container mx-auto py-8">
                 <div className="text-center">
                     <p className="text-red-500">Failed to load product details</p>
-                    <Button onClick={() => navigate("/admin/products")} className="mt-4">
+                    <Button onClick={() => navigate("/dashboard/products")} className="mt-4">
                         Back to Products
                     </Button>
                 </div>
@@ -66,7 +66,7 @@ export default function ProductVariantPage() {
             <div className="mb-6">
                 <Button
                     variant="ghost"
-                    onClick={() => navigate("/admin/products")}
+                    onClick={() => navigate("/dashboard/products")}
                     className="mb-4"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />

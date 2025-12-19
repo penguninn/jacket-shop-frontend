@@ -28,9 +28,6 @@ import { createBrandSchema, type BrandStatus, type CreateBrandInput } from "../m
 import { Textarea } from "@/shared/ui/textarea";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
   LABELS: {
     NAME: "Brand Name *",

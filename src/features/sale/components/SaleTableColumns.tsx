@@ -1,7 +1,6 @@
 import { Button } from "@/shared/ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { formatCurrency } from "@/shared/utils/format";
 import { format } from "date-fns";
 import { Badge } from "@/shared/ui/badge";
 import type { SaleResponse } from "../model/schemas";
@@ -9,74 +8,24 @@ import { SaleActions } from "./SaleActions";
 
 export const columns: ColumnDef<SaleResponse>[] = [
     {
-        accessorKey: "variantId",
+        accessorKey: "id",
         header: "ID",
-        cell: ({ row }) => <div className="w-[40px]">{row.getValue("variantId")}</div>,
+        cell: ({ row }) => <div className="w-[40px]">{row.getValue("id")}</div>,
     },
     {
-        accessorKey: "image",
-        header: "Image",
-        cell: ({ row }) => {
-            const image = row.getValue("image") as string | null;
-            return (
-                <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border bg-muted/50">
-                    {image ? (
-                        <img
-                            src={image}
-                            alt="Product variant"
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                            No img
-                        </div>
-                    )}
-                </div>
-            )
-        }
-    },
-    {
-        accessorKey: "productName",
+        accessorKey: "name",
         header: ({ column }) => {
             return (
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Product
+                    Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             );
         },
-        cell: ({ row }) => {
-            return (
-                <div className="flex flex-col">
-                    <span className="font-medium">{row.getValue("productName")}</span>
-                    <span className="text-xs text-muted-foreground">SKU: {row.original.sku}</span>
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "originalPrice",
-        header: "Price",
-        cell: ({ row }) => {
-            const originalPrice = row.original.originalPrice;
-            const salePrice = row.original.salePrice;
-
-            return (
-                <div className="flex flex-col">
-                    {salePrice && (
-                        <span className="font-bold text-red-600">
-                            {formatCurrency(salePrice)}
-                        </span>
-                    )}
-                    <span className={salePrice ? "text-xs text-muted-foreground line-through" : ""}>
-                        {formatCurrency(originalPrice || 0)}
-                    </span>
-                </div>
-            );
-        }
+        cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
         accessorKey: "discountPercentage",
@@ -87,24 +36,47 @@ export const columns: ColumnDef<SaleResponse>[] = [
         }
     },
     {
-        accessorKey: "saleStartDate",
-        header: "Duration",
+        accessorKey: "startDate",
+        header: "Valid From",
         cell: ({ row }) => {
-            const start = row.original.saleStartDate;
-            const end = row.original.saleEndDate;
-            if (!start || !end) return <span className="text-muted-foreground">—</span>;
-
+            const dateStr = row.getValue("startDate") as string | null;
+            if (!dateStr) return <span className="text-muted-foreground">—</span>;
+            const date = new Date(dateStr);
             return (
-                <div className="flex flex-col text-sm">
-                    <span>{format(new Date(start), "dd/MM/yyyy")}</span>
-                    <span className="text-xs text-muted-foreground">to</span>
-                    <span>{format(new Date(end), "dd/MM/yyyy")}</span>
+                <div className="text-sm text-muted-foreground">
+                    {format(date, "MMM dd, yyyy")}
                 </div>
             );
+        },
+    },
+    {
+        accessorKey: "endDate",
+        header: "Valid To",
+        cell: ({ row }) => {
+            const dateStr = row.getValue("endDate") as string | null;
+            if (!dateStr) return <span className="text-muted-foreground">—</span>;
+            const date = new Date(dateStr);
+            const isExpired = date < new Date();
+            return (
+                <div
+                    className={`text-sm ${isExpired ? "text-red-600 font-medium" : "text-muted-foreground"}`}
+                >
+                    {format(date, "MMM dd, yyyy")}
+                </div>
+            );
+        },
+    },
+    {
+        id: "variantsCount",
+        header: "Variants",
+        cell: ({ row }) => {
+            const count = row.original.variants?.length || 0;
+            return <Badge variant="outline">{count} items</Badge>;
         }
     },
     {
         id: "actions",
-        cell: ({ row }) => <SaleActions row={row} />,
+        cell: ({ row }) => <SaleActions sale={row.original} />,
+
     },
 ];

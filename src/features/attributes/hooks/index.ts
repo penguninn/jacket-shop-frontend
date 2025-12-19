@@ -11,7 +11,9 @@ import {
   deleteColor,
   deleteSize,
   getColors,
+  getPublicColors,
   getSizes,
+  getPublicSizes,
   updateColor,
   updateSize,
   type GetColorsParams,
@@ -22,7 +24,8 @@ import {
   deleteMaterial,
   bulkDeleteMaterials,
   bulkUpdateStatusMaterials,
-  getMaterials
+  getMaterials,
+  getPublicMaterials
 } from "../api";
 import type {
   CreateColorInput,
@@ -33,11 +36,23 @@ import type {
   UpdateMaterialInput
 } from "../model/schemas";
 
+// ... (existing code)
+
+
+
 // Color Hooks
 export function useColors(params: GetColorsParams) {
   return useQuery({
     queryKey: ["colors", params],
     queryFn: () => getColors(params),
+    staleTime: 30 * 1000,
+  });
+}
+
+export function usePublicColors(params: GetColorsParams) {
+  return useQuery({
+    queryKey: ["public-colors", params],
+    queryFn: () => getPublicColors(params),
     staleTime: 30 * 1000,
   });
 }
@@ -80,6 +95,14 @@ export function useSizes(params: GetSizesParams) {
   return useQuery({
     queryKey: ["sizes", params],
     queryFn: () => getSizes(params),
+    staleTime: 30 * 1000,
+  });
+}
+
+export function usePublicSizes(params: GetSizesParams) {
+  return useQuery({
+    queryKey: ["public-sizes", params],
+    queryFn: () => getPublicSizes(params),
     staleTime: 30 * 1000,
   });
 }
@@ -165,6 +188,14 @@ export function useBulkUpdateStatusSizes(options?: BaseMutationOptions) {
 }
 
 // Material Hooks
+export function usePublicMaterials(params: GetMaterialsParams) {
+  return useQuery({
+    queryKey: ["public-materials", params],
+    queryFn: () => getPublicMaterials(params),
+    staleTime: 30 * 1000,
+  });
+}
+
 export function useMaterials(params: GetMaterialsParams) {
   return useQuery({
     queryKey: ["materials", params],
@@ -228,3 +259,5 @@ export function useBulkUpdateStatusMaterials(options?: BaseMutationOptions) {
     },
   });
 }
+
+

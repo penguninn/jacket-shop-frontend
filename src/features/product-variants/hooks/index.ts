@@ -3,6 +3,7 @@ import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
 import {
     getProductVariants,
     getProductVariantsByProductId,
+    getPublicProductVariantsByProduct,
     getProductVariantById,
     createProductVariant,
     updateProductVariant,
@@ -22,9 +23,6 @@ import type {
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
-// ============================================
-// QUERY KEY FACTORY
-// ============================================
 
 export const productVariantKeys = {
     all: ['product-variants'] as const,
@@ -35,9 +33,6 @@ export const productVariantKeys = {
     detail: (id: number) => [...productVariantKeys.details(), id] as const,
 } as const;
 
-// ============================================
-// QUERIES
-// ============================================
 
 export function useProductVariants(params: ProductVariantFilterParams) {
     return useQuery({
@@ -54,6 +49,14 @@ export function useProductVariantsByProduct(productId: number, enabled = true) {
     });
 }
 
+export function usePublicProductVariantsByProduct(productId: number, enabled = true) {
+    return useQuery({
+        queryKey: [...productVariantKeys.byProduct(productId), 'public'],
+        queryFn: () => getPublicProductVariantsByProduct(productId),
+        enabled: enabled && !!productId,
+    });
+}
+
 export function useProductVariantDetail(id: number, enabled = true) {
     return useQuery({
         queryKey: productVariantKeys.detail(id),
@@ -62,9 +65,6 @@ export function useProductVariantDetail(id: number, enabled = true) {
     });
 }
 
-// ============================================
-// MUTATIONS
-// ============================================
 
 export function useCreateProductVariant(options?: BaseMutationOptions) {
     return useGlobalMutation<ProductVariant, CreateProductVariantInput>({

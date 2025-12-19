@@ -19,10 +19,10 @@ export function SaleTableToolbar({ table }: Props) {
         <div className="flex items-center justify-between">
             <div className="flex flex-1 items-center space-x-2">
                 <Input
-                    placeholder="Search by product name..."
-                    value={(table.getColumn("productName")?.getFilterValue() as string) ?? ""}
+                    placeholder="Search by sale name..."
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                     onChange={(e) =>
-                        table.getColumn("productName")?.setFilterValue(e.target.value)
+                        table.getColumn("name")?.setFilterValue(e.target.value)
                     }
                     className="h-8 w-[150px] lg:w-[250px]"
                 />
@@ -43,7 +43,7 @@ export function SaleTableToolbar({ table }: Props) {
                     onClick={() => setShowCreateDialog(true)}
                 >
                     <Plus className="mr-2 h-4 w-4" />
-                    Apply Sale
+                    Create Sale
                 </Button>
                 <DataTableViewOptions table={table} />
             </div>

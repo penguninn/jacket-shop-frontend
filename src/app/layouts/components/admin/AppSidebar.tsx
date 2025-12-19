@@ -38,7 +38,7 @@ const sidebarGroups = [
     items: [
       {
         title: "Home",
-        url: "/admin",
+        url: "/dashboard",
         icon: Home,
       },
       {
@@ -54,17 +54,17 @@ const sidebarGroups = [
     items: [
       {
         title: "Sell",
-        url: "/admin/pos/sell",
+        url: "/dashboard/pos/sell",
         icon: ShoppingCart,
       },
       {
         title: "Orders",
-        url: "/admin/pos/orders",
+        url: "/dashboard/pos/orders",
         icon: ShoppingBag,
       },
       {
         title: "Returns",
-        url: "/admin/pos/returns",
+        url: "/dashboard/pos/returns",
         icon: ReceiptText,
       },
     ],
@@ -74,22 +74,22 @@ const sidebarGroups = [
     items: [
       {
         title: "Orders",
-        url: "/admin/orders",
+        url: "/dashboard/orders",
         icon: ShoppingBasket,
       },
       {
         title: "Returns",
-        url: "/admin/returns",
+        url: "/dashboard/returns",
         icon: RotateCcw,
       },
       {
         title: "Shipping Methods",
-        url: "/admin/shipping-methods",
+        url: "/dashboard/shipping-methods",
         icon: Truck,
       },
       {
         title: "Payment Methods",
-        url: "/admin/payment-methods",
+        url: "/dashboard/payment-methods",
         icon: Wallet,
       },
     ],
@@ -99,27 +99,27 @@ const sidebarGroups = [
     items: [
       {
         title: "Products",
-        url: "/admin/products",
+        url: "/dashboard/products",
         icon: Shirt,
       },
       {
         title: "Inventories",
-        url: "/admin/inventories",
+        url: "/dashboard/inventories",
         icon: Warehouse,
       },
       {
         title: "Brands",
-        url: "/admin/brands",
+        url: "/dashboard/brands",
         icon: Award,
       },
       {
         title: "Styles",
-        url: "/admin/styles",
+        url: "/dashboard/styles",
         icon: Sparkles,
       },
       {
         title: "Attributes",
-        url: "/admin/attributes",
+        url: "/dashboard/attributes",
         icon: Sliders,
       },
     ],
@@ -129,7 +129,7 @@ const sidebarGroups = [
     items: [
       {
         title: "Users",
-        url: "/admin/users",
+        url: "/dashboard/users",
         icon: User,
       },
     ],
@@ -139,12 +139,12 @@ const sidebarGroups = [
     items: [
       {
         title: "Coupons",
-        url: "/admin/coupons",
+        url: "/dashboard/coupons",
         icon: BadgePercent,
       },
       {
         title: "Sales",
-        url: "/admin/sales",
+        url: "/dashboard/sales",
         icon: Tag,
       },
     ],
@@ -154,7 +154,7 @@ const sidebarGroups = [
     items: [
       {
         title: "Reviews",
-        url: "/admin/reviews",
+        url: "/dashboard/reviews",
         icon: Star,
       },
     ],
@@ -165,8 +165,8 @@ export default function AppSidebar() {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    if (path === "/admin") {
-      return location.pathname === "/admin";
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
     }
     return location.pathname.startsWith(path) && path !== "#";
   };
@@ -177,7 +177,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={false} className="w-full flex justify-center">
-              <Link to="/admin">
+              <Link to="/">
                 <img src="/logo.png" alt="Clothing" className="w-3/4" />
               </Link>
             </SidebarMenuButton>

@@ -27,9 +27,6 @@ import { useUpdateProductVariant } from "../hooks";
 import { Dropzone, DropzoneEmptyState } from "@/shared/ui/dropzone";
 import { useUpload } from "@/shared/hooks/use-upload";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
     LABELS: {
 

@@ -11,9 +11,6 @@ import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { useSignUp } from "../hooks";
 import { signUpSchema, type SignUpInput } from "../model";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const FORM_CONFIG = {
   TITLE: 'Create Account',
   SUBTITLE: 'Sign up to start shopping with us',

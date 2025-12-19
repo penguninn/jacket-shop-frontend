@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function SearchBar() {
-  const [value, setValue] = useState("");
   const [searchParams] = useSearchParams();
+  const [value, setValue] = useState(searchParams.get("keyword") || "");
   const navigate = useNavigate();
 
   const handleSearch = (searchValue: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("search", searchValue);
-    navigate(`/products?${params.toString()}`);
+    const newParams = new URLSearchParams();
+    if (searchValue) newParams.set("keyword", searchValue);
+    navigate(`/search?${newParams.toString()}`);
   };
 
   return (
@@ -20,6 +20,7 @@ export default function SearchBar() {
         id="search"
         placeholder="Search..."
         className="text-sm outline-0 bg-transparent placeholder:text-zinc-400"
+        value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {

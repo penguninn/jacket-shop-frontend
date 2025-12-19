@@ -5,7 +5,7 @@ import { SaleTable } from "../components/SaleTable";
 export default function SalePage() {
     const { data, isLoading } = useQuery({
         queryKey: ["sales"],
-        queryFn: getAllSales,
+        queryFn: () => getAllSales({ page: 0, size: 50, sortDir: "DESC", sortBy: "createdAt" }),
     });
 
     return (
@@ -18,7 +18,7 @@ export default function SalePage() {
                     </p>
                 </div>
             </div>
-            <SaleTable data={data || []} isLoading={isLoading} />
+            <SaleTable data={data?.contents ?? []} isLoading={isLoading} />
         </div>
     );
 }

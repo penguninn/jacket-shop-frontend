@@ -24,6 +24,9 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
     const formData = new FormData();
     formData.append("file", file);
 
+    // Simulate delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     return await httpPrivateTyped.post<ImageUploadResponse>(
         "/upload",
         formData,

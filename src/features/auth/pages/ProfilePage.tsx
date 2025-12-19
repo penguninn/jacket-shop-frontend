@@ -12,9 +12,6 @@ import { useMe, useUpdateProfile } from "../hooks";
 import { updateProfileSchema, type UpdateProfileInput } from "../model";
 import type { User } from "@/features/users/model";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const PAGE_CONFIG = {
   TITLE: 'My Profile',
   SUBTITLE: 'Manage and protect your account',

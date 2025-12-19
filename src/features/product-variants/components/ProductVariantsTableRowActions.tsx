@@ -80,7 +80,7 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                 <DropdownMenuContent align="end" className="w-[160px]">
                     <DropdownMenuItem onClick={() => {
                         if (variant.product?.id) {
-                            navigate(`/admin/products/${variant.product.id}`);
+                            navigate(`/dashboard/products/${variant.product.id}`);
                         }
                     }}>
                         <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />

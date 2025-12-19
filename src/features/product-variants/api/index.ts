@@ -1,4 +1,4 @@
-import { httpPrivateTyped } from "@/shared/api/http-typed";
+import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
 import {
     productVariantSchema,
     productVariantsResponseSchema,
@@ -11,9 +11,6 @@ import {
 } from "../model/schemas";
 import { z } from "zod";
 
-// ============================================
-// API ENDPOINTS CONSTANTS
-// ============================================
 
 const ENDPOINTS = Object.freeze({
     VARIANTS: '/product-variants',
@@ -24,9 +21,6 @@ const ENDPOINTS = Object.freeze({
     BULK_DELETE: '/product-variants/bulk/delete',
 } as const);
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 function buildQueryParams(params: ProductVariantFilterParams): URLSearchParams {
     const queryParams = new URLSearchParams({
@@ -73,9 +67,6 @@ function buildQueryParams(params: ProductVariantFilterParams): URLSearchParams {
     return queryParams;
 }
 
-// ============================================
-// API FUNCTIONS
-// ============================================
 
 // Queries
 export async function getProductVariants(params: ProductVariantFilterParams) {
@@ -88,6 +79,13 @@ export async function getProductVariants(params: ProductVariantFilterParams) {
 
 export async function getProductVariantsByProductId(productId: number) {
     return await httpPrivateTyped.get(
+        ENDPOINTS.VARIANTS_BY_PRODUCT(productId),
+        z.array(productVariantSchema)
+    );
+}
+
+export async function getPublicProductVariantsByProduct(productId: number) {
+    return await httpPublicTyped.get(
         ENDPOINTS.VARIANTS_BY_PRODUCT(productId),
         z.array(productVariantSchema)
     );

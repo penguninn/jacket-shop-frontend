@@ -12,11 +12,8 @@ import { ActivityTab } from "../components/ActivityTab";
 import { StatisticsTab } from "../components/StatisticsTab";
 import type { User } from "../model/schemas";
 
-// ============================================
-// CONSTANTS
-// ============================================
 const ROUTES = {
-  USERS_LIST: '/admin/users',
+  USERS_LIST: '/dashboard/users',
 } as const;
 
 const MESSAGES = {
