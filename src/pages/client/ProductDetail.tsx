@@ -18,17 +18,28 @@ export default function ProductDetail() {
     const { id } = useParams();
     const productId = Number(id);
 
+    // Scroll to top on load/change
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
+
     // Fetching Data
     const { data: product, isLoading: isProductLoading } = usePublicProductDetail(productId);
     const { data: variants, isLoading: isVariantsLoading } = usePublicProductVariantsByProduct(productId);
     const addToCartMutation = useAddToCart();
 
     // Recommendations (Public Products)
-    // We try to fetch products of same style or just random public products
-    const { data: relatedData } = usePublicProducts({
+    // Fetch 2 products from same Brand + 2 products from same Style
+    const { data: relatedBrandData } = usePublicProducts({
+        page: 0,
+        size: 4, // Fetch extra to filter out current
+        brandIds: product?.brand ? [product.brand.id] : undefined
+    });
+
+    const { data: relatedStyleData } = usePublicProducts({
         page: 0,
         size: 4,
-        brandIds: product?.brand ? [product.brand.id] : undefined
+        styleIds: product?.style ? [product.style.id] : undefined
     });
 
     // Local State
@@ -677,9 +688,29 @@ export default function ProductDetail() {
                 <div className="mb-16">
                     <h2 className="text-4xl font-extrabold text-center uppercase mb-12">You might also like</h2>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-                        {relatedData?.contents.map((p) => (
-                            <ProductCard key={p.id} product={p} />
-                        ))}
+                        {(() => {
+                            // Filter out current product
+                            const currentId = product?.id;
+
+                            // Get brand related items (excluding current)
+                            const brandItems = (relatedBrandData?.contents || [])
+                                .filter(p => p.id !== currentId)
+                                .slice(0, 2);
+
+                            // Get style related items (excluding current and already strings in brandItems)
+                            const brandIds = new Set(brandItems.map(p => p.id));
+                            const styleItems = (relatedStyleData?.contents || [])
+                                .filter(p => p.id !== currentId && !brandIds.has(p.id))
+                                .slice(0, 2);
+
+                            const combined = [...brandItems, ...styleItems];
+
+                            if (combined.length === 0) return <p className="col-span-full text-center text-gray-400">No related products found.</p>;
+
+                            return combined.map((p) => (
+                                <ProductCard key={p.id} product={p} />
+                            ));
+                        })()}
                     </div>
                 </div>
 
