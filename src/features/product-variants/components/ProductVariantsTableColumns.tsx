@@ -50,14 +50,12 @@ export const columns: ColumnDef<ProductVariant>[] = [
         header: "Image",
         cell: ({ row }) => {
             const image = row.getValue("image") as string | null;
-            const fallback = row.original.product?.thumbnail;
-            const displayImage = image || fallback;
 
             return (
                 <div className="relative size-10 overflow-hidden rounded border">
-                    {displayImage ? (
+                    {image ? (
                         <img
-                            src={displayImage}
+                            src={image}
                             alt={row.original.sku || "Variant"}
                             className="h-full w-full object-cover"
                         />
@@ -84,16 +82,6 @@ export const columns: ColumnDef<ProductVariant>[] = [
             );
         },
         cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("sku") || "—"}</div>,
-    },
-    {
-        id: "productName",
-        accessorFn: (row) => row.product?.name,
-        header: "Product",
-        cell: ({ row }) => (
-            <div className="max-w-[200px] truncate" title={row.original.product?.name}>
-                {row.original.product?.name || "—"}
-            </div>
-        ),
     },
     {
         accessorKey: "color",

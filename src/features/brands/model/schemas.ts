@@ -11,9 +11,6 @@ export const BRAND_CONSTANTS = Object.freeze({
     MIN_LENGTH: 1,
     MAX_LENGTH: 120,
   },
-  LOGO_URL: {
-    MAX_LENGTH: 400,
-  },
   DESCRIPTION: {
     MAX_LENGTH: 255,
   },
@@ -24,7 +21,6 @@ export const BRAND_CONSTANTS = Object.freeze({
 export const brandSchema = z.object({
   id: z.number(),
   name: z.string(),
-  logoUrl: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
@@ -40,25 +36,17 @@ export const createBrandSchema = z.object({
     .string()
     .min(
       BRAND_CONSTANTS.NAME.MIN_LENGTH,
-      `Name must be at least ${BRAND_CONSTANTS.NAME.MIN_LENGTH} characters`
+      "Name cannot be empty"
     )
     .max(
       BRAND_CONSTANTS.NAME.MAX_LENGTH,
-      `Name must not exceed ${BRAND_CONSTANTS.NAME.MAX_LENGTH} characters`
+      "Name must be less than 120 characters"
     ),
-  logoUrl: z
-    .string()
-    .max(
-      BRAND_CONSTANTS.LOGO_URL.MAX_LENGTH,
-      `Logo URL must not exceed ${BRAND_CONSTANTS.LOGO_URL.MAX_LENGTH} characters`
-    )
-    .optional()
-    .or(z.literal("")),
   description: z
     .string()
     .max(
       BRAND_CONSTANTS.DESCRIPTION.MAX_LENGTH,
-      `Description must not exceed ${BRAND_CONSTANTS.DESCRIPTION.MAX_LENGTH} characters`
+      "Description too long"
     )
     .optional()
     .nullable(),
@@ -70,25 +58,17 @@ export const updateBrandSchema = z.object({
     .string()
     .min(
       BRAND_CONSTANTS.NAME.MIN_LENGTH,
-      `Name must be at least ${BRAND_CONSTANTS.NAME.MIN_LENGTH} characters`
+      "Name cannot be empty"
     )
     .max(
       BRAND_CONSTANTS.NAME.MAX_LENGTH,
-      `Name must not exceed ${BRAND_CONSTANTS.NAME.MAX_LENGTH} characters`
+      "Name must be less than 120 characters"
     ),
-  logoUrl: z
-    .string()
-    .max(
-      BRAND_CONSTANTS.LOGO_URL.MAX_LENGTH,
-      `Logo URL must not exceed ${BRAND_CONSTANTS.LOGO_URL.MAX_LENGTH} characters`
-    )
-    .optional()
-    .or(z.literal("")),
   description: z
     .string()
     .max(
       BRAND_CONSTANTS.DESCRIPTION.MAX_LENGTH,
-      `Description must not exceed ${BRAND_CONSTANTS.DESCRIPTION.MAX_LENGTH} characters`
+      "Description too long"
     )
     .optional()
     .nullable(),

@@ -328,10 +328,10 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                                                                             />
                                                                             <div className="flex flex-col">
                                                                                 <span className="font-medium">
-                                                                                    {variant.product?.name}
+                                                                                    {variant.sku || `Variant #${variant.id}`}
                                                                                 </span>
                                                                                 <span className="text-xs text-muted-foreground">
-                                                                                    SKU: {variant.sku} | Color: {variant.color?.name} | Size: {variant.size?.name}
+                                                                                    Color: {variant.color?.name} | Size: {variant.size?.name}
                                                                                 </span>
                                                                             </div>
                                                                         </CommandItem>

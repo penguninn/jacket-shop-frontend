@@ -11,6 +11,7 @@ import {
     deleteProductVariant,
     bulkUpdateProductVariantStatus,
     bulkDeleteProductVariants,
+    adjustStock,
 } from "../api";
 import type {
     ProductVariant,
@@ -20,6 +21,7 @@ import type {
     UpdateProductVariantStatusInput,
     BulkUpdateStatusProductVariantInput,
     BulkDeleteProductVariantInput,
+    StockAdjustmentInput,
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
@@ -101,6 +103,21 @@ export function useUpdateProductVariantStatus(options?: BaseMutationOptions) {
         ],
         successMessage: (_, { data }) => `Variant status changed to ${data.status}`,
         errorContext: "Update Variant Status",
+        setError: options?.setError,
+    });
+}
+
+export function useAdjustStock(options?: BaseMutationOptions) {
+    return useGlobalMutation<null, { id: number; data: StockAdjustmentInput }>({
+        mutationFn: ({ id, data }) => adjustStock(id, data),
+        invalidateQueries: [
+            [...productVariantKeys.all] as string[],
+        ],
+        removeQueries: ({ id }) => [
+            [...productVariantKeys.detail(id)] as string[],
+        ],
+        successMessage: "Stock adjusted successfully",
+        errorContext: "Adjust Stock",
         setError: options?.setError,
     });
 }

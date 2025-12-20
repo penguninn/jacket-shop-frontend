@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
-import { useCart } from "../hooks";
+import { useCart, useCartCount } from "../hooks";
 import { CartItem } from "./CartItem";
 import { formatCurrency } from "@/shared/utils/format";
 import {
@@ -15,16 +15,15 @@ import {
 
 export function CartSheet() {
     const { data: cart } = useCart();
-    // Safely access items, handling if backend returns null/undefined for empty cart
     const items = cart?.items || [];
 
-    // Calculate total price
     const totalPrice = items.reduce((sum, item) => {
         const price = item.productVariant.salePrice ?? item.productVariant.price;
         return sum + price * item.quantity;
     }, 0);
 
-    const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    const { data: cartItemsCount } = useCartCount();
+    const itemCount = cartItemsCount ?? 0;
 
     return (
         <Sheet>
@@ -38,7 +37,7 @@ export function CartSheet() {
                     )}
                 </Button>
             </SheetTrigger>
-            <SheetContent className="flex w-full flex-col pr-0 sm:max-w-md">
+            <SheetContent className="flex w-full flex-col pr-0 sm:max-w-md p-4">
                 <SheetHeader className="px-1">
                     <SheetTitle>Shopping Cart ({itemCount})</SheetTitle>
                 </SheetHeader>

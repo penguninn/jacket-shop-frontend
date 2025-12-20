@@ -1,18 +1,17 @@
 import { useState } from "react";
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, Pen, Trash, CheckCircle2, XCircle } from "lucide-react";
+import { MoreHorizontal, Pen, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { useDeleteStyle, useUpdateStyleStatus } from "../hooks";
+import { useUpdateStyleStatus } from "../hooks";
 import { StyleEditForm } from "./StyleEditForm";
 import type { Style, UpdateStyleStatusInput } from "../model/schemas";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+
 
 interface DataTableRowActionsProps<TData> {
     row: Row<TData>;
@@ -22,17 +21,9 @@ export function StyleTableRowActions<TData>({
     row,
 }: DataTableRowActionsProps<TData>) {
     const style = row.original as Style;
-    const deleteStyle = useDeleteStyle();
     const updateStatus = useUpdateStyleStatus();
 
     const [showEditDialog, setShowEditDialog] = useState(false);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-    const handleDelete = () => {
-        deleteStyle.mutate(style.id, {
-            onSuccess: () => setShowDeleteDialog(false),
-        });
-    };
 
     const handleToggleStatus = () => {
         const newStatus = style.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
@@ -53,20 +44,7 @@ export function StyleTableRowActions<TData>({
                 style={style}
             />
 
-            <ConfirmDialog
-                open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
-                title="Delete Style"
-                description={
-                    <span>
-                        Are you sure you want to delete style <strong>{style.name}</strong>? This action cannot be undone.
-                    </span>
-                }
-                onConfirm={handleDelete}
-                confirmText="Delete"
-                variant="destructive"
-                isLoading={deleteStyle.isPending}
-            />
+
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -95,14 +73,6 @@ export function StyleTableRowActions<TData>({
                                 Activate
                             </>
                         )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="text-destructive focus:text-destructive"
-                    >
-                        <Trash className="mr-2 h-3.5 w-3.5" />
-                        Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

@@ -35,13 +35,11 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 const FORM_CONFIG = {
   LABELS: {
     NAME: "Brand Name *",
-    LOGO: "Logo URL",
     DESCRIPTION: "Description",
     STATUS: "Status *",
   },
   PLACEHOLDERS: {
     NAME: "Nike, Adidas, etc.",
-    LOGO: "https://example.com/logo.png",
     DESCRIPTION: "Description",
     SELECT_STATUS: "Select status",
   },
@@ -70,7 +68,6 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
     resolver: zodResolver(updateBrandSchema),
     defaultValues: {
       name: "",
-      logoUrl: "",
       description: "",
       status: "ACTIVE",
     },
@@ -85,7 +82,6 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
     if (open && brand) {
       reset({
         name: brand.name,
-        logoUrl: brand.logoUrl || "",
         description: brand.description || "",
         status: brand.status,
       });
@@ -135,19 +131,6 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
               />
               {errors.name && (
                 <p className="text-xs text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-
-            {/* Logo URL */}
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl">{FORM_CONFIG.LABELS.LOGO}</Label>
-              <Input
-                id="logoUrl"
-                placeholder={FORM_CONFIG.PLACEHOLDERS.LOGO}
-                {...register("logoUrl")}
-              />
-              {errors.logoUrl && (
-                <p className="text-xs text-red-500">{errors.logoUrl.message}</p>
               )}
             </div>
 

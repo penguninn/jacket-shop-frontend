@@ -3,11 +3,8 @@ import {
   BadgePercent,
   Home,
   Inbox,
-  ReceiptText,
   RotateCcw,
   Shirt,
-  ShoppingBag,
-  ShoppingBasket,
   ShoppingCart,
   Sliders,
   Sparkles,
@@ -50,32 +47,12 @@ const sidebarGroups = [
     ],
   },
   {
-    label: "Sales",
-    items: [
-      {
-        title: "Sell",
-        url: "/dashboard/pos/sell",
-        icon: ShoppingCart,
-      },
-      {
-        title: "Orders",
-        url: "/dashboard/pos/orders",
-        icon: ShoppingBag,
-      },
-      {
-        title: "Returns",
-        url: "/dashboard/pos/returns",
-        icon: ReceiptText,
-      },
-    ],
-  },
-  {
     label: "Orders / Payments",
     items: [
       {
-        title: "Orders",
-        url: "/dashboard/orders",
-        icon: ShoppingBasket,
+        title: "Sell",
+        url: "/dashboard/pos",
+        icon: ShoppingCart,
       },
       {
         title: "Returns",

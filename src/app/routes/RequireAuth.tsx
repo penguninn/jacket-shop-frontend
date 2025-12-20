@@ -30,7 +30,6 @@ export default function RequireAuth({
   }
 
   if (roles && roles.length > 0) {
-    // Check if user has at least one of the required roles
     const hasRequiredRole = user.roles?.some((userRole) =>
       roles.includes(userRole.name),
     );

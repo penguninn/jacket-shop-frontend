@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { type Row } from "@tanstack/react-table";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+
 import {
     MoreHorizontal,
     Edit,
-    Trash,
     CheckCircle,
     XCircle,
 } from "lucide-react";
@@ -13,10 +11,9 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { useDeleteColor, useUpdateColor } from "../../hooks";
+import { useUpdateColor } from "../../hooks";
 import { type Color } from "../../model/schemas";
 import { ColorEditForm } from "./ColorEditForm";
 
@@ -27,9 +24,6 @@ interface Props {
 export function ColorTableRowActions({ row }: Props) {
     const color = row.original;
     const updateColorMutation = useUpdateColor();
-    const deleteColorMutation = useDeleteColor();
-
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const handleToggleStatus = () => {
         const newStatus = color.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
@@ -43,28 +37,11 @@ export function ColorTableRowActions({ row }: Props) {
         });
     };
 
-    const handleDelete = () => {
-        deleteColorMutation.mutate(color.id, {
-            onSuccess: () => setShowDeleteDialog(false),
-        });
-    };
+
 
     return (
         <>
-            <ConfirmDialog
-                open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
-                title="Delete Color"
-                description={
-                    <span>
-                        Are you sure you want to delete color <strong>{color.name}</strong>? This action cannot be undone.
-                    </span>
-                }
-                onConfirm={handleDelete}
-                confirmText="Delete"
-                variant="destructive"
-                isLoading={deleteColorMutation.isPending}
-            />
+
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -90,14 +67,6 @@ export function ColorTableRowActions({ row }: Props) {
                                 Activate
                             </>
                         )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="text-red-600"
-                    >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
