@@ -8,6 +8,7 @@ import {
     type UpdateProductVariantStatusInput,
     type BulkUpdateStatusProductVariantInput,
     type BulkDeleteProductVariantInput,
+    type StockAdjustmentInput,
 } from "../model/schemas";
 import { z } from "zod";
 
@@ -15,8 +16,11 @@ import { z } from "zod";
 const ENDPOINTS = Object.freeze({
     VARIANTS: '/product-variants',
     VARIANT_BY_ID: (id: number) => `/product-variants/${id}`,
+    VARIANT_BY_SKU: (sku: string) => `/product-variants/sku/${sku}`,
     VARIANTS_BY_PRODUCT: (productId: number) => `/product-variants/product/${productId}`,
     VARIANT_STATUS: (id: number) => `/product-variants/${id}/status`,
+    ADJUST_STOCK: (id: number) => `/product-variants/${id}/stock`,
+    CHECK_STOCK: '/product-variants/check-stock',
     BULK_UPDATE_STATUS: '/product-variants/bulk/status',
     BULK_DELETE: '/product-variants/bulk/delete',
 } as const);
@@ -143,5 +147,31 @@ export async function bulkDeleteProductVariants(payload: BulkDeleteProductVarian
         ENDPOINTS.BULK_DELETE,
         payload,
         z.null()
+    );
+}
+
+export async function getProductVariantBySku(sku: string) {
+    return await httpPrivateTyped.get(
+        ENDPOINTS.VARIANT_BY_SKU(sku),
+        productVariantSchema
+    );
+}
+
+export async function adjustStock(id: number, payload: StockAdjustmentInput) {
+    return await httpPrivateTyped.put(
+        ENDPOINTS.ADJUST_STOCK(id),
+        payload,
+        z.null()
+    );
+}
+
+export async function checkStock(variantId: number, quantity: number) {
+    const params = new URLSearchParams({
+        variantId: variantId.toString(),
+        quantity: quantity.toString(),
+    });
+    return await httpPrivateTyped.get(
+        `${ENDPOINTS.CHECK_STOCK}?${params.toString()}`,
+        z.boolean()
     );
 }

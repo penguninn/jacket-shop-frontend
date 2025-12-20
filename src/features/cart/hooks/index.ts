@@ -76,3 +76,17 @@ export const useClearCart = () => {
         },
     });
 };
+
+export const useCartCount = () => {
+    return useQuery({
+        queryKey: [...CART_KEYS.all, "count"],
+        queryFn: cartApi.countMyCartItems,
+        retry: false,
+    });
+};
+
+export const useValidateCart = () => {
+    return useMutation({
+        mutationFn: cartApi.validateCart,
+    });
+};

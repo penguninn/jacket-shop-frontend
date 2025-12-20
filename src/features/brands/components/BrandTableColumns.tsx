@@ -49,23 +49,7 @@ export const columns: ColumnDef<Brand>[] = [
       <div className="font-medium">{row.getValue("name")}</div>
     ),
   },
-  {
-    accessorKey: "logoUrl",
-    header: "Logo",
-    cell: ({ row }) => {
-      const logoUrl = row.getValue("logoUrl") as string | null;
-      if (!logoUrl) return <div className="text-muted-foreground">—</div>;
-      return (
-        <div className="flex items-center gap-2">
-          <img
-            src={logoUrl}
-            alt="Brand logo"
-            className="h-8 w-8 rounded object-cover"
-          />
-        </div>
-      );
-    },
-  },
+
   {
     accessorKey: "description",
     header: "Description",

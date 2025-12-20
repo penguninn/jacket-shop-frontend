@@ -9,7 +9,7 @@ import {
 export const STYLE_CONSTANTS = Object.freeze({
     NAME: {
         MIN_LENGTH: 1,
-        MAX_LENGTH: 100,
+        MAX_LENGTH: 120,
     },
     DESCRIPTION: {
         MAX_LENGTH: 255,
@@ -36,17 +36,17 @@ export const createStyleSchema = z.object({
         .string()
         .min(
             STYLE_CONSTANTS.NAME.MIN_LENGTH,
-            `Name must be at least ${STYLE_CONSTANTS.NAME.MIN_LENGTH} characters`
+            "Name cannot be empty"
         )
         .max(
             STYLE_CONSTANTS.NAME.MAX_LENGTH,
-            `Name must not exceed ${STYLE_CONSTANTS.NAME.MAX_LENGTH} characters`
+            "Name must be less than 120 characters"
         ),
     description: z
         .string()
         .max(
             STYLE_CONSTANTS.DESCRIPTION.MAX_LENGTH,
-            `Description must not exceed ${STYLE_CONSTANTS.DESCRIPTION.MAX_LENGTH} characters`
+            "Description too long"
         )
         .optional(),
     status: statusSchema,
@@ -57,17 +57,17 @@ export const updateStyleSchema = z.object({
         .string()
         .min(
             STYLE_CONSTANTS.NAME.MIN_LENGTH,
-            `Name must be at least ${STYLE_CONSTANTS.NAME.MIN_LENGTH} characters`
+            "Name cannot be empty"
         )
         .max(
             STYLE_CONSTANTS.NAME.MAX_LENGTH,
-            `Name must not exceed ${STYLE_CONSTANTS.NAME.MAX_LENGTH} characters`
+            "Name must be less than 120 characters"
         ),
     description: z
         .string()
         .max(
             STYLE_CONSTANTS.DESCRIPTION.MAX_LENGTH,
-            `Description must not exceed ${STYLE_CONSTANTS.DESCRIPTION.MAX_LENGTH} characters`
+            "Description too long"
         )
         .optional(),
     status: statusSchema,

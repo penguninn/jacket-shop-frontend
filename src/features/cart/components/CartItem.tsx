@@ -16,10 +16,11 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     const removeMutation = useRemoveCartItem();
 
     const { productVariant, quantity } = item;
-    const { product, color, size, price, salePrice, image } = productVariant;
+    const { product, color, size, material, price, salePrice, image, discountPercentage } = productVariant;
     const productName = product?.name || "Unknown Product";
     const displayPrice = salePrice ?? price;
     const imageUrl = image || product?.thumbnail;
+    const isOnSale = (salePrice !== null && salePrice !== undefined && salePrice < price);
 
     const handleQuantityChange = (newQty: number) => {
         if (newQty < 1) return;
@@ -31,12 +32,14 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     };
 
     if (issheet) {
-        // Keep the compact design for the sheet, or adjust slightly if needed.
-        // For now, preserving the "sheet" look but using the logic from original component might be safer if the user liked it.
-        // But the prompts asked to "look like img" which usually implies the main page.
-        // I will keep the sheet design relatively simple but consistent.
         return (
-            <div className={cn("flex gap-4 py-4", className)}>
+            <div className={cn("flex gap-4 py-4 relative group", className)}>
+                {/* Badge for Sale in Sheet */}
+                {isOnSale && (
+                    <div className="absolute top-4 left-0 z-10 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-r-sm shadow-sm">
+                        -{discountPercentage ?? Math.round(((price - salePrice) / price) * 100)}%
+                    </div>
+                )}
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50">
                     {imageUrl ? (
                         <img src={imageUrl} alt={productName} className="h-full w-full object-cover" />
@@ -46,11 +49,23 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                 </div>
                 <div className="flex flex-1 flex-col justify-between">
                     <div>
-                        <div className="flex justify-between">
-                            <h4 className="font-medium line-clamp-1 text-sm">{productName}</h4>
-                            <span className="text-sm font-semibold">{formatCurrency(displayPrice * quantity)}</span>
+                        <div className="flex justify-between items-start">
+                            <h4 className="font-medium line-clamp-1 text-sm pr-2">{productName}</h4>
+                            <div className="flex flex-col items-end">
+                                <span className={cn("text-sm font-semibold", isOnSale && "text-red-600")}>
+                                    {formatCurrency(displayPrice * quantity)}
+                                </span>
+                                {isOnSale && (
+                                    <span className="text-[10px] text-gray-400 line-through">
+                                        {formatCurrency(price * quantity)}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{size.name} / {color.name}</p>
+                        <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                            <p>{size.name} / {color.name}</p>
+                            <p>{material.name}</p>
+                        </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-2 rounded-full bg-gray-100 px-2 py-1 h-8">
@@ -86,6 +101,13 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     // Main Cart Page Design (Card Style)
     return (
         <div className={cn("flex flex-col sm:flex-row gap-6 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm relative", className)}>
+            {/* Sale Badge */}
+            {isOnSale && (
+                <div className="absolute -top-2 -left-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                    sale -{discountPercentage ?? Math.round(((price - salePrice) / price) * 100)}%
+                </div>
+            )}
+
             {/* Delete Button (Absolute Top Right for desktop, or separate for mobile) */}
             <button
                 onClick={handleRemove}
@@ -116,14 +138,21 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                     <div className="mt-1 space-y-1 text-sm text-gray-500">
                         <p><span className="text-gray-400">Size:</span> <span className="text-gray-900 font-medium">{size.name}</span></p>
                         <p><span className="text-gray-400">Color:</span> <span className="text-gray-900 font-medium">{color.name}</span></p>
+                        <p><span className="text-gray-400">Material:</span> <span className="text-gray-900 font-medium">{material.name}</span></p>
                     </div>
-                    <div className="mt-3 text-xl font-bold text-gray-900">
-                        {formatCurrency(displayPrice)}
+                    <div className="mt-3 flex items-baseline gap-2">
+                        <span className={cn("text-xl font-bold", isOnSale ? "text-red-600" : "text-gray-900")}>
+                            {formatCurrency(displayPrice)}
+                        </span>
+                        {isOnSale && (
+                            <span className="text-sm text-gray-400 line-through">
+                                {formatCurrency(price)}
+                            </span>
+                        )}
                     </div>
                 </div>
 
                 {/* Quantity Control - Bottom Right in layout relative to content or flex row */}
-                {/* In the design, it seems aligned to the right or bottom. Let's put it on the right bottom of the content area */}
                 <div className="sm:absolute sm:bottom-4 sm:right-4 mt-4 sm:mt-0 flex justify-end">
                     <div className="flex items-center gap-4 rounded-full bg-gray-100 px-4 py-2">
                         <button

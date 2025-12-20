@@ -4,7 +4,7 @@ import {
     pageResponseSchema,
     type BaseFilterParams,
 } from "@/shared/api/schemas";
-import { productSchema } from "@/features/products/model/schemas";
+
 
 
 export const PRODUCT_VARIANT_CONSTANTS = {
@@ -48,7 +48,7 @@ export const productVariantSchema = z.object({
     id: z.number(),
     sku: z.string().nullable().optional(),
     productId: z.number().optional(), // Added from API
-    product: productSchema.optional(), // Keep compatible
+
     size: sizeSchema,
     color: colorSchema,
     material: materialSchema,
@@ -123,6 +123,10 @@ export const bulkDeleteProductVariantSchema = z.object({
     ids: z.array(z.number()).min(1, "Select at least one variant"),
 });
 
+export const stockAdjustmentSchema = z.object({
+    quantityChange: z.number(),
+});
+
 
 export interface ProductVariantFilterParams extends BaseFilterParams {
     colorIds?: number[];
@@ -155,3 +159,4 @@ export type UpdateProductVariantInput = z.infer<typeof updateProductVariantSchem
 export type UpdateProductVariantStatusInput = z.infer<typeof updateProductVariantStatusSchema>;
 export type BulkUpdateStatusProductVariantInput = z.infer<typeof bulkUpdateStatusProductVariantSchema>;
 export type BulkDeleteProductVariantInput = z.infer<typeof bulkDeleteProductVariantSchema>;
+export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;

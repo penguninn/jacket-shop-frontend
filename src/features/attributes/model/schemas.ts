@@ -9,7 +9,7 @@ import {
 export const ATTRIBUTE_CONSTANTS = Object.freeze({
   NAME: {
     MIN_LENGTH: 1,
-    MAX_LENGTH: 100,
+    MAX_LENGTH: 120,
   },
   DESCRIPTION: {
     MAX_LENGTH: 255,
@@ -56,15 +56,15 @@ export const materialsResponseSchema = pageResponseSchema(materialSchema);
 export const createColorSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   hexCode: z
     .string()
-    .max(20, "Hex code is too long")
+    .max(10, "Hex code too long")
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex code"),
   status: statusSchema,
 });
@@ -72,15 +72,15 @@ export const createColorSchema = z.object({
 export const updateColorSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   hexCode: z
     .string()
-    .max(20, "Hex code is too long")
+    .max(10, "Hex code too long")
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex code"),
   status: statusSchema,
 });
@@ -102,11 +102,11 @@ export const bulkDeleteColorSchema = z.object({
 export const createSizeSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Size cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Size name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   status: statusSchema,
 });
@@ -114,11 +114,11 @@ export const createSizeSchema = z.object({
 export const updateSizeSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Size cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Size name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   status: statusSchema,
 });
@@ -140,11 +140,11 @@ export const bulkDeleteSizeSchema = z.object({
 export const createMaterialSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   status: statusSchema,
 });
@@ -152,11 +152,11 @@ export const createMaterialSchema = z.object({
 export const updateMaterialSchema = z.object({
   name: z
     .string()
-    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name is required")
-    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name is too long"),
+    .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")
+    .max(ATTRIBUTE_CONSTANTS.NAME.MAX_LENGTH, "Name must be less than 120 characters"),
   description: z
     .string()
-    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description is too long")
+    .max(ATTRIBUTE_CONSTANTS.DESCRIPTION.MAX_LENGTH, "Description too long")
     .optional(),
   status: statusSchema,
 });

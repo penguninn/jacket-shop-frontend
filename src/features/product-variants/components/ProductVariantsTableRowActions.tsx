@@ -21,6 +21,9 @@ import type { ProductVariant } from "../model/schemas";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 import { ProductVariantEditForm } from "./ProductVariantEditForm";
+import { ProductVariantStockAdjustmentDialog } from "./ProductVariantStockAdjustmentDialog";
+import { ProductVariantCheckStockDialog } from "./ProductVariantCheckStockDialog";
+import { ArrowLeftRight, ClipboardCheck } from "lucide-react";
 
 interface DataTableRowActionsProps<TData> {
     row: Row<TData>;
@@ -34,6 +37,8 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showStockAdjustDialog, setShowStockAdjustDialog] = useState(false);
+    const [showCheckStockDialog, setShowCheckStockDialog] = useState(false);
 
     const handleDelete = () => {
         deleteVariant.mutate(variant.id, {
@@ -58,6 +63,16 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                 onOpenChange={setShowEditDialog}
                 variant={variant}
             />
+            <ProductVariantStockAdjustmentDialog
+                open={showStockAdjustDialog}
+                onOpenChange={setShowStockAdjustDialog}
+                variant={variant}
+            />
+            <ProductVariantCheckStockDialog
+                open={showCheckStockDialog}
+                onOpenChange={setShowCheckStockDialog}
+                variant={variant}
+            />
             <ConfirmDialog
                 open={showDeleteDialog}
                 onOpenChange={setShowDeleteDialog}
@@ -79,8 +94,8 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">
                     <DropdownMenuItem onClick={() => {
-                        if (variant.product?.id) {
-                            navigate(`/dashboard/products/${variant.product.id}`);
+                        if (variant.productId) {
+                            navigate(`/dashboard/products/${variant.productId}`);
                         }
                     }}>
                         <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
@@ -89,6 +104,14 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                         <Pen className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
                         Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowStockAdjustDialog(true)}>
+                        <ArrowLeftRight className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                        Adjust Stock
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowCheckStockDialog(true)}>
+                        <ClipboardCheck className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+                        Check Stock
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleToggleStatus}>

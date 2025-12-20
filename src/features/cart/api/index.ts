@@ -6,7 +6,7 @@ import {
     type CartResponse
 } from "../model";
 
-const BASE_URI = "/cart";
+const BASE_URI = "/me/cart";
 
 export const cartApi = {
     getCart: async () => {
@@ -16,9 +16,16 @@ export const cartApi = {
         );
     },
 
+    countMyCartItems: async () => {
+        return httpPrivateTyped.get<number>(
+            `${BASE_URI}/count`,
+            z.number()
+        );
+    },
+
     addToCart: async (data: CartItemRequest) => {
         return httpPrivateTyped.post<CartResponse>(
-            `${BASE_URI}`,
+            `${BASE_URI}/items`,
             data,
             cartResponseSchema
         );
@@ -27,10 +34,7 @@ export const cartApi = {
     updateCartItem: async (itemId: number, quantity: number) => {
         return httpPrivateTyped.put<CartResponse>(
             `${BASE_URI}/items/${itemId}`,
-            {}, // The controller uses @RequestParam for quantity, not RequestBody?
-            // Wait, let me check the Controller again.
-            // @PutMapping("/items/{itemId}") updateCartItem(..., @RequestParam Integer quantity)
-            // So the body is likely empty, and quantity is a query param.
+            {},
             cartResponseSchema,
             { params: { quantity } }
         );
@@ -46,7 +50,16 @@ export const cartApi = {
     clearCart: async () => {
         return httpPrivateTyped.del<void>(
             `${BASE_URI}`,
-            z.void().or(z.unknown()) as any // Assuming ApiResponse with null/void data
+            z.void().or(z.unknown()) as any
+        );
+    },
+
+    validateCart: async () => {
+        // Need to define validation response schema, for now use any or define it
+        return httpPrivateTyped.post<any>(
+            `${BASE_URI}/validate`,
+            {},
+            z.any()
         );
     }
 };

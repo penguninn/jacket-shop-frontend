@@ -18,7 +18,13 @@ export const cartItemResponseSchema = z.object({
     // However, traditionally simple carts might just list variants.
     // The Controller endpoints uses "items/{itemId}", confirming CartItem entity exists and has ID.
 
-    productVariant: productVariantSchema,
+    productVariant: productVariantSchema.extend({
+        product: z.object({
+            id: z.number(),
+            name: z.string(),
+            thumbnail: z.string().nullable().optional(),
+        }).optional(),
+    }),
     quantity: z.number(),
 
     subTotal: z.number().optional(),
