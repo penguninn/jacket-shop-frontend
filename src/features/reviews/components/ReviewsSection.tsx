@@ -1,0 +1,105 @@
+import { useState } from "react";
+import { useReviewsByProduct } from "../hooks";
+import { ReviewItem } from "./ReviewItem";
+import { CreateReviewModal } from "./CreateReviewModal";
+import { Button } from "@/shared/ui/button";
+import { Loader2 } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/shared/ui/select";
+
+interface ReviewsSectionProps {
+    productId: number;
+    ratingCount?: number;
+}
+
+export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) {
+    const [page, setPage] = useState(0);
+    const [sortBy, setSortBy] = useState("latest");
+
+    const { data, isLoading } = useReviewsByProduct(productId, {
+        page,
+        size: 5,
+        sortBy,
+    });
+
+    const reviews = data?.contents || [];
+    const totalPages = data?.totalPages || 0;
+
+    return (
+        <div className="pt-8 w-full">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                    All Reviews
+                    <span className="text-base font-normal text-gray-400">({ratingCount || data?.totalElements || 0})</span>
+                </h3>
+                <div className="flex items-center gap-2">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-[140px] rounded-full bg-[#F0F0F0] border-none">
+                            <SelectValue placeholder="Latest" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="latest">Latest</SelectItem>
+                            <SelectItem value="oldest">Oldest</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <CreateReviewModal
+                        productId={productId}
+                        trigger={
+                            <Button className="rounded-full bg-black text-white hover:bg-black/90 px-6">
+                                Write a Review
+                            </Button>
+                        }
+                    />
+                </div>
+            </div>
+
+            {/* Content */}
+            {isLoading ? (
+                <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+            ) : reviews.length === 0 ? (
+                <div className="text-center py-16 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-xl font-medium text-gray-900 mb-2">No reviews yet</p>
+                    <p>Be the first to share your thoughts!</p>
+                </div>
+            ) : (
+                <div className="space-y-2">
+                    {reviews.map((review) => (
+                        <ReviewItem key={review.id} review={review} />
+                    ))}
+                </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex justify-center mt-8 gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                    >
+                        Previous
+                    </Button>
+                    <span className="flex items-center px-4 font-medium text-sm">
+                        Page {page + 1} of {totalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
+        </div>
+    );
+}
