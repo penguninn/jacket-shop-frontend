@@ -48,8 +48,10 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
         resolver: zodResolver(updatePaymentMethodSchema),
         defaultValues: {
             name: "",
+            code: "",
+            type: "COD",
             description: "",
-            configJson: "",
+            config: "",
             status: "ACTIVE",
         },
     });
@@ -63,8 +65,10 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
         if (open && paymentMethod) {
             reset({
                 name: paymentMethod.name,
+                code: paymentMethod.code,
+                type: paymentMethod.type,
                 description: paymentMethod.description || "",
-                configJson: paymentMethod.configJson || "",
+                config: paymentMethod.config || "",
                 status: paymentMethod.status,
             });
         }
@@ -122,6 +126,36 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
                             )}
                         </div>
 
+                        {/* Code */}
+                        <div className="space-y-2">
+                            <Label htmlFor="code">Code *</Label>
+                            <Input
+                                id="code"
+                                placeholder="e.g. PAYMENT_COD"
+                                {...register("code")}
+                            />
+                            {errors.code && (
+                                <p className="text-xs text-red-500">
+                                    {errors.code.message}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Type */}
+                        <div className="space-y-2">
+                            <Label htmlFor="type">Type *</Label>
+                            <Input
+                                id="type"
+                                placeholder="e.g. COD"
+                                {...register("type")}
+                            />
+                            {errors.type && (
+                                <p className="text-xs text-red-500">
+                                    {errors.type.message}
+                                </p>
+                            )}
+                        </div>
+
                         {/* Description */}
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
@@ -139,16 +173,16 @@ export function PaymentMethodEditForm({ paymentMethod, children }: Props) {
 
                         {/* Config JSON */}
                         <div className="space-y-2">
-                            <Label htmlFor="configJson">Config JSON</Label>
+                            <Label htmlFor="config">Config JSON</Label>
                             <Textarea
-                                id="configJson"
+                                id="config"
                                 placeholder="{}"
                                 className="font-mono text-sm"
-                                {...register("configJson")}
+                                {...register("config")}
                             />
-                            {errors.configJson && (
+                            {errors.config && (
                                 <p className="text-xs text-red-500">
-                                    {errors.configJson.message}
+                                    {errors.config.message}
                                 </p>
                             )}
                         </div>

@@ -4,6 +4,7 @@ import {
     pageResponseSchema,
     type BaseFilterParams,
 } from "@/shared/api/schemas";
+import { productSchema } from "@/features/products/model/schemas";
 
 
 
@@ -48,6 +49,7 @@ export const productVariantSchema = z.object({
     id: z.number(),
     sku: z.string().nullable().optional(),
     productId: z.number().optional(), // Added from API
+    product: productSchema.optional(), // Added for relation
 
     size: sizeSchema,
     color: colorSchema,

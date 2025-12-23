@@ -30,6 +30,20 @@ export const cartItemResponseSchema = z.object({
     subTotal: z.number().optional(),
 });
 
+export const cartValidationResponseSchema = z.object({
+    valid: z.boolean(),
+    issues: z.array(z.object({
+        productVariantId: z.number(),
+        productName: z.string(),
+        issueType: z.string(),
+        message: z.string(),
+    })),
+});
+
 export const cartResponseSchema = z.object({
     items: z.array(cartItemResponseSchema),
 });
+
+export type CartItemResponse = z.infer<typeof cartItemResponseSchema>;
+export type CartResponse = z.infer<typeof cartResponseSchema>;
+export type CartValidationResponse = z.infer<typeof cartValidationResponseSchema>;

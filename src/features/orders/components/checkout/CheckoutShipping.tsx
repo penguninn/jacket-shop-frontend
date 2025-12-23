@@ -1,32 +1,49 @@
 import { useState, useEffect } from "react";
-import { useShippingMethods } from "@/features/shipping-methods/hooks";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
-import type { ShippingMethod } from "@/features/shipping-methods/model";
+import { Loader2 } from "lucide-react";
 
 interface CheckoutShippingProps {
-    selectedMethodId: number | null;
-    onSelect: (method: ShippingMethod) => void;
+    rates: any[]; // GoshipRateData
+    selectedRate: any | null; // GoshipRateData
+    onSelect: (rate: any) => void;
+    isLoading?: boolean;
 }
 
-export function CheckoutShipping({ selectedMethodId, onSelect }: CheckoutShippingProps) {
-    const { data: shippingData } = useShippingMethods({ page: 1, size: 100 });
-    const shippingMethods = shippingData?.contents || [];
-
+export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: CheckoutShippingProps) {
     const [isOpen, setIsOpen] = useState(false);
-
-    const selectedMethod = shippingMethods.find(m => m.id === selectedMethodId);
 
     // Auto-select first if none selected
     useEffect(() => {
-        if (!selectedMethodId && shippingMethods.length > 0) {
-            onSelect(shippingMethods[0]);
+        if (!selectedRate && rates.length > 0) {
+            onSelect(rates[0]);
         }
-    }, [shippingMethods, selectedMethodId, onSelect]);
+    }, [rates, selectedRate, onSelect]);
 
     // Format helper
     const formatPrice = (price: number) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-between items-start border-l border-dashed pl-6 ml-6 py-2 w-1/2">
+                <div className="flex-1 flex items-center gap-2">
+                    <Loader2 className="animate-spin w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-500">Calculating shipping...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (rates.length === 0) {
+        return (
+            <div className="flex justify-between items-start border-l border-dashed pl-6 ml-6 py-2 w-1/2">
+                <div className="flex-1">
+                    <span className="text-sm text-gray-500">Enter address to calculate shipping</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex justify-between items-start border-l border-dashed pl-6 ml-6 py-2 w-1/2">
@@ -34,7 +51,7 @@ export function CheckoutShipping({ selectedMethodId, onSelect }: CheckoutShippin
                 <div className="flex justify-between items-center mb-1">
                     <span className="font-medium text-teal-600">Shipping Option:</span>
                     <div className="flex gap-4">
-                        <span className="font-bold">{selectedMethod?.name || "Standard"}</span>
+                        <span className="font-bold">{selectedRate?.carrier_name || "Standard"}</span>
                         <Dialog open={isOpen} onOpenChange={setIsOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="ghost" className="text-blue-500 font-medium uppercase text-sm h-auto p-0 hover:bg-transparent hover:text-blue-600">Change</Button>
@@ -43,21 +60,24 @@ export function CheckoutShipping({ selectedMethodId, onSelect }: CheckoutShippin
                                 <DialogHeader>
                                     <DialogTitle>Select Shipping Method</DialogTitle>
                                 </DialogHeader>
-                                <div className="py-4 space-y-4">
-                                    {shippingMethods.map(method => (
-                                        <div key={method.id} className="flex items-center space-x-2 border p-3 rounded hover:bg-gray-50 cursor-pointer" onClick={() => { onSelect(method); setIsOpen(false); }}>
+                                <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                                    {rates.map(rate => (
+                                        <div key={rate.id} className="flex items-center space-x-2 border p-3 rounded hover:bg-gray-50 cursor-pointer" onClick={() => { onSelect(rate); setIsOpen(false); }}>
                                             <input
                                                 type="radio"
-                                                checked={selectedMethodId === method.id}
+                                                checked={selectedRate?.id === rate.id}
                                                 readOnly
                                                 className="w-4 h-4 text-red-600"
                                             />
                                             <div className="flex-1">
-                                                <div className="font-medium">{method.name}</div>
-                                                <div className="text-xs text-gray-500">{method.description}</div>
+                                                <div className="font-medium flex items-center gap-2">
+                                                    {rate.carrier_logo && <img src={rate.carrier_logo} alt={rate.carrier_name} className="h-4 w-auto" />}
+                                                    {rate.carrier_name} - {rate.service}
+                                                </div>
+                                                <div className="text-xs text-gray-500">Expected: {rate.expected}</div>
                                             </div>
                                             <div className="font-bold text-red-500">
-                                                {formatPrice(method.fee ?? 30000)}
+                                                {formatPrice(rate.total_fee)}
                                             </div>
                                         </div>
                                     ))}
@@ -67,14 +87,11 @@ export function CheckoutShipping({ selectedMethodId, onSelect }: CheckoutShippin
                     </div>
                 </div>
                 <div className="text-sm text-gray-500 mb-1">
-                    Guaranteed delivery by {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')}
-                </div>
-                <div className="text-xs text-gray-400">
-                    Receive ₫15.000 voucher if order arrives late
+                    Estimated delivery: {selectedRate?.expected || "N/A"}
                 </div>
             </div>
             <div className="text-sm font-medium ml-4 w-24 text-right">
-                {selectedMethod ? formatPrice(selectedMethod.fee ?? 30000) : formatPrice(0)}
+                {selectedRate ? formatPrice(selectedRate.total_fee) : formatPrice(0)}
             </div>
         </div>
     );

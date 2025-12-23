@@ -7,6 +7,7 @@ import {
     updateStatus,
     bulkDelete,
     bulkUpdateStatus,
+    getCouponByCode,
     type GetCouponsParams,
 } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +27,13 @@ export function useCouponDetail(id: number) {
         queryKey: ["coupons", id],
         queryFn: () => getCouponById(id),
         enabled: !!id,
+    });
+}
+
+export function useCouponByCode(options?: BaseMutationOptions) {
+    return useGlobalMutation({
+        mutationFn: (code: string) => getCouponByCode(code),
+        setError: options?.setError,
     });
 }
 

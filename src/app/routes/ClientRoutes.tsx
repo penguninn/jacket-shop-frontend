@@ -6,9 +6,10 @@ import ProductDetail from "@/pages/client/ProductDetail";
 import Profile from "@/features/auth/pages/ProfilePage";
 import Address from "@/features/address/pages/AddressPage";
 import Cart from "@/features/cart/pages/CartPage";
-import Checkout from "@/pages/client/Checkout";
+import { CheckoutPage } from "@/features/orders";
 import SignIn from "@/features/auth/pages/SignInPage";
 import SignUp from "@/features/auth/pages/SignUpPage";
+import ForgotPassword from "@/features/auth/pages/ForgotPasswordPage";
 import RequireAuth from "./RequireAuth";
 import Forbidden from "@/pages/Forbidden";
 import NotFound from "@/pages/NotFound";
@@ -39,7 +40,7 @@ export default function ClientRoutes() {
           path="checkout"
           element={
             <RequireAuth>
-              <Checkout />
+              <CheckoutPage />
             </RequireAuth>
           }
         />
@@ -73,6 +74,14 @@ export default function ClientRoutes() {
           element={
             <RequireAuth guestOnly={true}>
               <SignUp />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="forgot-password"
+          element={
+            <RequireAuth guestOnly={true}>
+              <ForgotPassword />
             </RequireAuth>
           }
         />

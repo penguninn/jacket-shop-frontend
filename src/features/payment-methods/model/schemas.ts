@@ -18,11 +18,14 @@ export const PAYMENT_METHOD_CONSTANTS = Object.freeze({
 } as const);
 
 
+
 export const paymentMethodSchema = z.object({
     id: z.number(),
     name: z.string(),
+    code: z.string(),
+    type: z.enum(['ONLINE', 'POS', 'COD']), // Enums.PaymentMethodType
     description: z.string().nullable().optional(),
-    configJson: z.string().nullable().optional(),
+    config: z.string().nullable().optional(),
     status: statusSchema,
     createdAt: z.string().nullable().optional(),
     updatedAt: z.string().nullable().optional(),
@@ -43,6 +46,8 @@ export const createPaymentMethodSchema = z.object({
             PAYMENT_METHOD_CONSTANTS.NAME.MAX_LENGTH,
             `Name must be less than ${PAYMENT_METHOD_CONSTANTS.NAME.MAX_LENGTH} characters`
         ),
+    code: z.string().min(1, "Code is required").max(50),
+    type: z.enum(['ONLINE', 'POS', 'COD'], { message: "Type is required" }),
     description: z
         .string()
         .max(
@@ -51,7 +56,7 @@ export const createPaymentMethodSchema = z.object({
         )
         .optional()
         .or(z.literal("")),
-    configJson: z.string().optional().or(z.literal("")),
+    config: z.string().optional().or(z.literal("")),
     status: statusSchema,
 });
 
@@ -66,6 +71,8 @@ export const updatePaymentMethodSchema = z.object({
             PAYMENT_METHOD_CONSTANTS.NAME.MAX_LENGTH,
             `Name must be less than ${PAYMENT_METHOD_CONSTANTS.NAME.MAX_LENGTH} characters`
         ),
+    code: z.string().min(1, "Code is required").max(50),
+    type: z.enum(['ONLINE', 'POS', 'COD'], { message: "Type is required" }),
     description: z
         .string()
         .max(
@@ -74,7 +81,7 @@ export const updatePaymentMethodSchema = z.object({
         )
         .optional()
         .or(z.literal("")),
-    configJson: z.string().optional().or(z.literal("")),
+    config: z.string().optional().or(z.literal("")),
     status: statusSchema,
 });
 
@@ -101,6 +108,7 @@ export const paymentMethodFilterParamsSchema = z.object({
     sortDir: z.enum(["ASC", "DESC"]).default("DESC"),
     search: z.string().optional(),
     status: z.array(statusSchema).optional(),
+    type: z.array(z.enum(['ONLINE', 'POS', 'COD'])).optional(),
 });
 
 

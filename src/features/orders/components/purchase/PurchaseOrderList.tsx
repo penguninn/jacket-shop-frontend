@@ -1,11 +1,11 @@
 
 import { PurchaseOrderItem } from "./PurchaseOrderItem";
-import type { PurchaseOrder } from "./types";
+import type { Order } from "@/features/orders/model/schemas";
 import { Search } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 
 interface PurchaseOrderListProps {
-    orders: PurchaseOrder[];
+    orders: Order[];
     isLoading?: boolean;
 }
 

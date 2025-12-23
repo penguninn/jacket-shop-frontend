@@ -5,6 +5,7 @@ import {
   Inbox,
   RotateCcw,
   Shirt,
+  ShoppingBag,
   ShoppingCart,
   Sliders,
   Sparkles,
@@ -49,6 +50,11 @@ const sidebarGroups = [
   {
     label: "Orders / Payments",
     items: [
+      {
+        title: "Orders",
+        url: "/dashboard/orders",
+        icon: ShoppingBag,
+      },
       {
         title: "Sell",
         url: "/dashboard/pos",

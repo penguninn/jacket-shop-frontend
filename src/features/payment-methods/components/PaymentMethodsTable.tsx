@@ -33,6 +33,7 @@ export function PaymentMethodsTable() {
         sortBy: sorting[0]?.id,
         sortDir: sorting[0]?.desc ? "desc" : "asc",
         status: columnFilters.find((f) => f.id === "status")?.value as string[],
+        type: columnFilters.find((f) => f.id === "type")?.value as string[],
         search: columnFilters.find((f) => f.id === "name")?.value as string,
     });
 

@@ -19,6 +19,7 @@ export interface GetPaymentMethodsParams {
     sortDir?: SortDirection;
     search?: string;
     status?: string[];
+    type?: string[];
 }
 
 export async function getPaymentMethods(params: GetPaymentMethodsParams) {
@@ -38,6 +39,9 @@ export async function getPaymentMethods(params: GetPaymentMethodsParams) {
     }
     if (params.status?.length) {
         params.status.forEach((s) => queryParams.append("status", s));
+    }
+    if (params.type?.length) {
+        params.type.forEach((t) => queryParams.append("type", t));
     }
 
     const res = await httpPrivateTyped.get(

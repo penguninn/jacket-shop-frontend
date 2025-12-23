@@ -42,8 +42,10 @@ export function PaymentMethodCreateForm() {
         resolver: zodResolver(createPaymentMethodSchema),
         defaultValues: {
             name: "",
+            code: "",
+            type: "COD",
             description: "",
-            configJson: "",
+            config: "",
             status: "ACTIVE",
         },
     });
@@ -112,6 +114,36 @@ export function PaymentMethodCreateForm() {
                             )}
                         </div>
 
+                        {/* Code */}
+                        <div className="space-y-2">
+                            <Label htmlFor="code">Code *</Label>
+                            <Input
+                                id="code"
+                                placeholder="e.g. PAYMENT_COD"
+                                {...register("code")}
+                            />
+                            {errors.code && (
+                                <p className="text-xs text-red-500">
+                                    {errors.code.message}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Type */}
+                        <div className="space-y-2">
+                            <Label htmlFor="type">Type *</Label>
+                            <Input
+                                id="type"
+                                placeholder="e.g. COD or BANK_TRANSFER"
+                                {...register("type")}
+                            />
+                            {errors.type && (
+                                <p className="text-xs text-red-500">
+                                    {errors.type.message}
+                                </p>
+                            )}
+                        </div>
+
                         {/* Description */}
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
@@ -129,16 +161,16 @@ export function PaymentMethodCreateForm() {
 
                         {/* Config JSON */}
                         <div className="space-y-2">
-                            <Label htmlFor="configJson">Config JSON</Label>
+                            <Label htmlFor="config">Config JSON</Label>
                             <Textarea
-                                id="configJson"
+                                id="config"
                                 placeholder="{}"
                                 className="font-mono text-sm"
-                                {...register("configJson")}
+                                {...register("config")}
                             />
-                            {errors.configJson && (
+                            {errors.config && (
                                 <p className="text-xs text-red-500">
-                                    {errors.configJson.message}
+                                    {errors.config.message}
                                 </p>
                             )}
                         </div>
