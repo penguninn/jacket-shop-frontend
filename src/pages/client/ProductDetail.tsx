@@ -8,11 +8,12 @@ import { Button } from "@/shared/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/shared/ui/breadcrumb";
 import { Separator } from "@/shared/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { Star, Minus, Plus, Check, Settings2 } from "lucide-react";
+import { Star, Minus, Plus, Check } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { Badge } from "@/shared/ui/badge";
+import { ReviewsSection } from "@/features/reviews/components/ReviewsSection";
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -661,25 +662,7 @@ export default function ProductDetail() {
                         </TabsContent>
 
                         <TabsContent value="reviews" className="pt-8">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-bold flex items-center gap-2">
-                                    All Reviews
-                                    <span className="text-base font-normal text-gray-400">({product.ratingCount || 0})</span>
-                                </h3>
-                                <div className="flex gap-2">
-                                    <Button variant="secondary" className="rounded-full w-10 h-10 p-0 bg-[#F0F0F0]">
-                                        <Settings2 className="w-5 h-5" />
-                                    </Button>
-                                    <Button className="rounded-full bg-black text-white hover:bg-black/90 px-6">
-                                        Write a Review
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                <p className="text-lg font-medium text-gray-900 mb-1">No reviews yet</p>
-                                <p>Be the first to share your thoughts!</p>
-                            </div>
+                            <ReviewsSection productId={product.id} ratingCount={product.ratingCount || 0} />
                         </TabsContent>
                     </Tabs>
                 </div>
