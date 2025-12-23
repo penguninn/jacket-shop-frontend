@@ -1,11 +1,18 @@
+import { useState } from "react";
 import { ShoppingBag, ArrowRight, Tag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
 import { Input } from "@/shared/ui/input";
 import { CartItem } from "./CartItem";
-import { useCart } from "../hooks";
+import { CartValidationIssuesDialog } from "./CartValidationIssuesDialog";
+import { useCart, useValidateCart } from "../hooks";
+import { type CartValidationResponse } from "../model";
 import { formatCurrency } from "@/shared/utils/format";
+import { type Coupon } from "@/features/coupons/model";
+import { useCouponByCode } from "@/features/coupons/hooks";
+import { toast } from "sonner";
+import { X } from "lucide-react";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -16,7 +23,18 @@ import {
 } from "@/shared/ui/breadcrumb";
 
 export function CartList() {
+    const navigate = useNavigate();
     const { data: cart, isLoading } = useCart();
+    const validateCart = useValidateCart();
+
+    const [validationIssues, setValidationIssues] = useState<CartValidationResponse["issues"]>([]);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+    const { mutateAsync: checkCoupon, isPending: isCheckingCoupon } = useCouponByCode();
+
     const items = cart?.items || [];
 
     const totalPrice = items.reduce((sum, item) => {
@@ -24,9 +42,78 @@ export function CartList() {
         return sum + price * item.quantity;
     }, 0);
 
-    const discount = 0; // Placeholder for logic
-    const deliveryFee = 15; // Placeholder
-    const finalTotal = totalPrice - discount + deliveryFee;
+    // Calculate discount
+    let discount = 0;
+    if (appliedCoupon) {
+        if (appliedCoupon.type === "PERCENT") {
+            discount = (totalPrice * appliedCoupon.value) / 100;
+            if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
+                discount = appliedCoupon.maxDiscount;
+            }
+        } else {
+            discount = appliedCoupon.value;
+        }
+    }
+    // Ensure discount doesn't exceed total price
+    if (discount > totalPrice) {
+        discount = totalPrice;
+    }
+
+    const finalTotal = totalPrice - discount;
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+
+        try {
+            const coupon = await checkCoupon(couponCode);
+
+            if (coupon.minOrderValue && totalPrice < coupon.minOrderValue) {
+                toast.error("Coupon Invalid", {
+                    description: `Minimum order value of ${formatCurrency(coupon.minOrderValue)} required.`,
+                });
+                return;
+            }
+
+            // Should also check validFrom/validTo but backend/schema might handle or we check here
+            const now = new Date();
+            if (new Date(coupon.validFrom) > now || new Date(coupon.validTo) < now) {
+                toast.error("Coupon Expired", {
+                    description: "This coupon is no longer valid.",
+                });
+                return;
+            }
+
+            setAppliedCoupon(coupon);
+            toast.success("Coupon Applied", {
+                description: `You saved ${formatCurrency(appliedCoupon?.type === 'PERCENT' ? (totalPrice * (coupon.value / 100)) : coupon.value)}`,
+            });
+        } catch (error) {
+            console.error("Failed to apply coupon", error);
+            setAppliedCoupon(null);
+            // Error toast is handled by global mutation if configured, or we can add here
+            toast.error("Invalid Coupon", { description: "Could not apply coupon." });
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode("");
+    };
+
+    const handleCheckout = async () => {
+        try {
+            const result = await validateCart.mutateAsync();
+            if (result.valid) {
+                navigate("/checkout", { state: { appliedCoupon } });
+            } else {
+                setValidationIssues(result.issues);
+                setIsDialogOpen(true);
+            }
+        } catch (error) {
+            console.error("Cart validation failed", error);
+            // Optionally show a toast here
+        }
+    };
 
     if (isLoading) {
         return <div className="py-20 text-center">Loading cart...</div>;
@@ -87,12 +174,8 @@ export function CartList() {
                                 <span className="font-bold text-gray-900">{formatCurrency(totalPrice)}</span>
                             </div>
                             <div className="flex justify-between items-center text-gray-600">
-                                <span>Discount (-0%)</span>
+                                <span>Discount</span>
                                 <span className="font-bold text-red-500">-{formatCurrency(discount)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-gray-600">
-                                <span>Delivery Fee</span>
-                                <span className="font-bold text-gray-900">{formatCurrency(deliveryFee)}</span>
                             </div>
                             <Separator className="my-2" />
                             <div className="flex justify-between items-center text-xl font-bold text-gray-900">
@@ -103,28 +186,78 @@ export function CartList() {
 
                         {/* Promo Code */}
                         <div className="mb-6">
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Add promo code"
-                                        className="rounded-full bg-gray-100 border-none pl-10 h-10 lg:text-sm"
-                                    />
+                            {appliedCoupon ? (
+                                <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <div className="flex items-center gap-2">
+                                            <Tag className="h-4 w-4 text-green-600" />
+                                            <span className="font-bold text-green-700">
+                                                {appliedCoupon.code}
+                                            </span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100 -mr-1 -mt-1"
+                                            onClick={handleRemoveCoupon}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <div className="text-sm text-green-600 pl-6">
+                                        {appliedCoupon.type === 'PERCENT' ? (
+                                            <>
+                                                Discount {appliedCoupon.value}%
+                                                {appliedCoupon.maxDiscount && ` (Max ${formatCurrency(appliedCoupon.maxDiscount)})`}
+                                            </>
+                                        ) : (
+                                            <>Discount {formatCurrency(appliedCoupon.value)}</>
+                                        )}
+                                    </div>
                                 </div>
-                                <Button className="rounded-full bg-black hover:bg-black/90 h-10 px-6">
-                                    Apply
-                                </Button>
-                            </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Input
+                                            placeholder="Add promo code"
+                                            className="rounded-full bg-gray-100 border-none pl-10 h-10 lg:text-sm"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") handleApplyCoupon();
+                                            }}
+                                        />
+                                    </div>
+                                    <Button
+                                        className="rounded-full bg-black hover:bg-black/90 h-10 px-6"
+                                        onClick={handleApplyCoupon}
+                                        disabled={isCheckingCoupon || !couponCode.trim()}
+                                    >
+                                        {isCheckingCoupon ? "..." : "Apply"}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
 
-                        <Button className="w-full h-12 rounded-full text-base font-bold bg-black hover:bg-black/90 flex justify-center items-center gap-2 group">
-                            Go to Checkout
-                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        <Button
+                            className="w-full h-12 rounded-full text-base font-bold bg-black hover:bg-black/90 flex justify-center items-center gap-2 group"
+                            onClick={handleCheckout}
+                            disabled={validateCart.isPending}
+                        >
+                            {validateCart.isPending ? "Validating..." : "Go to Checkout"}
+                            {!validateCart.isPending && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
                         </Button>
                     </div>
                 </div>
             </div>
+
+            <CartValidationIssuesDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                issues={validationIssues}
+            />
         </div>
     );
 }

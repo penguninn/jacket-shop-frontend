@@ -2,6 +2,7 @@ import { httpPublicTyped } from "@/shared/api/http-typed";
 import { httpPrivateTyped } from "@/shared/api/http-typed";
 import { authStore, useAuthStore } from "@/app/store/auth";
 import { userSchema } from "@/features/users/model";
+import { z } from "zod";
 import {
     signInResponseSchema,
     signUpResponseSchema,
@@ -9,12 +10,16 @@ import {
     type SignInInput,
     type SignUpInput,
     type UpdateProfileInput,
+    type ForgotPasswordInput,
+    type UpdatePasswordInput,
 } from "../model";
 
 const ENDPOINTS = Object.freeze({
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    UPDATE_PASSWORD: '/auth/update-password',
     ME: '/users/me',
 } as const);
 
@@ -65,5 +70,27 @@ export async function updateProfile(payload: UpdateProfileInput) {
     );
 
     useAuthStore.getState().setUser(response);
+    return response;
+}
+
+export async function forgotPassword(payload: ForgotPasswordInput) {
+    const response = await httpPublicTyped.post(
+        ENDPOINTS.FORGOT_PASSWORD,
+        payload,
+        z.object({}).optional()
+    );
+    return response;
+}
+
+export async function updatePassword(payload: UpdatePasswordInput) {
+    // Backend expects UpdatePasswordRequest { oldPassword, newPassword }
+    // Frontend UpdatePasswordInput has { oldPassword, newPassword, confirmPassword }
+    // We need to omit confirmPassword
+    const { confirmPassword, ...apiPayload } = payload;
+    const response = await httpPrivateTyped.post(
+        ENDPOINTS.UPDATE_PASSWORD,
+        apiPayload,
+        z.object({}).optional()
+    );
     return response;
 }

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { httpPrivateTyped } from "@/shared/api/http-typed";
 import {
     cartResponseSchema,
+    cartValidationResponseSchema,
+    type CartValidationResponse,
     type CartItemRequest,
     type CartResponse
 } from "../model";
@@ -55,11 +57,10 @@ export const cartApi = {
     },
 
     validateCart: async () => {
-        // Need to define validation response schema, for now use any or define it
-        return httpPrivateTyped.post<any>(
+        return httpPrivateTyped.post<CartValidationResponse>(
             `${BASE_URI}/validate`,
             {},
-            z.any()
+            cartValidationResponseSchema
         );
     }
 };

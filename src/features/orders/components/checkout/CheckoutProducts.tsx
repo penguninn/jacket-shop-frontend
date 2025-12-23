@@ -22,32 +22,24 @@ export function CheckoutProducts() {
 
             {cart.items.map((item) => {
                 const variant = item.productVariant;
-                const product = variant.product;
+
                 const price = variant.salePrice ?? variant.price;
                 const subtotal = price * item.quantity;
 
                 return (
                     <div key={item.id} className="border-b pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
-                        {/* Shop Header assumption */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="bg-red-500 text-white text-[10px] px-1 py-0.5 rounded-sm font-bold">Mall</span>
-                            <span className="font-medium text-sm">Jacket Shop</span>
-                            <button className="text-teal-600 text-sm flex items-center gap-1 border border-teal-600 px-2 py-0.5 rounded-sm">
-                                <span className="i-lucide-message-circle w-3 h-3"></span> chat now
-                            </button>
-                        </div>
 
                         <div className="flex items-center text-sm">
                             <div className="w-[50%] flex gap-4">
                                 <img
-                                    src={product?.thumbnail || "/placeholder.png"}
-                                    alt={product?.name || "Product"}
+                                    src={variant.image || "/placeholder.png"}
+                                    alt={variant.sku || "Product"}
                                     className="w-16 h-16 object-cover border rounded-sm"
                                 />
                                 <div className="pr-4">
-                                    <p className="line-clamp-2 mb-1">{product?.name}</p>
+                                    <p className="line-clamp-2 mb-1">{variant.sku}</p>
                                     <p className="text-gray-500 text-xs">
-                                        Variation: {variant.color.name}, {variant.size.name}
+                                        Variation: {variant.color.name}, {variant.size.name}, {variant.material.name}
                                     </p>
                                 </div>
                             </div>

@@ -61,6 +61,11 @@ export async function createCoupon(payload: CreateCouponInput) {
     return res;
 }
 
+export async function getCouponByCode(code: string) {
+    const res = await httpPrivateTyped.get(`/coupons/code/${code}`, couponSchema);
+    return res;
+}
+
 export async function updateCoupon(id: number, payload: UpdateCouponInput) {
     const res = await httpPrivateTyped.put(`/coupons/${id}`, payload, couponSchema);
     return res;

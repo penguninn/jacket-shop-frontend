@@ -12,7 +12,7 @@ import {
     type Ward
 } from "../model";
 
-const URL_PREFIX = "/address";
+const URL_PREFIX = "/location";
 const CRUD_PREFIX = "/user-addresses";
 
 export const addressApi = {

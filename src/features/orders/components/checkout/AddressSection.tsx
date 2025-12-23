@@ -19,7 +19,6 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
     const createAddress = useCreateAddress();
 
     useEffect(() => {
-        // Only select default if no address is currently selected
         if (!selectedAddress && addresses && addresses.length > 0) {
             const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
             onSelectAddress(defaultAddr);
@@ -27,10 +26,8 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
     }, [addresses, selectedAddress, onSelectAddress]);
 
     return (
-        // Reusing the styling from Checkout.tsx scaffold
-        <div className="bg-white p-6 shadow-sm rounded-sm">
-            <div className="flex items-center gap-2 text-red-500 mb-4">
-                <div className="i-lucide-map-pin w-5 h-5 text-xl">📍</div>
+        <div className="bg-white p-6 shadow-sm border border-gray-200 rounded-sm">
+            <div className="flex items-center gap-2 text-orange-500 mb-4">
                 <h2 className="text-lg font-medium">Delivery Address</h2>
             </div>
 
@@ -107,9 +104,6 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
                                 variant="outline"
                                 className="w-full mt-4 flex items-center gap-2"
                                 onClick={() => {
-                                    // setIsSelectionOpen(false); // Keep it open maybe? Or allow creating and it returns to selection?
-                                    // For now close selection to focus on creation, or we need to manage nested dialog overlay z-index issues.
-                                    // Ideally AddressDialog handles z-index, but nested is cleaner to just swap or stack.
                                     setIsCreateOpen(true);
                                 }}
                             >

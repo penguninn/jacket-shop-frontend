@@ -1,6 +1,339 @@
-export default function OrderDetail() {
+
+
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  useOrder,
+  useOrderHistory,
+  useConfirmOrder,
+  useShipOrder,
+  useCompleteOrder,
+  useCancelOrder,
+
+
+} from "../../hooks";
+import { Button } from "@/shared/ui/button";
+import { Separator } from "@/shared/ui/separator";
+import { Badge } from "@/shared/ui/badge";
+import { formatCurrency } from "@/shared/utils/format";
+import {
+  ChevronLeft,
+  User,
+  CreditCard,
+  Package,
+
+} from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+
+
+
+import { format } from "date-fns";
+import { toast } from "sonner"; // Assuming toast usage requires this or from hooks if wrapped
+
+export default function OrderDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const orderId = Number(id);
+
+  const { data: order, isLoading: isLoadingOrder } = useOrder(orderId);
+  const { data: history, isLoading: isLoadingHistory } = useOrderHistory(orderId);
+
+  const confirmMutation = useConfirmOrder();
+  const shipMutation = useShipOrder();
+  const completeMutation = useCompleteOrder();
+  const cancelMutation = useCancelOrder();
+
+
+
+
+  const handleAction = (mutation: any, successMessage: string) => {
+    mutation.mutate(orderId, {
+      onSuccess: () => toast.success(successMessage),
+      onError: (error: any) => toast.error(error.message || "Action failed"),
+    });
+  };
+
+  if (isLoadingOrder) {
+    return <OrderDetailSkeleton />;
+  }
+
+  if (!order) {
+    return <div className="p-8 text-center">Order not found</div>;
+  }
+
+  // Helper to format full address
+  const fullAddress = [
+    order.shippingAddressLine,
+    order.shippingWardName,
+    order.shippingDistrictName,
+    order.shippingProvinceName
+  ].filter(Boolean).join(", ");
+
   return (
-    <div>OrderDetail</div>
-  )
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/orders")}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Order {order.orderCode}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+              <span>{format(new Date(order.createdAt), "PPP p")}</span>
+              <span>•</span>
+              <Badge variant={getOrderStatusVariant(order.status)}>{order.status}</Badge>
+              <span>•</span>
+              <Badge variant="outline">{order.paymentStatus}</Badge>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {order.status === "PENDING" && (
+            <>
+              <Button
+                variant="destructive"
+                onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                disabled={cancelMutation.isPending}
+              >
+                Cancel Order
+              </Button>
+              <Button
+                onClick={() => handleAction(confirmMutation, "Order confirmed")}
+                disabled={confirmMutation.isPending}
+              >
+                Confirm Order
+              </Button>
+            </>
+          )}
+          {order.status === "CONFIRMED" && (
+            <>
+              <Button
+                variant="destructive"
+                onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                disabled={cancelMutation.isPending}
+              >
+                Cancel Order
+              </Button>
+              <Button
+                onClick={() => handleAction(shipMutation, "Order shipped")}
+                disabled={shipMutation.isPending}
+              >
+                Ship Order
+              </Button>
+            </>
+          )}
+          {order.status === "SHIPPING" && (
+            <Button
+              onClick={() => handleAction(completeMutation, "Order completed")}
+              disabled={completeMutation.isPending}
+            >
+              Mark Delivered
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Separator />
+
+      <Tabs defaultValue="details">
+        <TabsList>
+          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="space-y-6 pt-4">
+          <div className="grid grid-cols-3 gap-6">
+            {/* Left Column: Customer & Shipping */}
+            <div className="col-span-2 space-y-6">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <User className="h-4 w-4" /> Customer & Shipping
+                </h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium">Customer</p>
+                    <p className="text-muted-foreground">{order.customerName}</p>
+                    {order.customerPhone && <p className="text-muted-foreground">{order.customerPhone}</p>}
+                  </div>
+                  <div>
+                    <p className="font-medium">Shipping Address</p>
+                    <p className="text-muted-foreground">{fullAddress}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Shipping Carrier</p>
+                    {/* Fallback or specific logic for shipping method name if available, otherwise carrier */}
+                    <p className="text-muted-foreground">{order.carrierName || "Standard Shipping"}</p>
+                    {order.carrierCode && <p className="text-muted-foreground">Code: {order.carrierCode}</p>}
+                  </div>
+                  <div>
+                    <p className="font-medium">Payment Method</p>
+                    <p className="text-muted-foreground">{order.paymentMethodName || "N/A"}</p>
+                    <p className="text-muted-foreground text-xs mt-1">Status: <span className="font-medium">{order.paymentStatus}</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+                <div className="p-6 border-b">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <Package className="h-4 w-4" /> Order Items
+                  </h3>
+                </div>
+                <div className="p-0">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr className="text-left">
+                        <th className="p-4 font-medium">Product</th>
+                        <th className="p-4 font-medium">SKU</th>
+                        <th className="p-4 font-medium">Price</th>
+                        <th className="p-4 font-medium">Qty</th>
+                        <th className="p-4 font-medium text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {order.details?.map((item) => (
+                        <tr key={item.id || item.sku} className="border-b last:border-0">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              {item.thumbnail && (
+                                <img
+                                  src={item.thumbnail}
+                                  alt={item.productName}
+                                  className="h-10 w-10 rounded-md object-cover border"
+                                />
+                              )}
+                              <div>
+                                <p className="font-medium">{item.productName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {item.color} / {item.size}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-muted-foreground">{item.sku}</td>
+                          <td className="p-4">{formatCurrency(item.price)}</td>
+                          <td className="p-4">{item.quantity}</td>
+                          <td className="p-4 text-right font-medium">{formatCurrency(item.subtotal)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Calculations */}
+            <div className="col-span-1 space-y-6">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> Order Summary
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatCurrency(order.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping Fee</span>
+                    <span>{formatCurrency(order.shippingFee)}</span>
+                  </div>
+                  {(order.discount ?? 0) > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <div className="flex gap-1">
+                        <span>Discount</span>
+                        {order.couponCode && <span className="text-xs border border-green-200 bg-green-50 px-1 rounded flex items-center">{order.couponCode}</span>}
+                      </div>
+                      <span>-{formatCurrency(order.discount!)}</span>
+                    </div>
+                  )}
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>{formatCurrency(order.totalAmount ?? order.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="history" className="pt-4">
+          {isLoadingHistory ? (
+            <div>Loading history...</div>
+          ) : (
+            <div className="space-y-8 pl-4 border-l-2 border-muted ml-4 relative">
+              {history?.map((event) => (
+                <div key={event.id} className="relative pl-6 pb-2">
+                  <span className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
+                  <div className="text-sm font-medium">Status Update</div>
+                  {event.changedByUserId && (
+                    <div className="text-xs text-muted-foreground">Updated by User ID: {event.changedByUserId}</div>
+                  )}
+                  <div className="text-xs text-muted-foreground mb-1">{format(new Date(event.createdAt), "PPP p")}</div>
+                  {event.note && (
+                    <div className="text-sm mt-1 p-2 bg-muted/50 rounded-md border text-muted-foreground">
+                      Note: {event.note}
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <Badge variant="outline" className="text-xs">
+                      {event.oldStatus ? `${event.oldStatus} → ` : "Initial: "}{event.newStatus}
+                    </Badge>
+                    {(event.oldPaymentStatus !== event.newPaymentStatus || (event.newPaymentStatus && !event.oldPaymentStatus)) && (
+                      <Badge variant="outline" className="text-xs">
+                        Payment: {event.oldPaymentStatus ? `${event.oldPaymentStatus} → ` : ""}{event.newPaymentStatus}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {history?.length === 0 && <p className="text-muted-foreground text-sm pl-6">No history events found.</p>}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+
+
+
+    </div>
+  );
 }
+
+function getOrderStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
+  switch (status) {
+    case "PENDING": return "secondary";
+    case "CONFIRMED": return "default";
+    case "SHIPPING": return "default";
+    case "COMPLETED": return "default";
+    case "CANCELLED": return "destructive";
+    case "RETURNED": return "outline";
+    default: return "outline";
+  }
+}
+
+function OrderDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-8 w-24" />
+      </div>
+      <Separator />
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2 space-y-6">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+        <div className="col-span-1">
+          <Skeleton className="h-48 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
 

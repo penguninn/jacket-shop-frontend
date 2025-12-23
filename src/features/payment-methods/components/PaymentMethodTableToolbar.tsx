@@ -10,6 +10,11 @@ const statusOptions = [
     { label: "Inactive", value: "INACTIVE" },
 ];
 
+const typeOptions = [
+    { label: "Online", value: "ONLINE" },
+    { label: "POS", value: "POS" },
+];
+
 interface Props<TData> {
     table: Table<TData>;
 }
@@ -33,6 +38,13 @@ export function PaymentMethodTableToolbar<TData>({ table }: Props<TData>) {
                         column={table.getColumn("status")}
                         title="Status"
                         options={statusOptions}
+                    />
+                )}
+                {table.getColumn("type") && (
+                    <DataTableFacetedFilter
+                        column={table.getColumn("type")}
+                        title="Type"
+                        options={typeOptions}
                     />
                 )}
                 {isFiltered && (

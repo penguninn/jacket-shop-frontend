@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@/shared/utils/format";
@@ -22,9 +23,41 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     const imageUrl = image || product?.thumbnail;
     const isOnSale = (salePrice !== null && salePrice !== undefined && salePrice < price);
 
+    // Local state for quantity input to allow typing
+    const [localQuantity, setLocalQuantity] = useState<string>(quantity.toString());
+
+    useEffect(() => {
+        setLocalQuantity(quantity.toString());
+    }, [quantity]);
+
     const handleQuantityChange = (newQty: number) => {
         if (newQty < 1) return;
         updateMutation.mutate({ itemId: item.id, quantity: newQty });
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Allow valid positive numbers or empty string (while typing)
+        const val = e.target.value;
+        if (val === "" || /^[0-9]+$/.test(val)) {
+            setLocalQuantity(val);
+        }
+    };
+
+    const handleInputBlur = () => {
+        const parsed = parseInt(localQuantity);
+        if (isNaN(parsed) || parsed < 1) {
+            // Revert to current prop value if invalid
+            setLocalQuantity(quantity.toString());
+        } else if (parsed !== quantity) {
+            // Commit change
+            handleQuantityChange(parsed);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.currentTarget.blur();
+        }
     };
 
     const handleRemove = () => {
@@ -68,7 +101,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                         </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2 rounded-full bg-gray-100 px-2 py-1 h-8">
+                        <div className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 h-8">
                             <button
                                 disabled={updateMutation.isPending || quantity <= 1}
                                 onClick={() => handleQuantityChange(quantity - 1)}
@@ -76,7 +109,14 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                             >
                                 <Minus className="h-3 w-3" />
                             </button>
-                            <span className="text-xs font-medium w-4 text-center">{quantity}</span>
+                            <input
+                                type="text"
+                                value={localQuantity}
+                                onChange={handleInputChange}
+                                onBlur={handleInputBlur}
+                                onKeyDown={handleKeyDown}
+                                className="w-8 text-center bg-transparent text-xs font-medium focus:outline-none"
+                            />
                             <button
                                 disabled={updateMutation.isPending}
                                 onClick={() => handleQuantityChange(quantity + 1)}
@@ -154,7 +194,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
 
                 {/* Quantity Control - Bottom Right in layout relative to content or flex row */}
                 <div className="sm:absolute sm:bottom-4 sm:right-4 mt-4 sm:mt-0 flex justify-end">
-                    <div className="flex items-center gap-4 rounded-full bg-gray-100 px-4 py-2">
+                    <div className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2">
                         <button
                             disabled={updateMutation.isPending || quantity <= 1}
                             onClick={() => handleQuantityChange(quantity - 1)}
@@ -162,7 +202,14 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                         >
                             <Minus className="h-4 w-4" />
                         </button>
-                        <span className="font-semibold text-gray-900 w-4 text-center">{quantity}</span>
+                        <input
+                            type="text"
+                            value={localQuantity}
+                            onChange={handleInputChange}
+                            onBlur={handleInputBlur}
+                            onKeyDown={handleKeyDown}
+                            className="w-10 text-center bg-transparent font-semibold text-gray-900 focus:outline-none"
+                        />
                         <button
                             disabled={updateMutation.isPending}
                             onClick={() => handleQuantityChange(quantity + 1)}

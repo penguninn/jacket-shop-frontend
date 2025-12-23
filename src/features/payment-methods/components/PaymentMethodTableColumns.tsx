@@ -66,6 +66,14 @@ export const columns: ColumnDef<PaymentMethod>[] = [
         },
     },
     {
+        accessorKey: "type",
+        header: "Type",
+        cell: ({ row }) => <div className="font-medium">{row.getValue("type")}</div>,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        },
+    },
+    {
         accessorKey: "createdAt",
         header: ({ column }) => {
             return (

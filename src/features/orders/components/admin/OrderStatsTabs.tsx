@@ -2,16 +2,16 @@
 import { cn } from "@/shared/lib/utils";
 import { ScrollArea, ScrollBar } from "@/shared/ui/scroll-area";
 
+import { ORDER_STATUS } from "../../model";
+
 const STATUS_TABS = [
     { id: "all", label: "ALL" },
-    { id: "cancelled", label: "CANCELLED" },
-    { id: "pending_confirmation", label: "PENDING CONFIRMATION" },
-    { id: "pending_delivery", label: "PENDING DELIVERY" },
-    { id: "delivering", label: "DELIVERING" },
-    { id: "delivered", label: "DELIVERED" },
-    { id: "paid", label: "PAID" },
-    { id: "pending_payment", label: "PENDING PAYMENT" },
-    { id: "completed", label: "COMPLETED" },
+    { id: ORDER_STATUS.PENDING, label: "PENDING" },
+    { id: ORDER_STATUS.CONFIRMED, label: "CONFIRMED" },
+    { id: ORDER_STATUS.SHIPPING, label: "DELIVERING" },
+    { id: ORDER_STATUS.COMPLETED, label: "COMPLETED" },
+    { id: ORDER_STATUS.CANCELLED, label: "CANCELLED" },
+    { id: ORDER_STATUS.RETURNED, label: "RETURNED" },
 ];
 
 interface OrderStatsTabsProps {

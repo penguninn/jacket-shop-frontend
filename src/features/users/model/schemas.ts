@@ -97,14 +97,6 @@ export const createUserSchema = z
       .min(
         USER_CONSTANTS.PASSWORD.MIN_LENGTH,
         `Password must be at least ${USER_CONSTANTS.PASSWORD.MIN_LENGTH} characters`
-      )
-      .regex(
-        USER_CONSTANTS.PASSWORD.UPPERCASE_REGEX,
-        "Password must contain at least one uppercase letter"
-      )
-      .regex(
-        USER_CONSTANTS.PASSWORD.NUMBER_REGEX,
-        "Password must contain at least one number"
       ),
     confirmPassword: z.string(),
     status: statusSchema,
