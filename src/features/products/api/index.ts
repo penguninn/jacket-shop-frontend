@@ -75,6 +75,10 @@ function buildQueryParams(params: ProductFilterParams): URLSearchParams {
         queryParams.append("maxPrice", params.maxPrice.toString());
     }
 
+    if (params.isFeatured !== undefined) {
+        queryParams.append("isFeatured", params.isFeatured.toString());
+    }
+
     return queryParams;
 }
 

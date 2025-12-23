@@ -149,6 +149,7 @@ export interface ProductFilterParams extends BaseFilterParams {
   materialIds?: number[];
   minPrice?: number;
   maxPrice?: number;
+  isFeatured?: boolean;
 }
 
 export const productFilterParamsSchema = z.object({
@@ -165,6 +166,7 @@ export const productFilterParamsSchema = z.object({
   materialIds: z.array(z.number()).optional(),
   minPrice: z.number().optional(),
   maxPrice: z.number().optional(),
+  isFeatured: z.boolean().optional(),
 });
 
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useLocation } from "react-router-dom";
 import { usePublicProducts } from "@/features/products/hooks";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { ProductFilters } from "@/features/products/components/ProductFilters";
@@ -25,6 +25,12 @@ import { ScrollArea } from "@/shared/ui/scroll-area";
 
 export default function Search() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+
+    // Scroll to top when filters/url changes
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location.pathname, location.search]);
 
     // URL Params
     const keyword = searchParams.get("keyword") || "";
@@ -46,6 +52,9 @@ export default function Search() {
     const urlMaterialIds = materialIdsParam?.split(",").map(Number).filter(Boolean) ?? [];
     const urlMinPrice = searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : 50;
     const urlMaxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : 200;
+    const urlSortBy = searchParams.get("sortBy") || "createdAt";
+    const urlSortDir = (searchParams.get("sortDir") as "ASC" | "DESC") || "DESC";
+    const urlIsFeatured = searchParams.get("isFeatured") === "true";
 
     // Local Filter States (UI State)
     const [priceRange, setPriceRange] = useState([urlMinPrice, urlMaxPrice]);
@@ -79,6 +88,9 @@ export default function Search() {
         page,
         size,
         search: keyword,
+        sortBy: urlSortBy,
+        sortDir: urlSortDir,
+        isFeatured: urlIsFeatured || undefined,
         brandIds: urlBrandIds.length > 0 ? urlBrandIds : undefined,
         styleIds: urlStyleIds.length > 0 ? urlStyleIds : undefined,
         colorIds: urlColorIds.length > 0 ? urlColorIds : undefined,
