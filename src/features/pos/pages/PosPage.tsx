@@ -4,12 +4,9 @@ import { ProductSelectionDialog } from "../components/ProductSelectionDialog";
 import { PosCartTable } from "../components/PosCartTable";
 import { ShippingSection } from "../components/ShippingSection";
 import { OrderSummary } from "../components/OrderSummary";
-// import { usePosStore } from "../hooks/usePosState";
+import { CouponSection } from "../components/CouponSection";
 
 export default function PosPage() {
-    // const activeTabId = usePosStore((state) => state.activeTabId);
-    // const activeTab = usePosStore((state) => state.tabs.find(t => t.id === activeTabId));
-
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
             {/* Top Bar with Tabs */}
@@ -33,6 +30,7 @@ export default function PosPage() {
                 <div className="col-span-4 flex flex-col gap-4 overflow-y-auto h-full pb-4">
                     <CustomerSelector />
                     <ShippingSection />
+                    <CouponSection />
                     <OrderSummary />
                 </div>
             </div>

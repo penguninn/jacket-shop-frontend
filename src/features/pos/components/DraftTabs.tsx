@@ -1,105 +1,158 @@
-import { useRef, useState } from "react";
-import { Plus, X, Edit2, Check } from "lucide-react";
+import { useEffect } from "react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { cn } from "@/shared/lib/utils";
+import { Badge } from "@/shared/ui/badge";
 import { usePosStore } from "../hooks/usePosState";
-import { Input } from "@/shared/ui/input";
+import { usePosDrafts, useCreatePosDraft, useDeletePosDraft } from "../hooks/usePosApi";
+import { toast } from "sonner";
+import { formatCurrency } from "@/shared/utils/format";
+import { cn } from "@/shared/lib/utils";
 
 export function DraftTabs() {
-    const { tabs, activeTabId, addTab, removeTab, switchTab, updateTabName } = usePosStore();
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editName, setEditName] = useState("");
-    const inputRef = useRef<HTMLInputElement>(null);
+    const { currentDraft, draftList, setCurrentDraft, setDraftList } = usePosStore();
 
-    const handleEditStart = (id: string, currentName: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEditingId(id);
-        setEditName(currentName);
-        setTimeout(() => inputRef.current?.focus(), 0);
-    };
+    const { data: drafts, isLoading, refetch } = usePosDrafts();
+    const { mutate: createDraft, isPending: isCreating } = useCreatePosDraft();
+    const { mutate: deleteDraft } = useDeletePosDraft();
 
-    const handleEditSave = () => {
-        if (editingId && editName.trim()) {
-            updateTabName(editingId, editName.trim());
+    // Update local state when drafts are fetched
+    useEffect(() => {
+        if (drafts) {
+            setDraftList(drafts);
         }
-        setEditingId(null);
-        setEditName("");
+    }, [drafts, setDraftList]);
+
+    // Poll for updates every 10 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refetch();
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [refetch]);
+
+    const handleNewDraft = () => {
+        if (draftList.length >= 5) {
+            toast.error("Maximum 5 drafts allowed");
+            return;
+        }
+
+        // Create minimal draft with POS_INSTORE type
+        createDraft({
+            orderType: "POS_INSTORE",
+            items: [], // Empty items array
+        }, {
+            onSuccess: (newDraft) => {
+                toast.success("New draft created");
+                setCurrentDraft(newDraft);
+                refetch();
+            },
+            onError: (error: any) => {
+                toast.error("Failed to create draft", {
+                    description: error.response?.data?.message || "Something went wrong"
+                });
+            }
+        });
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") handleEditSave();
-        if (e.key === "Escape") setEditingId(null);
+    const handleCloseDraft = (draftId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        deleteDraft(draftId, {
+            onSuccess: () => {
+                toast.success("Draft deleted");
+                if (currentDraft?.id === draftId) {
+                    setCurrentDraft(null);
+                }
+                refetch();
+            }
+        });
     };
 
     return (
-        <div className="flex items-center gap-2 border-b bg-muted/20 p-2 overflow-x-auto">
-            {tabs.map((tab) => (
-                <div
-                    key={tab.id}
-                    onClick={() => switchTab(tab.id)}
-                    className={cn(
-                        "group relative flex items-center gap-2 min-w-[150px] max-w-[200px] h-10 px-3 rounded-t-md text-sm font-medium transition-colors cursor-pointer border user-select-none",
-                        activeTabId === tab.id
-                            ? "bg-background border-border border-b-background text-primary"
-                            : "bg-muted hover:bg-muted/80 border-transparent text-muted-foreground"
-                    )}
-                >
-                    {editingId === tab.id ? (
-                        <div className="flex items-center gap-1 w-full" onClick={(e) => e.stopPropagation()}>
-                            <Input
-                                ref={inputRef}
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                                onBlur={handleEditSave}
-                                onKeyDown={handleKeyDown}
-                                className="h-7 px-1 text-xs"
-                            />
-                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleEditSave}>
-                                <Check className="h-3 w-3" />
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-between w-full">
-                            <span className="truncate">{tab.name}</span>
-                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6 hover:bg-muted-foreground/20"
-                                    onClick={(e) => handleEditStart(tab.id, tab.name, e)}
-                                >
-                                    <Edit2 className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6 hover:bg-destructive/20 hover:text-destructive"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (tab.items.length === 0 || confirm("Close this drafted order?")) {
-                                            removeTab(tab.id);
-                                        }
-                                    }}
-                                >
-                                    <X className="h-3 w-3" />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            ))}
-
-            {tabs.length < 5 && (
+        <div className="border-b bg-background px-4">
+            <div className="flex items-center gap-2 overflow-x-auto py-2">
+                {/* New Draft Button */}
                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 shrink-0"
-                    onClick={addTab}
-                    title="Add new order"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewDraft}
+                    disabled={isCreating || draftList.length >= 5}
+                    className="shrink-0"
                 >
-                    <Plus className="h-5 w-5" />
+                    {isCreating ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Creating...
+                        </>
+                    ) : (
+                        <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            New Draft
+                        </>
+                    )}
                 </Button>
-            )}
+
+                {/* Draft Tabs */}
+                {isLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading drafts...</div>
+                ) : draftList.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">
+                        No drafts. Click "New Draft" to start.
+                    </div>
+                ) : (
+                    draftList.map((draft) => (
+                        <button
+                            key={draft.id}
+                            onClick={() => setCurrentDraft(draft)}
+                            className={cn(
+                                "relative px-4 py-2 rounded-t-lg border border-b-0 shrink-0 transition-colors group",
+                                currentDraft?.id === draft.id
+                                    ? "bg-background border-border"
+                                    : "bg-muted/50 border-transparent hover:bg-muted"
+                            )}
+                        >
+                            <div className="flex items-center gap-3 pr-6">
+                                <div className="text-left">
+                                    <div className="text-sm font-medium">
+                                        {draft.customerName || "Walk-in Customer"}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                        <span>{draft.details?.length || 0} items</span>
+                                        <span>•</span>
+                                        <span>{formatCurrency(draft.total || 0)}</span>
+                                    </div>
+                                </div>
+
+                                {draft.details && draft.details.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {draft.details.length}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {/* Close button */}
+                            <button
+                                onClick={(e) => handleCloseDraft(draft.id, e)}
+                                className={cn(
+                                    "absolute right-1 top-1/2 -translate-y-1/2",
+                                    "w-5 h-5 rounded-sm flex items-center justify-center",
+                                    "hover:bg-destructive/10 hover:text-destructive",
+                                    "opacity-0 group-hover:opacity-100 transition-opacity"
+                                )}
+                            >
+                                ×
+                            </button>
+                        </button>
+                    ))
+                )}
+
+                {/* Draft limit indicator */}
+                {draftList.length > 0 && (
+                    <div className="text-xs text-muted-foreground ml-auto">
+                        {draftList.length}/5 drafts
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

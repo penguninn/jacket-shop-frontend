@@ -15,7 +15,6 @@ import Forbidden from "@/pages/Forbidden";
 import NotFound from "@/pages/NotFound";
 import UserLayout from "@/app/layouts/UserLayout";
 import ChangePassword from "@/features/auth/pages/ChangePasswordPage";
-import MyVouchers from "@/features/coupons/pages/MyVouchersPage";
 import Purchase from "@/features/orders/pages/PurchasePage";
 
 
@@ -57,7 +56,6 @@ export default function ClientRoutes() {
           <Route path="account/address" element={<Address />} />
           <Route path="account/change-password" element={<ChangePassword />} />
           <Route path="purchase" element={<Purchase />} />
-          <Route path="coupons" element={<MyVouchers />} />
           <Route index element={<Navigate to="account/profile" replace />} />
         </Route>
 

@@ -11,6 +11,7 @@ import {
     SheetHeader,
     SheetTitle,
     SheetTrigger,
+    SheetClose,
 } from "@/shared/ui/sheet";
 
 export function CartSheet() {
@@ -80,14 +81,20 @@ export function CartSheet() {
                                 </p>
                             </div>
                             <div className="grid gap-3">
-                                <Link to="/cart">
-                                    <Button className="w-full" variant="outline">
-                                        View Cart
-                                    </Button>
-                                </Link>
-                                <Button className="w-full bg-black hover:bg-black/90">
-                                    Checkout
-                                </Button>
+                                <SheetClose asChild>
+                                    <Link to="/cart">
+                                        <Button className="w-full" variant="outline">
+                                            View Cart
+                                        </Button>
+                                    </Link>
+                                </SheetClose>
+                                <SheetClose asChild>
+                                    <Link to="/checkout">
+                                        <Button className="w-full bg-black hover:bg-black/90">
+                                            Checkout
+                                        </Button>
+                                    </Link>
+                                </SheetClose>
                             </div>
                         </div>
                     </>

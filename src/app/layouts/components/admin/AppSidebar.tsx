@@ -11,7 +11,6 @@ import {
   Sparkles,
   Star,
   Tag,
-  Truck,
   User,
   Wallet,
   Warehouse,
@@ -64,11 +63,6 @@ const sidebarGroups = [
         title: "Returns",
         url: "/dashboard/returns",
         icon: RotateCcw,
-      },
-      {
-        title: "Shipping Methods",
-        url: "/dashboard/shipping-methods",
-        icon: Truck,
       },
       {
         title: "Payment Methods",

@@ -44,6 +44,18 @@ export const orderTypeSchema = z.enum([
 
 export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'REFUNDED']);
 
+// Admin update request schemas
+export const updatePaymentRequestSchema = z.object({
+    paymentMethodId: z.number().optional(),
+    paymentStatus: paymentStatusSchema,
+});
+
+export const shippingInfoRequestSchema = z.object({
+    carrierName: z.string(),
+    carrierServiceName: z.string(),
+    shippingFee: z.number(),
+});
+
 export const orderDetailSchema = z.object({
     id: z.number().optional(),
     productName: z.string(),
@@ -62,32 +74,55 @@ export const orderSchema = z.object({
     id: z.number(),
     orderCode: z.string(),
     orderType: orderTypeSchema,
+
+    // Customer info
+    userId: z.number().nullable().optional(),
     customerName: z.string(),
     customerPhone: z.string().optional(),
-    totalProducts: z.number().optional(),
-    totalAmount: z.number().optional(),
-    total: z.number(),
-    subtotal: z.number(),
-    shippingFee: z.number(),
-    discount: z.number().nullable().optional(),
-    couponCode: z.string().nullable().optional(),
 
-    status: orderStatusSchema,
+    // Staff info (for POS orders)
+    staffId: z.number().nullable().optional(),
+    staffName: z.string().nullable().optional(),
+
+    // Shipping recipient (may differ from customer)
+    shippingRecipientName: z.string().nullable().optional(),
+    shippingRecipientPhone: z.string().nullable().optional(),
+
+    // Shipping address
+    shippingAddressLine: z.string().nullable().optional(),
+    shippingProvinceCode: z.string().nullable().optional(),
+    shippingDistrictCode: z.string().nullable().optional(),
+    shippingWardCode: z.string().nullable().optional(),
+    shippingProvinceName: z.string().nullable().optional(),
+    shippingDistrictName: z.string().nullable().optional(),
+    shippingWardName: z.string().nullable().optional(),
+
+    // Payment info
+    paymentMethodId: z.number().nullable().optional(),
+    paymentMethodName: z.string().nullable().optional(),
     paymentStatus: paymentStatusSchema,
-    paymentMethodName: z.string().optional(),
+    transactionId: z.string().nullable().optional(),
+    paymentDate: z.string().nullable().optional(),
 
-    shippingAddressLine: z.string().optional(),
-    shippingProvinceName: z.string().optional(),
-    shippingDistrictName: z.string().optional(),
-
-    shippingWardName: z.string().optional(),
-
+    // Shipping carrier
     carrierName: z.string().nullable().optional(),
-    carrierCode: z.string().nullable().optional(),
+    carrierServiceName: z.string().nullable().optional(),
+    shippingFee: z.number(),
 
+    // Pricing
+    couponCode: z.string().nullable().optional(),
+    discount: z.number().nullable().optional(),
+    subtotal: z.number(),
+    total: z.number(),
+    totalAmount: z.number().optional(), // Alias for total
+    totalProducts: z.number().optional(),
+
+    // Status
+    status: orderStatusSchema,
     note: z.string().nullable().optional(),
-    createdAt: z.string(), // Backend sends Instant, likely serialized as string
+    createdAt: z.string(),
 
+    // Order items
     details: z.array(orderDetailSchema).optional(),
 });
 
@@ -123,6 +158,8 @@ export type OrderDetail = z.infer<typeof orderDetailSchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type OrderFilterParams = z.infer<typeof orderFilterParamsSchema>;
 export type OrdersResponse = z.infer<typeof ordersResponseSchema>;
+export type UpdatePaymentRequest = z.infer<typeof updatePaymentRequestSchema>;
+export type ShippingInfoRequest = z.infer<typeof shippingInfoRequestSchema>;
 
 export const orderItemRequestSchema = z.object({
     productVariantId: z.number(),

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { formatCurrency } from "@/shared/utils/format";
 
 interface CheckoutShippingProps {
     rates: any[]; // GoshipRateData
@@ -20,9 +21,7 @@ export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: C
         }
     }, [rates, selectedRate, onSelect]);
 
-    // Format helper
-    const formatPrice = (price: number) =>
-        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
 
     if (isLoading) {
         return (
@@ -77,7 +76,7 @@ export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: C
                                                 <div className="text-xs text-gray-500">Expected: {rate.expected}</div>
                                             </div>
                                             <div className="font-bold text-red-500">
-                                                {formatPrice(rate.total_fee)}
+                                                {formatCurrency(rate.total_fee)}
                                             </div>
                                         </div>
                                     ))}
@@ -91,7 +90,7 @@ export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: C
                 </div>
             </div>
             <div className="text-sm font-medium ml-4 w-24 text-right">
-                {selectedRate ? formatPrice(selectedRate.total_fee) : formatPrice(0)}
+                {selectedRate ? formatCurrency(selectedRate.total_fee) : formatCurrency(0)}
             </div>
         </div>
     );

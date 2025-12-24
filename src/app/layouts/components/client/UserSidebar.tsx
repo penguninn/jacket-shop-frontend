@@ -5,7 +5,6 @@ import {
   MapPin,
   Lock,
   ShoppingBag,
-  Ticket,
 } from "lucide-react";
 
 export function UserSidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -44,12 +43,6 @@ export function UserSidebar({ onNavigate }: { onNavigate?: () => void }) {
           to="/user/purchase"
           label="My Purchase"
           icon={<ShoppingBag className="h-4 w-4" />}
-          onClick={onNavigate}
-        />
-        <SidebarItem
-          to="/user/coupons"
-          label="My Vouchers"
-          icon={<Ticket className="h-4 w-4" />}
           onClick={onNavigate}
         />
       </div>

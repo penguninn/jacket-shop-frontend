@@ -47,7 +47,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
                     <div className="flex flex-col">
                         <span className="text-lg font-bold text-[#FF6900]">
-                            {minPrice === maxPrice ? minPrice : `${minPrice} - ${formatCurrency(maxPrice)}`}
+                            {minPrice === maxPrice ? formatCurrency(minPrice) : `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`}
                         </span>
                     </div>
                 </div>

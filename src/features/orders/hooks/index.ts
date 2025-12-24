@@ -15,9 +15,12 @@ import {
     receiveOrder,
     requestReturn,
     reorder,
-    getOrderHistory
+    getOrderHistory,
+    approveReturn,
+    updateOrderShipping,
+    updateOrderPayment,
 } from "../api";
-import type { OrderFilterParams } from "../model/schemas";
+import type { OrderFilterParams, UpdatePaymentRequest, ShippingInfoRequest } from "../model/schemas";
 
 export const orderKeys = {
     all: ['orders'] as const,
@@ -192,6 +195,46 @@ export function useReorder() {
         mutationFn: reorder,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['cart'] });
+        },
+    });
+}
+
+// --- Admin Order Management Hooks ---
+
+export function useApproveReturn() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: approveReturn,
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.details() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.history(id) });
+        },
+    });
+}
+
+export function useUpdateOrderShipping() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: ShippingInfoRequest }) =>
+            updateOrderShipping(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.details() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.history(id) });
+        },
+    });
+}
+
+export function useUpdateOrderPayment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePaymentRequest }) =>
+            updateOrderPayment(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.details() });
+            queryClient.invalidateQueries({ queryKey: orderKeys.history(id) });
         },
     });
 }

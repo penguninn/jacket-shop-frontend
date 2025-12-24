@@ -3,6 +3,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { useUserStatistics } from "@/features/users/hooks";
 import { DollarSign, Package, Clock, Star, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { formatCurrency } from "@/shared/utils/format";
 
 interface Props {
   userId: number;
@@ -39,7 +40,7 @@ export function StatisticsTab({ userId }: Props) {
     },
     {
       title: "Revenue Generated",
-      value: `$${stats.revenue.toLocaleString()}`,
+      value: formatCurrency(stats.revenue),
       icon: DollarSign,
       color: "text-green-600",
     },

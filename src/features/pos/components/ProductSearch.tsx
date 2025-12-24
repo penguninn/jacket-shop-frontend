@@ -24,41 +24,37 @@ import { Badge } from "@/shared/ui/badge";
 
 import { useProductVariants } from "@/features/product-variants/hooks";
 import { usePosStore } from "../hooks/usePosState";
+import { useAddItemToPosDraft, useCreatePosDraft } from "../hooks/usePosApi";
 import { useBrands, useStyles } from "@/features/products/hooks";
 import { useColors, useMaterials, useSizes } from "@/features/attributes/hooks";
 import { cn } from "@/shared/lib/utils";
+import { formatCurrency } from "@/shared/utils/format";
+import { toast } from "sonner";
 
 export function ProductSearch() {
-    const { addItem } = usePosStore();
+    const { currentDraft, setCurrentDraft } = usePosStore();
+    const { mutate: addItem, isPending: isAdding } = useAddItemToPosDraft();
+    const { mutate: createDraft, isPending: isCreatingDraft } = useCreatePosDraft();
 
     // Filters State
     const [searchTerm, setSearchTerm] = useState("");
-    // Note: Brand/Style filters might be client-side filtered or just UI for now if API lacks support for variants
     const [selectedBrand, setSelectedBrand] = useState<string>("all");
     const [selectedStyle, setSelectedStyle] = useState<string>("all");
     const [selectedColor, setSelectedColor] = useState<string>("all");
     const [selectedSize, setSelectedSize] = useState<string>("all");
     const [selectedMaterial, setSelectedMaterial] = useState<string>("all");
-    const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]); // 0 to 10M default
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
     const [page, setPage] = useState(0);
 
     const debouncedSearch = useDebounce(searchTerm, 300);
     const debouncedPrice = useDebounce(priceRange, 500);
 
     // Filter Options Query
-    // Using simple pagination to get a "all" list or first 100
     const { data: brandsData } = useBrands({ size: 1000, status: ["ACTIVE"] });
     const { data: stylesData } = useStyles({ size: 1000, status: ["ACTIVE"] });
     const { data: colorsData } = useColors({ page: 0, size: 1000, status: ["ACTIVE"] });
     const { data: sizesData } = useSizes({ page: 0, size: 1000, status: ["ACTIVE"] });
     const { data: materialsData } = useMaterials({ page: 0, size: 1000, status: ["ACTIVE"] });
-
-    // Variants Query
-    // Construct filter params based on state
-    // Note: API for variants doesn't support brand/style directly in the hook we saw,
-    // so we might filter client-side or pass what is supported.
-    // Assuming schema supports 'colorIds', 'sizeIds', 'materialIds', 'fromPrice', 'toPrice'.
-
 
     const queryParams: any = {
         page,
@@ -73,12 +69,6 @@ export function ProductSearch() {
 
     const { data: variantsData, isLoading } = useProductVariants(queryParams);
 
-    // Client-side filtering for Brand/Style if necessary and feasible
-    // Since we only fetch 50 items, client-side filtering page-by-page is bad.
-    // If API doesn't support it, the UI for Brand/Category will be visual only or we need backend update.
-    // For now, implementing as if it filters, but if API ignores it, it ignores it.
-    // However, we can try to filter the *fetched* results by brand/style if product data is joined.
-
     const filteredContents = variantsData?.contents.filter(variant => {
         if (selectedBrand !== "all" && variant.product?.brand?.id !== parseInt(selectedBrand)) return false;
         if (selectedStyle !== "all" && variant.product?.style?.id !== parseInt(selectedStyle)) return false;
@@ -86,20 +76,45 @@ export function ProductSearch() {
     }) || [];
 
     const handleAddToCart = (variant: any) => {
-        // Fallback for missing product object to prevent crash
-        const productName = variant.product?.name || variant.sku || "Unknown Product";
-        const productThumbnail = variant.product?.thumbnail;
-
-        addItem({
-            id: crypto.randomUUID(),
-            product: variant,
-            productName: productName,
-            productThumbnail: productThumbnail,
-            quantity: 1,
-            price: variant.price,
-            variantName: `${variant.color.name} - ${variant.size.name}`,
-            maxStock: variant.quantity,
-        });
+        if (!currentDraft) {
+            // No draft exists - create one with this first item
+            createDraft({
+                orderType: "POS_INSTORE",
+                items: [{
+                    productVariantId: variant.id,
+                    quantity: 1
+                }]
+            }, {
+                onSuccess: (newDraft) => {
+                    setCurrentDraft(newDraft);
+                    toast.success("Item added to new draft");
+                },
+                onError: (error: any) => {
+                    toast.error("Failed to add item", {
+                        description: error.response?.data?.message
+                    });
+                }
+            });
+        } else {
+            // Draft exists - add item to it
+            addItem({
+                draftId: currentDraft.id,
+                item: {
+                    productVariantId: variant.id,
+                    quantity: 1
+                }
+            }, {
+                onSuccess: (updatedDraft) => {
+                    setCurrentDraft(updatedDraft);
+                    toast.success("Item added");
+                },
+                onError: (error: any) => {
+                    toast.error("Failed to add item", {
+                        description: error.response?.data?.message
+                    });
+                }
+            });
+        }
     };
 
     return (
@@ -135,7 +150,7 @@ export function ProductSearch() {
                             className="w-[180px]"
                         />
                         <span className="text-xs font-mono whitespace-nowrap">
-                            ${(priceRange[0] / 1000).toFixed(0)}k - ${(priceRange[1] / 1000).toFixed(0)}k
+                            {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
                         </span>
                     </div>
                 </div>
@@ -298,7 +313,7 @@ export function ProductSearch() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="font-bold text-sm">
-                                                ${new Intl.NumberFormat().format(variant.price)}
+                                                {formatCurrency(variant.price)}
                                             </div>
                                             {variant.quantity <= 0 && (
                                                 <span className="text-[10px] text-red-500 font-medium block">Out of Stock</span>
