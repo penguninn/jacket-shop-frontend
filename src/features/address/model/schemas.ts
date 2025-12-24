@@ -29,23 +29,20 @@ export type Ward = z.infer<typeof wardSchema>;
 // --- Address Schemas ---
 
 export const addressRequestSchema = z.object({
-    addressLine: z.string()
+    addressLine: z.string({ message: "Address line is required" })
         .min(1, "Address line cannot be empty")
         .max(255, "Address line must be less than 255 characters"),
-    wardId: z.number(),
-    districtId: z.number(),
-    provinceId: z.number(),
+    wardId: z.number({ message: "Please select a ward" }),
+    districtId: z.number({ message: "Please select a district" }),
+    provinceId: z.number({ message: "Please select a province" }),
     isDefault: z.boolean().optional(),
-    recipientName: z.string()
-        .max(120, "Recipient name must be less than 120 characters")
-        .optional()
-        .or(z.literal("")),
-    recipientPhone: z.string()
+    recipientName: z.string({ message: "Recipient name is required" })
+        .min(1, "Recipient name cannot be empty")
+        .max(120, "Recipient name must be less than 120 characters"),
+    recipientPhone: z.string({ message: "Phone number is required" })
         .min(10, "Phone number must be at least 10 digits")
         .max(20, "Phone number must be at most 20 digits")
-        .regex(/^0\d{9,14}$/, "Phone number must start with 0 and contain only digits")
-        .optional()
-        .or(z.literal("")),
+        .regex(/^0\d{9,14}$/, "Phone number must start with 0 and contain only digits"),
 });
 
 export const addressResponseSchema = z.object({

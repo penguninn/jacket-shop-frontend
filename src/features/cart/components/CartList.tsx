@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ShoppingBag, ArrowRight, Tag } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
@@ -10,7 +10,7 @@ import { useCart, useValidateCart } from "../hooks";
 import { type CartValidationResponse } from "../model";
 import { formatCurrency } from "@/shared/utils/format";
 import { type Coupon } from "@/features/coupons/model";
-import { useCouponByCode } from "@/features/coupons/hooks";
+import { useValidateCoupon } from "@/features/coupons/hooks";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import {
@@ -24,7 +24,7 @@ import {
 
 export function CartList() {
     const navigate = useNavigate();
-    const { data: cart, isLoading } = useCart();
+    const { data: cart, isLoading, dataUpdatedAt } = useCart();
     const validateCart = useValidateCart();
 
     const [validationIssues, setValidationIssues] = useState<CartValidationResponse["issues"]>([]);
@@ -33,7 +33,11 @@ export function CartList() {
     // Coupon state
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-    const { mutateAsync: checkCoupon, isPending: isCheckingCoupon } = useCouponByCode();
+    const { mutateAsync: validateCoupon, isPending: isCheckingCoupon } = useValidateCoupon();
+
+    // Track if we've done the initial load
+    const isInitialMount = useRef(true);
+    const previousDataUpdatedAt = useRef(dataUpdatedAt);
 
     const items = cart?.items || [];
 
@@ -41,6 +45,41 @@ export function CartList() {
         const price = item.productVariant.salePrice ?? item.productVariant.price;
         return sum + price * item.quantity;
     }, 0);
+
+    // Re-validate coupon when cart data changes (after initial load)
+    useEffect(() => {
+        // Skip on initial mount
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            previousDataUpdatedAt.current = dataUpdatedAt;
+            return;
+        }
+
+        // Only trigger when dataUpdatedAt actually changes (cart was modified)
+        if (appliedCoupon && dataUpdatedAt !== previousDataUpdatedAt.current && totalPrice > 0) {
+            previousDataUpdatedAt.current = dataUpdatedAt;
+
+            // Re-validate the coupon with the new total
+            validateCoupon({ code: appliedCoupon.code, orderAmount: totalPrice })
+                .then((coupon) => {
+                    setAppliedCoupon(coupon);
+                })
+                .catch(() => {
+                    // Coupon is no longer valid (e.g., total dropped below minimum)
+                    setAppliedCoupon(null);
+                    setCouponCode("");
+                    toast.warning("Coupon removed", {
+                        description: "The coupon is no longer valid for your updated cart.",
+                    });
+                });
+        } else if (appliedCoupon && totalPrice === 0) {
+            // Cart is empty, remove coupon
+            setAppliedCoupon(null);
+            setCouponCode("");
+        }
+
+        previousDataUpdatedAt.current = dataUpdatedAt;
+    }, [dataUpdatedAt, appliedCoupon, totalPrice, validateCoupon]);
 
     // Calculate discount
     let discount = 0;
@@ -65,33 +104,17 @@ export function CartList() {
         if (!couponCode.trim()) return;
 
         try {
-            const coupon = await checkCoupon(couponCode);
-
-            if (coupon.minOrderValue && totalPrice < coupon.minOrderValue) {
-                toast.error("Coupon Invalid", {
-                    description: `Minimum order value of ${formatCurrency(coupon.minOrderValue)} required.`,
-                });
-                return;
-            }
-
-            // Should also check validFrom/validTo but backend/schema might handle or we check here
-            const now = new Date();
-            if (new Date(coupon.validFrom) > now || new Date(coupon.validTo) < now) {
-                toast.error("Coupon Expired", {
-                    description: "This coupon is no longer valid.",
-                });
-                return;
-            }
-
+            const coupon = await validateCoupon({ code: couponCode, orderAmount: totalPrice });
             setAppliedCoupon(coupon);
+
+            const savedAmount = coupon.type === 'PERCENT'
+                ? (totalPrice * (coupon.value / 100))
+                : coupon.value;
             toast.success("Coupon Applied", {
-                description: `You saved ${formatCurrency(appliedCoupon?.type === 'PERCENT' ? (totalPrice * (coupon.value / 100)) : coupon.value)}`,
+                description: `You saved ${formatCurrency(savedAmount)}`,
             });
-        } catch (error) {
-            console.error("Failed to apply coupon", error);
-            setAppliedCoupon(null);
-            // Error toast is handled by global mutation if configured, or we can add here
-            toast.error("Invalid Coupon", { description: "Could not apply coupon." });
+        } catch {
+            // Error is already handled by useGlobalMutation
         }
     };
 

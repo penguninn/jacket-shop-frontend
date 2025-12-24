@@ -4,6 +4,7 @@ import {
     productsResponseSchema,
     brandsResponseSchema,
     stylesResponseSchema,
+    importResultSchema,
     type ProductFilterParams,
     type CreateProductInput,
     type UpdateProductInput,
@@ -12,6 +13,7 @@ import {
     type BulkDeleteProductInput,
 } from "../model/schemas";
 import { z } from "zod";
+import { axiosPrivate } from "@/shared/api/axios.private";
 
 
 const ENDPOINTS = Object.freeze({
@@ -162,6 +164,20 @@ export async function bulkDeleteProducts(payload: BulkDeleteProductInput) {
     );
 }
 
+// Import products from Excel file
+export async function importProducts(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosPrivate.post("/products/import", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return importResultSchema.parse(response.data.data);
+}
+
 // -----------------
 // Helper Entities API
 // -----------------
@@ -226,3 +242,4 @@ export async function getStyles(params: HelperEntityParams = {}) {
         stylesResponseSchema
     );
 }
+

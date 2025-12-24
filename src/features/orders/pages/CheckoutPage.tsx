@@ -2,20 +2,20 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useCart } from "@/features/cart/hooks";
 import { useCreateOrder } from "@/features/orders/hooks";
+import { useCreatePaymentLink } from "@/features/payos/hooks";
 import { toast } from "sonner";
 import { AddressSection } from "@/features/orders/components/checkout/AddressSection";
 import { CheckoutProducts } from "@/features/orders/components/checkout/CheckoutProducts";
 import { CheckoutShipping } from "@/features/orders/components/checkout/CheckoutShipping";
 import { CheckoutPayment } from "@/features/orders/components/checkout/CheckoutPayment";
 import type { AddressResponse } from "@/features/address/model";
-// import type { ShippingMethod } from "@/features/shipping-methods/model"; // Removed
 import { Button } from "@/shared/ui/button";
 import { formatCurrency } from "@/shared/utils/format";
 import { useShippingRates } from "@/features/shipping/hooks";
 import { useLocation } from "react-router-dom";
 import { type Coupon } from "@/features/coupons/model";
-import { useCouponByCode } from "@/features/coupons/hooks";
-import { X } from "lucide-react";
+import { useValidateCoupon } from "@/features/coupons/hooks";
+import { X, Loader2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import {
     Breadcrumb,
@@ -25,14 +25,19 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
+import { usePaymentMethods } from "@/features/payment-methods/hooks";
 
 
 export default function CheckoutPage() {
     const navigate = useNavigate();
     const { data: cart } = useCart();
-    const { mutateAsync: createOrder, isPending: isCreatingOrder } = useCreateOrder();
+    const { mutateAsync: createOrder } = useCreateOrder();
+    const { mutateAsync: createPaymentLink } = useCreatePaymentLink();
     const { mutate: getRates, isPending: isLoadingRates } = useShippingRates();
 
+    // Processing state
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [loadingText, setLoadingText] = useState("");
 
     const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
     const [shippingRates, setShippingRates] = useState<any[]>([]);
@@ -40,11 +45,21 @@ export default function CheckoutPage() {
     const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
     const [note, setNote] = useState("");
 
+    // Fetch payment methods to check type
+    const { data: paymentMethodsData } = usePaymentMethods({
+        page: 0,
+        size: 100,
+        status: ["ACTIVE"],
+        type: ["ONLINE"],
+    });
+    const paymentMethods = paymentMethodsData?.contents || [];
+    const selectedPaymentMethod = paymentMethods.find(m => m.id === selectedPaymentMethodId);
+
     // Coupon State
     const location = useLocation();
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-    const { mutateAsync: checkCoupon, isPending: isCheckingCoupon } = useCouponByCode();
+    const { mutateAsync: validateCoupon, isPending: isCheckingCoupon } = useValidateCoupon();
 
     useEffect(() => {
         if (location.state?.appliedCoupon) {
@@ -113,8 +128,6 @@ export default function CheckoutPage() {
             discount = appliedCoupon.value;
         }
     }
-    // Ensure discount doesn't exceed subtotal (assuming shipping is separate, or total payment)
-    // Typically discount applies to merchandise subtotal
     if (discount > merchSubtotal) {
         discount = merchSubtotal;
     }
@@ -123,6 +136,7 @@ export default function CheckoutPage() {
     const totalPayment = merchSubtotal + shippingFee - discount;
 
     const handlePlaceOrder = async () => {
+        // Validation
         if (!selectedAddress) {
             toast.error("Address Required", {
                 description: "Please select a delivery address.",
@@ -151,8 +165,12 @@ export default function CheckoutPage() {
             return;
         }
 
+        setIsProcessing(true);
+
         try {
-            await createOrder({
+            // STEP 1: Create Order
+            setLoadingText("Creating order...");
+            const order = await createOrder({
                 orderType: "ONLINE",
                 paymentMethodId: selectedPaymentMethodId,
                 note: note.trim() || undefined,
@@ -162,8 +180,6 @@ export default function CheckoutPage() {
                 })),
                 addressId: selectedAddress.id,
                 couponCode: appliedCoupon?.code,
-
-                // Shipping Mapping
                 carrierName: selectedRate.carrier_name,
                 carrierServiceName: selectedRate.service,
                 shippingFee: selectedRate.total_fee,
@@ -171,16 +187,47 @@ export default function CheckoutPage() {
                 carrierRateId: selectedRate.id,
             });
 
-            toast.success("Order Placed Successfully", {
-                description: "Thank you for your purchase!",
-            });
+            const orderId = order.id;
 
-            navigate("/user/purchase");
+            // Check if payment method is QR (requires PayOS)
+            const isQRPayment = selectedPaymentMethod?.code === 'QR';
+
+            if (!isQRPayment) {
+                // COD or other methods: Go directly to order success/history
+                toast.success("Order placed successfully!");
+                navigate("/user/purchase");
+                return;
+            }
+
+            // STEP 2: Create PayOS Payment Link (only for QR payments)
+            setLoadingText("Connecting to payment gateway...");
+            try {
+                const paymentRes = await createPaymentLink(orderId);
+
+                if (paymentRes.checkoutUrl) {
+                    // Redirect to PayOS checkout
+                    window.location.href = paymentRes.checkoutUrl;
+                } else {
+                    throw new Error("No checkout URL received");
+                }
+            } catch (paymentError) {
+                // CRITICAL: Order was created but payment link failed
+                // Must redirect to order details so user can retry payment
+                console.error("Payment link creation failed:", paymentError);
+                toast.error("Payment link failed", {
+                    description: "Order created but payment link failed. Please pay from your order details.",
+                    duration: 5000,
+                });
+                navigate(`/user/purchase`);
+            }
+
         } catch (error) {
-            console.error("Failed to place order", error);
-            toast.error("Order Failed", {
-                description: "Something went wrong while placing your order. Please try again.",
-            });
+            // STEP 1 failed - Order not created, user can retry
+            console.error("Order creation failed:", error);
+            // Error toast is already handled by useCreateOrder hook
+        } finally {
+            setIsProcessing(false);
+            setLoadingText("");
         }
     };
 
@@ -188,30 +235,17 @@ export default function CheckoutPage() {
         if (!couponCode.trim()) return;
 
         try {
-            const coupon = await checkCoupon(couponCode);
-            if (coupon.minOrderValue && merchSubtotal < coupon.minOrderValue) {
-                toast.error("Coupon Invalid", {
-                    description: `Minimum order value of ${formatCurrency(coupon.minOrderValue)} required.`,
-                });
-                return;
-            }
-
-            const now = new Date();
-            if (new Date(coupon.validFrom) > now || new Date(coupon.validTo) < now) {
-                toast.error("Coupon Expired", {
-                    description: "This coupon is no longer valid.",
-                });
-                return;
-            }
-
+            const coupon = await validateCoupon({ code: couponCode, orderAmount: merchSubtotal });
             setAppliedCoupon(coupon);
+
+            const savedAmount = coupon.type === 'PERCENT'
+                ? (merchSubtotal * (coupon.value / 100))
+                : coupon.value;
             toast.success("Coupon Applied", {
-                description: `You saved ${formatCurrency(coupon.type === 'PERCENT' ? (merchSubtotal * (coupon.value / 100)) : coupon.value)}`,
+                description: `You saved ${formatCurrency(savedAmount)}`,
             });
-        } catch (error) {
-            console.error("Failed to apply coupon", error);
-            setAppliedCoupon(null);
-            toast.error("Invalid Coupon", { description: "Could not apply coupon." });
+        } catch {
+            // Error is already handled by useGlobalMutation
         }
     }
 
@@ -365,11 +399,18 @@ export default function CheckoutPage() {
                         </div>
                         <div className="flex justify-center items-center">
                             <Button
-                                className="bg-[#FF6900] text-white px-10 py-3 h-auto hover:bg-[#F54900] text-lg rounded-[2px]"
+                                className="bg-[#FF6900] text-white px-10 py-3 h-auto hover:bg-[#F54900] text-lg rounded-[2px] min-w-[200px]"
                                 onClick={handlePlaceOrder}
-                                disabled={isCreatingOrder}
+                                disabled={isProcessing}
                             >
-                                {isCreatingOrder ? "Placing Order..." : "Place Order"}
+                                {isProcessing ? (
+                                    <span className="flex items-center gap-2">
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        {loadingText || "Processing..."}
+                                    </span>
+                                ) : (
+                                    "Place Order"
+                                )}
                             </Button>
                         </div>
                     </div>

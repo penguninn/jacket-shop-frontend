@@ -19,16 +19,19 @@ export function DraftTabs() {
     useEffect(() => {
         if (drafts) {
             setDraftList(drafts);
+            // Also update currentDraft if it exists in the new list
+            // Use the current id from the store directly to avoid infinite loop
+            const currentId = usePosStore.getState().currentDraft?.id;
+            if (currentId) {
+                const updated = drafts.find(d => d.id === currentId);
+                if (updated) {
+                    setCurrentDraft(updated);
+                }
+            }
         }
-    }, [drafts, setDraftList]);
+    }, [drafts, setDraftList, setCurrentDraft]);
 
-    // Poll for updates every 10 seconds
-    useEffect(() => {
-        const interval = setInterval(() => {
-            refetch();
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [refetch]);
+
 
     const handleNewDraft = () => {
         if (draftList.length >= 5) {
@@ -101,11 +104,18 @@ export function DraftTabs() {
                     </div>
                 ) : (
                     draftList.map((draft) => (
-                        <button
+                        <div
                             key={draft.id}
+                            role="button"
+                            tabIndex={0}
                             onClick={() => setCurrentDraft(draft)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    setCurrentDraft(draft);
+                                }
+                            }}
                             className={cn(
-                                "relative px-4 py-2 rounded-t-lg border border-b-0 shrink-0 transition-colors group",
+                                "relative px-4 py-2 rounded-t-lg border border-b-0 shrink-0 transition-colors group cursor-pointer select-none",
                                 currentDraft?.id === draft.id
                                     ? "bg-background border-border"
                                     : "bg-muted/50 border-transparent hover:bg-muted"
@@ -142,7 +152,7 @@ export function DraftTabs() {
                             >
                                 ×
                             </button>
-                        </button>
+                        </div>
                     ))
                 )}
 

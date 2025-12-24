@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, User as UserIcon, X, Plus, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, User as UserIcon, Plus, Loader2 } from "lucide-react";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { useUsers, useCreateUser } from "@/features/users/hooks";
 import { useRoles } from "@/features/roles/hooks";
@@ -28,14 +28,14 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
 import { usePosStore } from "../hooks/usePosState";
-import { useUpdatePosDraft } from "../hooks/usePosApi";
+import { useUpdatePosDraftCustomer } from "../hooks/usePosApi";
 import type { User } from "@/features/users/model/schemas";
 import { toast } from "sonner";
 
 export function CustomerSelector() {
     // Correct store usage
     const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: updateDraft, isPending: isUpdating } = useUpdatePosDraft();
+    const { mutate: updateCustomer, isPending: isUpdating } = useUpdatePosDraftCustomer();
 
     // Derived state
     const selectedCustomerName = currentDraft?.customerName;
@@ -60,12 +60,22 @@ export function CustomerSelector() {
             return;
         }
 
-        updateDraft({
+        updateCustomer({
             id: currentDraft.id,
             data: {
                 userId: user.id,
                 customerName: user.fullName,
                 customerPhone: user.phone,
+                // Clear shipping info when customer changes (they have different addresses)
+                shippingAddressLine: null,
+                shippingProvinceCode: null,
+                shippingDistrictCode: null,
+                shippingWardCode: null,
+                shippingRecipientName: null,
+                shippingRecipientPhone: null,
+                shippingFee: null,
+                carrierName: null,
+                carrierServiceName: null,
             }
         }, {
             onSuccess: (updatedDraft) => {
@@ -82,24 +92,7 @@ export function CustomerSelector() {
         });
     };
 
-    const handleClear = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!currentDraft) return;
 
-        updateDraft({
-            id: currentDraft.id,
-            data: {
-                userId: null,
-                customerName: "Walk-in Customer",
-                customerPhone: null, // Clear phone number
-            }
-        }, {
-            onSuccess: (updatedDraft) => {
-                setCurrentDraft(updatedDraft);
-                toast.success("Customer removed");
-            }
-        });
-    };
 
     if (!currentDraft) {
         return (
@@ -162,21 +155,6 @@ export function CustomerSelector() {
                                     {isLoading ? "Searching..." : "No customer found."}
                                 </CommandEmpty>
                                 <CommandGroup>
-                                    {/* Option for walk-in customer */}
-                                    <CommandItem
-                                        value="walk-in"
-                                        onSelect={(e) => handleClear(e as any)}
-                                        className="cursor-pointer font-medium"
-                                    >
-                                        <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                !selectedUserId ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        Walk-in Customer
-                                    </CommandItem>
-
                                     {usersData?.contents.map((user) => (
                                         <CommandItem
                                             key={user.id}
@@ -201,19 +179,6 @@ export function CustomerSelector() {
                         </Command>
                     </PopoverContent>
                 </Popover>
-
-                {selectedUserId && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleClear}
-                        title="Clear customer"
-                        className="shrink-0"
-                        disabled={isUpdating}
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                )}
             </div>
 
             {/* Customer Details Minimal View */}

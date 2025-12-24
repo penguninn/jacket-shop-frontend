@@ -16,6 +16,9 @@ import {
   getPublicSizes,
   updateColor,
   updateSize,
+  importColors,
+  importSizes,
+  importMaterials,
   type GetColorsParams,
   type GetSizesParams,
   type GetMaterialsParams,
@@ -152,10 +155,32 @@ export function useBulkDeleteColors(options?: BaseMutationOptions) {
   });
 }
 
+export function useImportColors(options?: BaseMutationOptions) {
+  const qc = useQueryClient();
+  return useGlobalMutation({
+    mutationFn: importColors,
+    setError: options?.setError,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["colors"] });
+    },
+  });
+}
+
 export function useBulkDeleteSizes(options?: BaseMutationOptions) {
   const qc = useQueryClient();
   return useGlobalMutation({
     mutationFn: (ids: number[]) => bulkDeleteSizes(ids),
+    setError: options?.setError,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sizes"] });
+    },
+  });
+}
+
+export function useImportSizes(options?: BaseMutationOptions) {
+  const qc = useQueryClient();
+  return useGlobalMutation({
+    mutationFn: importSizes,
     setError: options?.setError,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sizes"] });
@@ -260,4 +285,13 @@ export function useBulkUpdateStatusMaterials(options?: BaseMutationOptions) {
   });
 }
 
-
+export function useImportMaterials(options?: BaseMutationOptions) {
+  const qc = useQueryClient();
+  return useGlobalMutation({
+    mutationFn: importMaterials,
+    setError: options?.setError,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["materials"] });
+    },
+  });
+}

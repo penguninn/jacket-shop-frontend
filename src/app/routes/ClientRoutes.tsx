@@ -16,6 +16,8 @@ import NotFound from "@/pages/NotFound";
 import UserLayout from "@/app/layouts/UserLayout";
 import ChangePassword from "@/features/auth/pages/ChangePasswordPage";
 import Purchase from "@/features/orders/pages/PurchasePage";
+import PaymentSuccessPage from "@/features/payos/pages/PaymentSuccessPage";
+import PaymentCancelPage from "@/features/payos/pages/PaymentCancelPage";
 
 
 export default function ClientRoutes() {
@@ -43,6 +45,10 @@ export default function ClientRoutes() {
             </RequireAuth>
           }
         />
+
+        {/* PayOS Payment Callback Routes */}
+        <Route path="payment-success/:orderCode" element={<PaymentSuccessPage />} />
+        <Route path="payment-cancel/:orderCode" element={<PaymentCancelPage />} />
 
         <Route
           path="user"
@@ -90,3 +96,4 @@ export default function ClientRoutes() {
     </Routes>
   );
 }
+

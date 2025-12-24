@@ -8,6 +8,10 @@ import {
     addItemToPosDraft,
     updateDraftItemQuantity,
     removeItemFromPosDraft,
+    updatePosDraftInfo,
+    updatePosDraftCustomer,
+    updatePosDraftShipping,
+    updatePosDraftCoupon,
 } from "../api/pos-api";
 import type {
     CreatePosDraftRequest,
@@ -29,6 +33,8 @@ export function usePosDrafts() {
     return useQuery({
         queryKey: posDraftKeys.list(),
         queryFn: getPosDrafts,
+        refetchOnWindowFocus: false,
+        staleTime: Infinity, // Only refetch on invalidation (mutations)
     });
 }
 
@@ -46,7 +52,8 @@ export function useCreatePosDraft() {
 }
 
 /**
- * Update an existing POS draft order
+ * Update an existing POS draft order (DEPRECATED - use specific update hooks)
+ * @deprecated Use useUpdatePosDraftInfo, useUpdatePosDraftCustomer, useUpdatePosDraftShipping, or useUpdatePosDraftCoupon
  */
 export function useUpdatePosDraft() {
     const queryClient = useQueryClient();
@@ -145,3 +152,66 @@ export function useRemoveItemFromPosDraft() {
         },
     });
 }
+
+// ===== Specific POS Draft Update Hooks =====
+
+/**
+ * Update POS draft general info (payment method, etc.)
+ */
+export function useUpdatePosDraftInfo() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePosDraftRequest }) =>
+            updatePosDraftInfo(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.all });
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.detail(id) });
+        },
+    });
+}
+
+/**
+ * Update POS draft customer info
+ */
+export function useUpdatePosDraftCustomer() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePosDraftRequest }) =>
+            updatePosDraftCustomer(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.all });
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.detail(id) });
+        },
+    });
+}
+
+/**
+ * Update POS draft shipping info
+ */
+export function useUpdatePosDraftShipping() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdatePosDraftRequest }) =>
+            updatePosDraftShipping(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.all });
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.detail(id) });
+        },
+    });
+}
+
+/**
+ * Update POS draft coupon
+ */
+export function useUpdatePosDraftCoupon() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, couponCode }: { id: number; couponCode: string | null }) =>
+            updatePosDraftCoupon(id, couponCode),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.all });
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.detail(id) });
+        },
+    });
+}
+

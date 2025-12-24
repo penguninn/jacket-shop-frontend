@@ -53,7 +53,7 @@ export async function completePosDraft(id: number): Promise<Order> {
  * DELETE /api/admin/orders/pos/{id}
  */
 export async function deletePosDraft(id: number): Promise<void> {
-    return httpPrivateTyped.del<void>(`/admin/orders/pos/${id}`, z.void());
+    return httpPrivateTyped.del<void>(`/admin/orders/pos/${id}`, z.any());
 }
 
 // POS Draft Item Management
@@ -101,5 +101,56 @@ export async function removeItemFromPosDraft(
     return httpPrivateTyped.del<Order>(
         `/admin/orders/pos/${draftId}/items/${itemId}`,
         orderSchema
+    );
+}
+
+// ==================== SPECIFIC POS UPDATE ENDPOINTS ====================
+
+/**
+ * Update POS draft general info (payment method, etc.)
+ * PUT /api/admin/orders/pos/{id}/info
+ */
+export async function updatePosDraftInfo(
+    id: number,
+    data: UpdatePosDraftRequest
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(`/admin/orders/pos/${id}/info`, data, orderSchema);
+}
+
+/**
+ * Update POS draft customer info
+ * PUT /api/admin/orders/pos/{id}/customer
+ */
+export async function updatePosDraftCustomer(
+    id: number,
+    data: UpdatePosDraftRequest
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(`/admin/orders/pos/${id}/customer`, data, orderSchema);
+}
+
+/**
+ * Update POS draft shipping info
+ * PUT /api/admin/orders/pos/{id}/shipping
+ */
+export async function updatePosDraftShipping(
+    id: number,
+    data: UpdatePosDraftRequest
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(`/admin/orders/pos/${id}/shipping`, data, orderSchema);
+}
+
+/**
+ * Update POS draft coupon
+ * PUT /api/admin/orders/pos/{id}/coupon?couponCode=XXX
+ */
+export async function updatePosDraftCoupon(
+    id: number,
+    couponCode: string | null
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(
+        `/admin/orders/pos/${id}/coupon`,
+        {},
+        orderSchema,
+        { params: { couponCode: couponCode || undefined } }
     );
 }

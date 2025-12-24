@@ -55,6 +55,7 @@ export default function Search() {
     const urlSortBy = searchParams.get("sortBy") || "createdAt";
     const urlSortDir = (searchParams.get("sortDir") as "ASC" | "DESC") || "DESC";
     const urlIsFeatured = searchParams.get("isFeatured") === "true";
+    const urlStatus = searchParams.get("status")?.split(",").map((s) => s as "ACTIVE" | "INACTIVE") || ["ACTIVE"];
 
     // Local Filter States (UI State)
     const [priceRange, setPriceRange] = useState([urlMinPrice, urlMaxPrice]);
@@ -91,6 +92,7 @@ export default function Search() {
         sortBy: urlSortBy,
         sortDir: urlSortDir,
         isFeatured: urlIsFeatured || undefined,
+        status: urlStatus,
         brandIds: urlBrandIds.length > 0 ? urlBrandIds : undefined,
         styleIds: urlStyleIds.length > 0 ? urlStyleIds : undefined,
         colorIds: urlColorIds.length > 0 ? urlColorIds : undefined,

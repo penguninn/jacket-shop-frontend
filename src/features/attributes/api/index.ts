@@ -6,6 +6,7 @@ import {
   colorsResponseSchema,
   sizesResponseSchema,
   materialsResponseSchema,
+  importResultSchema,
   type CreateColorInput,
   type UpdateColorInput,
   type CreateSizeInput,
@@ -13,6 +14,7 @@ import {
   type CreateMaterialInput,
   type UpdateMaterialInput,
 } from "../model/schemas";
+import { axiosPrivate } from "@/shared/api/axios.private";
 
 // -----------------
 // Common
@@ -98,6 +100,20 @@ export async function bulkUpdateStatusColors(ids: number[], status: string) {
   await httpPrivateTyped.post("/colors/bulk/status", { ids, status }, z.array(colorSchema));
 }
 
+// Import colors from Excel file
+export async function importColors(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axiosPrivate.post("/colors/import", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return importResultSchema.parse(response.data.data);
+}
+
 // -----------------
 // Size API
 // -----------------
@@ -175,6 +191,20 @@ export async function bulkUpdateStatusSizes(ids: number[], status: string) {
   await httpPrivateTyped.post("/sizes/bulk/status", { ids, status }, z.array(sizeSchema));
 }
 
+// Import sizes from Excel file
+export async function importSizes(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axiosPrivate.post("/sizes/import", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return importResultSchema.parse(response.data.data);
+}
+
 // -----------------
 // Material API
 // -----------------
@@ -249,4 +279,18 @@ export async function bulkDeleteMaterials(ids: number[]) {
 
 export async function bulkUpdateStatusMaterials(ids: number[], status: string) {
   await httpPrivateTyped.post("/materials/bulk/status", { ids, status }, z.array(materialSchema));
+}
+
+// Import materials from Excel file
+export async function importMaterials(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axiosPrivate.post("/materials/import", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return importResultSchema.parse(response.data.data);
 }

@@ -1,6 +1,7 @@
 import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
-import { brandSchema, brandsResponseSchema, type CreateBrandInput, type UpdateBrandInput, type UpdateBrandStatusInput } from "../model/schemas";
+import { brandSchema, brandsResponseSchema, importResultSchema, type CreateBrandInput, type UpdateBrandInput, type UpdateBrandStatusInput } from "../model/schemas";
 import z from "zod";
+import { axiosPrivate } from "@/shared/api/axios.private";
 
 type SortDirection = "asc" | "desc";
 const DEFAULT_SORT_BY = "createdAt";
@@ -110,4 +111,18 @@ export async function bulkUpdateBrandStatus(ids: number[], status: string) {
 // Bulk delete brands
 export async function bulkDeleteBrands(ids: number[]) {
     await httpPrivateTyped.post(`/brands/bulk/delete`, { ids }, z.void());
+}
+
+// Import brands from Excel file
+export async function importBrands(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosPrivate.post("/brands/import", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return importResultSchema.parse(response.data.data);
 }

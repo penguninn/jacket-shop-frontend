@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { Row } from "@tanstack/react-table";
 import {
     MoreHorizontal,
-    Trash,
     Eye,
     CheckCircle2,
     Archive,
@@ -16,9 +15,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { useDeleteProductVariant, useUpdateProductVariantStatus } from "../hooks";
+import { useUpdateProductVariantStatus } from "../hooks";
 import type { ProductVariant } from "../model/schemas";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 import { ProductVariantEditForm } from "./ProductVariantEditForm";
 import { ProductVariantStockAdjustmentDialog } from "./ProductVariantStockAdjustmentDialog";
@@ -31,22 +29,12 @@ interface DataTableRowActionsProps<TData> {
 
 export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActionsProps<TData>) {
     const variant = row.original as ProductVariant;
-    const deleteVariant = useDeleteProductVariant();
     const updateStatus = useUpdateProductVariantStatus();
     const navigate = useNavigate();
 
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showStockAdjustDialog, setShowStockAdjustDialog] = useState(false);
     const [showCheckStockDialog, setShowCheckStockDialog] = useState(false);
-
-    const handleDelete = () => {
-        deleteVariant.mutate(variant.id, {
-            onSuccess: () => {
-                setShowDeleteDialog(false);
-            },
-        });
-    };
 
     const handleToggleStatus = () => {
         const newStatus = variant.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
@@ -72,17 +60,6 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                 open={showCheckStockDialog}
                 onOpenChange={setShowCheckStockDialog}
                 variant={variant}
-            />
-            <ConfirmDialog
-                open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
-                title="Delete Variant"
-                description={`Are you sure you want to delete SKU ${variant.sku || variant.id}? This action cannot be undone.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                onConfirm={handleDelete}
-                variant="destructive"
-                isLoading={deleteVariant.isPending}
             />
 
             <DropdownMenu>
@@ -127,16 +104,9 @@ export function ProductVariantsTableRowActions<TData>({ row }: DataTableRowActio
                             </>
                         )}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="text-destructive focus:text-destructive"
-                    >
-                        <Trash className="mr-2 h-3.5 w-3.5" />
-                        Delete
-                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </>
     );
 }
+

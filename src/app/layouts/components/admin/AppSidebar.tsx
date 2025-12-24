@@ -3,7 +3,6 @@ import {
   BadgePercent,
   Home,
   Inbox,
-  RotateCcw,
   Shirt,
   ShoppingBag,
   ShoppingCart,
@@ -58,11 +57,6 @@ const sidebarGroups = [
         title: "Sell",
         url: "/dashboard/pos",
         icon: ShoppingCart,
-      },
-      {
-        title: "Returns",
-        url: "/dashboard/returns",
-        icon: RotateCcw,
       },
       {
         title: "Payment Methods",

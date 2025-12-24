@@ -5,6 +5,7 @@ import {
     type CreateCouponInput,
     type UpdateCouponInput,
     type UpdateCouponStatusInput,
+    type ValidateCouponInput,
 } from "../model/schemas";
 import z from "zod";
 
@@ -63,6 +64,11 @@ export async function createCoupon(payload: CreateCouponInput) {
 
 export async function getCouponByCode(code: string) {
     const res = await httpPrivateTyped.get(`/coupons/code/${code}`, couponSchema);
+    return res;
+}
+
+export async function validateCoupon(payload: ValidateCouponInput) {
+    const res = await httpPrivateTyped.post("/coupons/validate", payload, couponSchema);
     return res;
 }
 

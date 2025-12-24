@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { Banknote, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { usePaymentMethods } from "@/features/payment-methods/hooks";
-import { useCompletePosDraft, useUpdatePosDraft } from "../hooks/usePosApi";
+import { useCompletePosDraft, useUpdatePosDraftInfo } from "../hooks/usePosApi";
 import { toast } from "sonner";
 import { formatCurrency } from "@/shared/utils/format";
 
@@ -18,7 +18,7 @@ export function OrderSummary() {
         status: ["ACTIVE"],
     });
 
-    const { mutate: updateDraft } = useUpdatePosDraft();
+    const { mutate: updateInfo } = useUpdatePosDraftInfo();
     const { mutate: completeDraft, isPending } = useCompletePosDraft();
 
     if (!currentDraft) {
@@ -40,7 +40,7 @@ export function OrderSummary() {
     const paymentMethodId = currentDraft.paymentMethodId;
 
     const handlePaymentChange = (methodId: number) => {
-        updateDraft({
+        updateInfo({
             id: currentDraft.id,
             data: {
                 paymentMethodId: methodId

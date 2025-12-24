@@ -7,7 +7,7 @@ import { ArrowUpDown, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
-import { type Order, ORDER_TYPE, ORDER_STATUS } from "../../model";
+import { type Order, ORDER_TYPE, ORDER_STATUS, PAYMENT_STATUS } from "../../model";
 
 const TYPE_BADGES = {
     [ORDER_TYPE.POS_INSTORE]: { label: "POS In-Store", className: "bg-green-100 text-green-700 border-green-200 hover:bg-green-100" },
@@ -22,6 +22,12 @@ const STATUS_BADGES = {
     [ORDER_STATUS.CONFIRMED]: { label: "Confirmed", className: "bg-orange-100 text-orange-700 border-orange-200" },
     [ORDER_STATUS.PENDING]: { label: "Pending", className: "bg-gray-100 text-gray-700 border-gray-200" },
     [ORDER_STATUS.RETURNED]: { label: "Returned", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+};
+
+const PAYMENT_STATUS_BADGES = {
+    [PAYMENT_STATUS.UNPAID]: { label: "Unpaid", className: "bg-red-100 text-red-700 border-red-200" },
+    [PAYMENT_STATUS.PAID]: { label: "Paid", className: "bg-green-100 text-green-700 border-green-200" },
+    [PAYMENT_STATUS.REFUNDED]: { label: "Refunded", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
 };
 
 export const columns: ColumnDef<Order>[] = [
@@ -124,6 +130,25 @@ export const columns: ColumnDef<Order>[] = [
             const status = row.getValue("status") as string;
             // @ts-ignore
             const badge = STATUS_BADGES[status] || { label: status, className: "bg-gray-100" };
+            return (
+                <div className="text-center">
+                    <Badge variant="outline" className={cn("font-normal rounded-full", badge.className)}>
+                        {badge.label}
+                    </Badge>
+                </div>
+            );
+        },
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        },
+    },
+    {
+        accessorKey: "paymentStatus",
+        header: () => <div className="text-center">Payment</div>,
+        cell: ({ row }) => {
+            const paymentStatus = row.getValue("paymentStatus") as string;
+            // @ts-ignore
+            const badge = PAYMENT_STATUS_BADGES[paymentStatus] || { label: paymentStatus, className: "bg-gray-100" };
             return (
                 <div className="text-center">
                     <Badge variant="outline" className={cn("font-normal rounded-full", badge.className)}>

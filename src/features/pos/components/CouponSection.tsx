@@ -3,14 +3,14 @@ import { Ticket, X, Loader2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { usePosStore } from "../hooks/usePosState";
-import { useUpdatePosDraft } from "../hooks/usePosApi";
+import { useUpdatePosDraftCoupon } from "../hooks/usePosApi";
 import { toast } from "sonner";
 import { formatCurrency } from "@/shared/utils/format";
 
 export function CouponSection() {
     // Correct store and hook usage
     const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: updateDraft, isPending: isUpdating } = useUpdatePosDraft();
+    const { mutate: updateCoupon, isPending: isUpdating } = useUpdatePosDraftCoupon();
 
     const [code, setCode] = useState("");
 
@@ -30,12 +30,10 @@ export function CouponSection() {
     const handleApply = async () => {
         if (!code.trim()) return;
 
-        // Pass coupon code to backend via update draft
-        updateDraft({
+        // Pass coupon code to backend via query param
+        updateCoupon({
             id: currentDraft.id,
-            data: {
-                couponCode: code.trim().toUpperCase()
-            }
+            couponCode: code.trim().toUpperCase()
         }, {
             onSuccess: (updated) => {
                 setCurrentDraft(updated);
@@ -51,11 +49,9 @@ export function CouponSection() {
     };
 
     const handleRemove = () => {
-        updateDraft({
+        updateCoupon({
             id: currentDraft.id,
-            data: {
-                couponCode: null // Sending null to remove coupon
-            }
+            couponCode: null // Sending null to remove coupon
         }, {
             onSuccess: (updated) => {
                 setCurrentDraft(updated);

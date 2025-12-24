@@ -75,7 +75,6 @@ export function OrderTableToolbar<TData>({ table }: Props<TData>) {
                         </Popover>
                     </div>
 
-
                     {isFiltered && (
                         <Button
                             variant="ghost"
@@ -89,17 +88,6 @@ export function OrderTableToolbar<TData>({ table }: Props<TData>) {
                 </div>
 
                 <div className="flex gap-2">
-                    <Button variant="outline" className="h-8 text-orange-600 border-orange-200 bg-orange-50 hover:bg-orange-100 gap-2">
-                        <QrCode className="w-4 h-4" />
-                        Scan QR
-                    </Button>
-                    <Button className="h-8 bg-orange-500 hover:bg-orange-600 gap-2">
-                        <Plus className="w-4 h-4" />
-                        Create Order
-                    </Button>
-                    <Button variant="outline" className="h-8 text-orange-600 border-orange-200 hover:bg-orange-50 ml-auto">
-                        Export Excel
-                    </Button>
                     <DataTableViewOptions table={table} />
                 </div>
             </div>

@@ -18,12 +18,12 @@ import { useShippingRates } from "@/features/shipping/hooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { AddressDialog } from "@/features/address/components/AddressDialog";
 import { formatCurrency } from "@/shared/utils/format";
-import { useUpdatePosDraft } from "../hooks/usePosApi";
+import { useUpdatePosDraftShipping } from "../hooks/usePosApi";
 import { toast } from "sonner";
 
 export function ShippingSection() {
     const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: updateDraft, isPending: isUpdating } = useUpdatePosDraft();
+    const { mutate: updateShipping, isPending: isUpdating } = useUpdatePosDraftShipping();
 
     const [isRatesDialogOpen, setIsRatesDialogOpen] = useState(false);
     const [isCreateAddressOpen, setIsCreateAddressOpen] = useState(false);
@@ -31,6 +31,10 @@ export function ShippingSection() {
 
     const createUserAddress = useCreateUserAddress();
     const { mutate: getRates, isPending: isLoadingRates } = useShippingRates();
+
+    const selectedUserId = currentDraft?.userId;
+    // Call hook unconditionally
+    const { data: addresses } = useUserAddresses(selectedUserId || null);
 
     if (!currentDraft) {
         return (
@@ -46,20 +50,19 @@ export function ShippingSection() {
     }
 
     const shippingEnabled = currentDraft.orderType === "POS_DELIVERY";
-    const selectedUserId = currentDraft.userId;
+    // selectedUserId is defined above
     const shippingAddressLine = currentDraft.shippingAddressLine;
     const items = currentDraft.details || [];
     const shippingFee = currentDraft.shippingFee || 0;
     const shippingCarrierName = currentDraft.carrierName; // Note: carrierServiceName in backend
     const shippingService = currentDraft.carrierServiceName;
 
-    // Fetch addresses for selected customer
-    const { data: addresses } = useUserAddresses(selectedUserId || null);
+    // Fetch addresses hook moved to top
 
     const toggleShipping = (enabled: boolean) => {
         const orderType = enabled ? "POS_DELIVERY" : "POS_INSTORE";
 
-        updateDraft({
+        updateShipping({
             id: currentDraft.id,
             data: {
                 orderType,
@@ -69,6 +72,10 @@ export function ShippingSection() {
         }, {
             onSuccess: (updated) => {
                 setCurrentDraft(updated);
+                toast.success(enabled ? "Shipping enabled" : "Shipping disabled");
+            },
+            onError: () => {
+                toast.error("Failed to update shipping mode");
             }
         });
     };
@@ -79,7 +86,7 @@ export function ShippingSection() {
             // 1. Update backend with address info
             const addressString = `${addr.addressLine}, ${addr.ward?.name}, ${addr.district?.name}, ${addr.province?.name}`;
 
-            updateDraft({
+            updateShipping({
                 id: currentDraft.id,
                 data: {
                     shippingAddressLine: addressString,
@@ -139,7 +146,7 @@ export function ShippingSection() {
     };
 
     const handleRateSelect = (rate: any) => {
-        updateDraft({
+        updateShipping({
             id: currentDraft.id,
             data: {
                 shippingFee: rate.total_fee,
@@ -157,7 +164,7 @@ export function ShippingSection() {
     const saveNote = (e: React.FocusEvent<HTMLTextAreaElement>) => {
         const note = e.target.value;
         if (note !== currentDraft.note) {
-            updateDraft({
+            updateShipping({
                 id: currentDraft.id,
                 data: { note }
             }, {
@@ -195,8 +202,6 @@ export function ShippingSection() {
                                 <Label className="text-xs">Delivery Address</Label>
                                 <div className="flex gap-2">
                                     <Select
-                                        // Simple matching by string for now since we don't store address ID on order?
-                                        // Or better, just show selected if available
                                         defaultValue={""}
                                         onValueChange={handleAddressSelect}
                                     >
@@ -322,3 +327,4 @@ export function ShippingSection() {
         </div>
     );
 }
+

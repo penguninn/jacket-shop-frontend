@@ -77,8 +77,8 @@ export const orderSchema = z.object({
 
     // Customer info
     userId: z.number().nullable().optional(),
-    customerName: z.string(),
-    customerPhone: z.string().optional(),
+    customerName: z.string().nullable().optional(),
+    customerPhone: z.string().nullable().optional(),
 
     // Staff info (for POS orders)
     staffId: z.number().nullable().optional(),

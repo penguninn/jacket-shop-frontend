@@ -8,6 +8,7 @@ import {
   updateBrandStatus,
   bulkUpdateBrandStatus,
   bulkDeleteBrands,
+  importBrands,
   type GetBrandsParams,
 } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -103,6 +104,17 @@ export function useBulkDeleteBrands(options?: BaseMutationOptions) {
   const queryClient = useQueryClient();
   return useGlobalMutation({
     mutationFn: bulkDeleteBrands,
+    setError: options?.setError,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brands"] });
+    },
+  });
+}
+
+export function useImportBrands(options?: BaseMutationOptions) {
+  const queryClient = useQueryClient();
+  return useGlobalMutation({
+    mutationFn: importBrands,
     setError: options?.setError,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["brands"] });

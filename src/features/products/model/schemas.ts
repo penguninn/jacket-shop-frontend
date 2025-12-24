@@ -185,3 +185,13 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type UpdateProductStatusInput = z.infer<typeof updateProductStatusSchema>;
 export type BulkUpdateStatusProductInput = z.infer<typeof bulkUpdateStatusProductSchema>;
 export type BulkDeleteProductInput = z.infer<typeof bulkDeleteProductSchema>;
+
+// Import result schema (matches backend ImportResult)
+export const importResultSchema = z.object({
+  totalRows: z.number(),
+  successCount: z.number(),
+  errorCount: z.number(),
+  errorDetails: z.array(z.string()),
+});
+
+export type ImportResult = z.infer<typeof importResultSchema>;

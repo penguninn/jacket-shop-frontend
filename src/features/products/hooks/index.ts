@@ -13,6 +13,7 @@ import {
     getStyles,
     getPublicProducts,
     getPublicProductById,
+    importProducts,
     type HelperEntityParams,
 } from "../api";
 import type {
@@ -23,6 +24,7 @@ import type {
     UpdateProductStatusInput,
     BulkUpdateStatusProductInput,
     BulkDeleteProductInput,
+    ImportResult,
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
@@ -176,3 +178,15 @@ export function useBulkDeleteProducts(options?: BaseMutationOptions) {
         setError: options?.setError,
     });
 }
+
+export function useImportProducts(options?: BaseMutationOptions) {
+    return useGlobalMutation<ImportResult, File>({
+        mutationFn: importProducts,
+        invalidateQueries: [
+            [...productKeys.lists()] as string[],
+        ],
+        errorContext: "Import Products",
+        setError: options?.setError,
+    });
+}
+

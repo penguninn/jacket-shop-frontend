@@ -14,10 +14,6 @@ import Coupons from "@/features/coupons/pages/CouponsPage";
 import { SalePage } from "@/features/sale";
 import PosPage from "@/features/pos/pages/PosPage";
 import RequireAuth from "./RequireAuth";
-import {
-  ShippingMethodsPage as ShippingMethods,
-  ShippingMethodDetailPage as ShippingMethodDetail,
-} from "@/features/shipping-methods";
 import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
 import Inventories from "@/features/product-variants/pages/InventoriesPage";
 
@@ -98,22 +94,6 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN", "STAFF"]}>
               <PosPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="shipping-methods"
-          element={
-            <RequireAuth roles={["ADMIN"]}>
-              <ShippingMethods />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="shipping-methods/:id"
-          element={
-            <RequireAuth roles={["ADMIN"]}>
-              <ShippingMethodDetail />
             </RequireAuth>
           }
         />
