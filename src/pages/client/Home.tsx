@@ -44,7 +44,7 @@ export default function Home() {
   const { data: newArrivals } = usePublicProducts({
     page: 0,
     size: 4,
-    sortBy: "id",
+    sortBy: "createdAt",
     sortDir: "DESC",
   });
 
@@ -77,7 +77,7 @@ export default function Home() {
         <ProductSection
           title="New Arrivals"
           products={newArrivals?.contents || []}
-          viewAllUrl="/search?sortBy=id&sortDir=DESC"
+          viewAllUrl="/search?sortBy=createdAt&sortDir=DESC"
         />
 
         <ProductSection

@@ -17,6 +17,7 @@ import UserLayout from "@/app/layouts/UserLayout";
 import ChangePassword from "@/features/auth/pages/ChangePasswordPage";
 import MyVouchers from "@/features/coupons/pages/MyVouchersPage";
 import Purchase from "@/features/orders/pages/PurchasePage";
+import { ChatbotPage } from "@/features/chatbot";
 
 
 export default function ClientRoutes() {
@@ -26,6 +27,7 @@ export default function ClientRoutes() {
         <Route index element={<Home />} />
 
         <Route path="search" element={<Search />} />
+        <Route path="chat" element={<ChatbotPage />} />
         <Route path="products/:id" element={<ProductDetail />} />
 
         <Route
