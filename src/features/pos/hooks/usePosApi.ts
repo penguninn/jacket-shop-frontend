@@ -12,6 +12,7 @@ import {
     updatePosDraftCustomer,
     updatePosDraftShipping,
     updatePosDraftCoupon,
+    updatePosDraftPayment,
 } from "../api/pos-api";
 import type {
     CreatePosDraftRequest,
@@ -38,6 +39,20 @@ export function usePosDrafts() {
     });
 }
 
+/**
+ * Update POS draft payment method
+ */
+export function useUpdatePosDraftPayment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, paymentMethodId }: { id: number; paymentMethodId: number }) =>
+            updatePosDraftPayment(id, paymentMethodId),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.all });
+            queryClient.invalidateQueries({ queryKey: posDraftKeys.detail(id) });
+        },
+    });
+}
 /**
  * Create a new POS draft order
  */

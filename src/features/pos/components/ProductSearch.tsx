@@ -33,8 +33,8 @@ import { toast } from "sonner";
 
 export function ProductSearch() {
     const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: addItem, isPending: isAdding } = useAddItemToPosDraft();
-    const { mutate: createDraft, isPending: isCreatingDraft } = useCreatePosDraft();
+    const { mutate: addItem } = useAddItemToPosDraft();
+    const { mutate: createDraft } = useCreatePosDraft();
 
     // Filters State
     const [searchTerm, setSearchTerm] = useState("");

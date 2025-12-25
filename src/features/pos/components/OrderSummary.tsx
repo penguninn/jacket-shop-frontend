@@ -4,9 +4,20 @@ import { Button } from "@/shared/ui/button";
 import { Banknote, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { usePaymentMethods } from "@/features/payment-methods/hooks";
-import { useCompletePosDraft, useUpdatePosDraftInfo } from "../hooks/usePosApi";
+import { useCompletePosDraft, useUpdatePosDraftPayment } from "../hooks/usePosApi";
 import { toast } from "sonner";
 import { formatCurrency } from "@/shared/utils/format";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/shared/ui/alert-dialog";
 
 export function OrderSummary() {
     const { currentDraft, setCurrentDraft, clearCurrentDraft } = usePosStore();
@@ -18,7 +29,7 @@ export function OrderSummary() {
         status: ["ACTIVE"],
     });
 
-    const { mutate: updateInfo } = useUpdatePosDraftInfo();
+    const { mutate: updatePayment } = useUpdatePosDraftPayment();
     const { mutate: completeDraft, isPending } = useCompletePosDraft();
 
     if (!currentDraft) {
@@ -40,11 +51,9 @@ export function OrderSummary() {
     const paymentMethodId = currentDraft.paymentMethodId;
 
     const handlePaymentChange = (methodId: number) => {
-        updateInfo({
+        updatePayment({
             id: currentDraft.id,
-            data: {
-                paymentMethodId: methodId
-            }
+            paymentMethodId: methodId
         }, {
             onSuccess: (updatedDraft) => {
                 setCurrentDraft(updatedDraft);
@@ -109,64 +118,104 @@ export function OrderSummary() {
             {/* Payment Method Selection */}
             <div className="space-y-2">
                 <label className="text-sm font-medium">Payment Method</label>
-                <div className="grid grid-cols-1 gap-2">
-                    {paymentMethodsData?.contents.map((method) => (
-                        <button
-                            key={method.id}
-                            onClick={() => handlePaymentChange(method.id)}
-                            className={cn(
-                                "flex items-center gap-2 p-3 rounded-md border-2 transition-all text-left",
-                                paymentMethodId === method.id
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border hover:border-primary/50"
-                            )}
-                        >
-                            <Banknote className={cn(
-                                "h-5 w-5",
-                                paymentMethodId === method.id ? "text-primary" : "text-muted-foreground"
-                            )} />
-                            <div className="flex-1">
-                                <p className="font-medium text-sm">{method.name}</p>
-                                {method.description && (
-                                    <p className="text-xs text-muted-foreground">{method.description}</p>
+                {!paymentMethodsData ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                        Loading payment methods...
+                    </div>
+                ) : paymentMethodsData.contents.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                        No POS payment methods available
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-2">
+                        {paymentMethodsData.contents.map((method) => (
+                            <button
+                                key={method.id}
+                                onClick={() => handlePaymentChange(method.id)}
+                                className={cn(
+                                    "flex items-center gap-2 p-3 rounded-md border-2 transition-all text-left",
+                                    paymentMethodId === method.id
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/50"
                                 )}
-                            </div>
-                            {paymentMethodId === method.id && (
-                                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                    <div className="w-2 h-2 rounded-full bg-white" />
+                            >
+                                <Banknote className={cn(
+                                    "h-5 w-5",
+                                    paymentMethodId === method.id ? "text-primary" : "text-muted-foreground"
+                                )} />
+                                <div className="flex-1">
+                                    <p className="font-medium text-sm">{method.name}</p>
+                                    {method.description && (
+                                        <p className="text-xs text-muted-foreground">{method.description}</p>
+                                    )}
                                 </div>
-                            )}
-                        </button>
-                    ))}
-                </div>
+                                {paymentMethodId === method.id && (
+                                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                        <div className="w-2 h-2 rounded-full bg-white" />
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="flex gap-2 pt-2">
-                <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => clearCurrentDraft()}
-                    disabled={isPending}
-                >
-                    Cancel
-                </Button>
-                <Button
-                    className="flex-1"
-                    onClick={handleCheckout}
-                    disabled={items.length === 0 || isPending}
-                >
-                    {isPending ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                        </>
-                    ) : (
-                        <>
-                            Complete
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </>
-                    )}
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="flex-1" disabled={isPending}>
+                            Cancel
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Cancel Draft?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to cancel this draft? All items will be removed.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>No, keep draft</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={() => clearCurrentDraft()}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                                Yes, cancel draft
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button className="flex-1" disabled={items.length === 0 || isPending || !paymentMethodId}>
+                            {isPending ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    Complete
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </>
+                            )}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Complete Order?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to complete this order for <strong>{formatCurrency(total)}</strong>?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleCheckout}>
+                                Yes, complete order
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

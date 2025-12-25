@@ -2,7 +2,6 @@ import { DraftTabs } from "../components/DraftTabs";
 import { CustomerSelector } from "../components/CustomerSelector";
 import { ProductSelectionDialog } from "../components/ProductSelectionDialog";
 import { PosCartTable } from "../components/PosCartTable";
-import { ShippingSection } from "../components/ShippingSection";
 import { OrderSummary } from "../components/OrderSummary";
 import { CouponSection } from "../components/CouponSection";
 
@@ -29,7 +28,6 @@ export default function PosPage() {
 
                 <div className="col-span-4 flex flex-col gap-4 overflow-y-auto h-full pb-4">
                     <CustomerSelector />
-                    <ShippingSection />
                     <CouponSection />
                     <OrderSummary />
                 </div>
@@ -37,3 +35,4 @@ export default function PosPage() {
         </div>
     );
 }
+

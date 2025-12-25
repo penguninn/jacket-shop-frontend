@@ -90,70 +90,116 @@ export function PosCartTable() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {items.map((item) => (
-                        <TableRow key={item.id}>
-                            <TableCell>
-                                <div className="w-12 h-12 rounded border overflow-hidden bg-muted">
-                                    {item.thumbnail ? (
-                                        <img
-                                            src={item.thumbnail}
-                                            alt={item.productName}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                                            No img
+                    {items.map((item) => {
+                        // Use backend-provided originalPrice and discountPercentage
+                        const originalPrice = (item as any).originalPrice;
+                        const discountPercentage = (item as any).discountPercentage;
+                        const isOnSale = originalPrice !== undefined && originalPrice !== null && originalPrice > item.price;
+                        const originalSubtotal = isOnSale ? originalPrice * item.quantity : null;
+                        const discountPercent = discountPercentage ? Math.round(discountPercentage) : (isOnSale ? Math.round(((originalPrice - item.price) / originalPrice) * 100) : 0);
+
+                        return (
+                            <TableRow key={item.id}>
+                                <TableCell>
+                                    <div className="relative w-12 h-12 rounded border overflow-hidden bg-muted">
+                                        {item.image ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.productName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                                                No img
+                                            </div>
+                                        )}
+                                        {isOnSale && (
+                                            <div className="absolute -top-0.5 -left-0.5 bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-br-sm shadow-sm">
+                                                -{discountPercent}%
+                                            </div>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-medium">{item.productName}</p>
+                                            {isOnSale && (
+                                                <span className="bg-red-100 text-red-600 text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                                                    SALE
+                                                </span>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div>
-                                    <p className="font-medium">{item.productName}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {item.color} • {item.size} • {item.material}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">{item.sku}</p>
-                                </div>
-                            </TableCell>
-                            <TableCell>{formatCurrency(item.price)}</TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
+                                        <p className="text-xs text-muted-foreground">
+                                            {item.color} • {item.size} • {item.material}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">{item.sku}</p>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className={isOnSale ? "text-red-600 font-semibold" : "font-medium"}>
+                                            {formatCurrency(item.price)}
+                                        </span>
+                                        {isOnSale && (
+                                            <span className="text-xs text-muted-foreground line-through">
+                                                {formatCurrency(originalPrice)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() => handleUpdateQuantity(item.id!, item.quantity - 1)}
+                                            disabled={item.quantity <= 1}
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() => handleUpdateQuantity(item.id!, item.quantity + 1)}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex flex-col items-end">
+                                        <span className={`font-semibold ${isOnSale ? "text-red-600" : ""}`}>
+                                            {formatCurrency(item.subtotal)}
+                                        </span>
+                                        {isOnSale && originalSubtotal && (
+                                            <span className="text-xs text-muted-foreground line-through">
+                                                {formatCurrency(originalSubtotal)}
+                                            </span>
+                                        )}
+                                        {isOnSale && (
+                                            <span className="text-[10px] text-green-600 font-medium">
+                                                Save {formatCurrency(originalSubtotal! - item.subtotal)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleUpdateQuantity(item.id!, item.quantity - 1)}
-                                        disabled={item.quantity <= 1}
+                                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => handleRemoveItem(item.id!)}
                                     >
-                                        <Minus className="h-4 w-4" />
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
-                                    <span className="w-8 text-center font-medium">{item.quantity}</span>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleUpdateQuantity(item.id!, item.quantity + 1)}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                                {formatCurrency(item.subtotal)}
-                            </TableCell>
-                            <TableCell>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => handleRemoveItem(item.id!)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
         </div>

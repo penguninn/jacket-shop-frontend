@@ -1,7 +1,7 @@
 import { type Table } from "@tanstack/react-table";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { Search, X, QrCode, Plus, CalendarIcon } from "lucide-react";
+import { Search, X, CalendarIcon } from "lucide-react";
 import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
@@ -18,7 +18,6 @@ interface Props<TData> {
 const typeOptions = [
     { label: "Online", value: ORDER_TYPE.ONLINE },
     { label: "POS In-Store", value: ORDER_TYPE.POS_INSTORE },
-    { label: "POS Delivery", value: ORDER_TYPE.POS_DELIVERY },
 ];
 
 export function OrderTableToolbar<TData>({ table }: Props<TData>) {

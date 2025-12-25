@@ -11,7 +11,6 @@ import { type Order, ORDER_TYPE, ORDER_STATUS, PAYMENT_STATUS } from "../../mode
 
 const TYPE_BADGES = {
     [ORDER_TYPE.POS_INSTORE]: { label: "POS In-Store", className: "bg-green-100 text-green-700 border-green-200 hover:bg-green-100" },
-    [ORDER_TYPE.POS_DELIVERY]: { label: "POS Delivery", className: "bg-teal-100 text-teal-700 border-teal-200 hover:bg-teal-100" },
     [ORDER_TYPE.ONLINE]: { label: "Online", className: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100" },
 };
 

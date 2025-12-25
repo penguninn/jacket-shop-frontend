@@ -18,7 +18,6 @@ export const ORDER_STATUS = {
 export const ORDER_TYPE = {
     ONLINE: 'ONLINE',
     POS_INSTORE: 'POS_INSTORE',
-    POS_DELIVERY: 'POS_DELIVERY',
 } as const;
 
 export const PAYMENT_STATUS = {
@@ -39,7 +38,6 @@ export const orderStatusSchema = z.enum([
 export const orderTypeSchema = z.enum([
     'ONLINE',
     'POS_INSTORE',
-    'POS_DELIVERY',
 ]);
 
 export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'REFUNDED']);
@@ -58,6 +56,8 @@ export const shippingInfoRequestSchema = z.object({
 
 export const orderDetailSchema = z.object({
     id: z.number().optional(),
+    productId: z.number().optional(),
+    productVariantId: z.number().optional(),
     productName: z.string(),
     sku: z.string(),
     size: z.string(),
@@ -66,6 +66,8 @@ export const orderDetailSchema = z.object({
     image: z.string().nullable().optional(),
     thumbnail: z.string().nullable().optional(),
     price: z.number(),
+    originalPrice: z.number().nullable().optional(),
+    discountPercentage: z.number().nullable().optional(),
     quantity: z.number(),
     subtotal: z.number(),
 });

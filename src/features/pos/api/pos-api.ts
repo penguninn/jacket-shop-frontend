@@ -154,3 +154,19 @@ export async function updatePosDraftCoupon(
         { params: { couponCode: couponCode || undefined } }
     );
 }
+
+/**
+ * Update POS draft payment method
+ * PUT /api/admin/orders/pos/{id}/payment
+ */
+export async function updatePosDraftPayment(
+    id: number,
+    paymentMethodId: number
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(
+        `/admin/orders/pos/${id}/payment`,
+        { paymentMethodId },
+        orderSchema
+    );
+}
+

@@ -66,16 +66,6 @@ export function CustomerSelector() {
                 userId: user.id,
                 customerName: user.fullName,
                 customerPhone: user.phone,
-                // Clear shipping info when customer changes (they have different addresses)
-                shippingAddressLine: null,
-                shippingProvinceCode: null,
-                shippingDistrictCode: null,
-                shippingWardCode: null,
-                shippingRecipientName: null,
-                shippingRecipientPhone: null,
-                shippingFee: null,
-                carrierName: null,
-                carrierServiceName: null,
             }
         }, {
             onSuccess: (updatedDraft) => {

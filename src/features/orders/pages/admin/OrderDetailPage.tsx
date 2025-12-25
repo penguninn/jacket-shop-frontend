@@ -20,8 +20,18 @@ import {
   User,
   CreditCard,
   Package,
-
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shared/ui/alert-dialog";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
@@ -91,45 +101,118 @@ export default function OrderDetailPage() {
         <div className="flex items-center gap-2">
           {order.status === "PENDING" && (
             <>
-              <Button
-                variant="destructive"
-                onClick={() => handleAction(cancelMutation, "Order cancelled")}
-                disabled={cancelMutation.isPending}
-              >
-                Cancel Order
-              </Button>
-              <Button
-                onClick={() => handleAction(confirmMutation, "Order confirmed")}
-                disabled={confirmMutation.isPending}
-              >
-                Confirm Order
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={cancelMutation.isPending}>
+                    Cancel Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel order <strong>{order.orderCode}</strong>? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No, keep order</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Yes, cancel order
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={confirmMutation.isPending}>Confirm Order</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to confirm order <strong>{order.orderCode}</strong>? The order will be ready for shipping.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleAction(confirmMutation, "Order confirmed")}>
+                      Yes, confirm order
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </>
           )}
           {order.status === "CONFIRMED" && (
             <>
-              <Button
-                variant="destructive"
-                onClick={() => handleAction(cancelMutation, "Order cancelled")}
-                disabled={cancelMutation.isPending}
-              >
-                Cancel Order
-              </Button>
-              <Button
-                onClick={() => handleAction(shipMutation, "Order shipped")}
-                disabled={shipMutation.isPending}
-              >
-                Ship Order
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={cancelMutation.isPending}>
+                    Cancel Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel order <strong>{order.orderCode}</strong>? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No, keep order</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Yes, cancel order
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={shipMutation.isPending}>Ship Order</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Ship Order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to mark order <strong>{order.orderCode}</strong> as shipped?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleAction(shipMutation, "Order shipped")}>
+                      Yes, ship order
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </>
           )}
           {order.status === "SHIPPING" && (
-            <Button
-              onClick={() => handleAction(completeMutation, "Order completed")}
-              disabled={completeMutation.isPending}
-            >
-              Mark Delivered
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={completeMutation.isPending}>Mark Delivered</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Complete Order?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to mark order <strong>{order.orderCode}</strong> as delivered/completed?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleAction(completeMutation, "Order completed")}>
+                    Yes, mark delivered
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
@@ -164,7 +247,6 @@ export default function OrderDetailPage() {
                     <p className="font-medium">Shipping Carrier</p>
                     {/* Fallback or specific logic for shipping method name if available, otherwise carrier */}
                     <p className="text-muted-foreground">{order.carrierName || "Standard Shipping"}</p>
-                    {order.carrierCode && <p className="text-muted-foreground">Code: {order.carrierCode}</p>}
                   </div>
                   <div>
                     <p className="font-medium">Payment Method</p>

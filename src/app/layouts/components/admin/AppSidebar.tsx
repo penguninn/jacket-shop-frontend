@@ -1,15 +1,12 @@
 import {
   Award,
   BadgePercent,
-  Home,
-  Inbox,
   Shirt,
   ShoppingBag,
   ShoppingCart,
   Sliders,
   Sparkles,
   Star,
-  Tag,
   User,
   Wallet,
   Warehouse,
@@ -29,22 +26,6 @@ import {
 } from "@/shared/ui/sidebar";
 
 const sidebarGroups = [
-  {
-    label: "Application",
-    items: [
-      {
-        title: "Home",
-        url: "/dashboard",
-        icon: Home,
-      },
-      {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-        badge: 24,
-      },
-    ],
-  },
   {
     label: "Orders / Payments",
     items: [
@@ -112,11 +93,6 @@ const sidebarGroups = [
         title: "Coupons",
         url: "/dashboard/coupons",
         icon: BadgePercent,
-      },
-      {
-        title: "Sales",
-        url: "/dashboard/sales",
-        icon: Tag,
       },
     ],
   },
