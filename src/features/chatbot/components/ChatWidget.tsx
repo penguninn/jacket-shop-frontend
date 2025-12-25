@@ -4,7 +4,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { Button } from "@/shared/ui/button";
-import { Bot, X, Trash2, MessageCircle, Minimize2 } from "lucide-react";
+import { Bot, X, MessageCircle, Minimize2 } from "lucide-react";
 import { useAuthStore, authStore } from "@/app/store/auth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/shared/lib/utils";
@@ -12,7 +12,7 @@ import { cn } from "@/shared/lib/utils";
 export function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    const { messages, isLoading, error, sendMessage, fetchHistory, clearHistory } = useChatbot();
+    const { messages, isLoading, error, sendMessage, fetchHistory } = useChatbot();
     const user = useAuthStore((state) => state.user);
     const isAuthenticated = !!authStore.getAccess() && !!user;
     const navigate = useNavigate();
@@ -105,15 +105,7 @@ export function ChatWidget() {
                 </div>
 
                 <div className="flex items-center gap-1 ml-auto">
-                    {messages.length > 0 && (
-                        <button
-                            onClick={clearHistory}
-                            className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
-                            title="Xóa lịch sử"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    )}
+
                     <button
                         onClick={() => setIsMinimized(true)}
                         className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
@@ -157,7 +149,7 @@ export function ChatWidget() {
                                     <h4 className="text-base font-semibold text-gray-800 mb-1">Xin chào! 👋</h4>
                                     <p className="text-sm text-gray-500 mb-6 px-8">Tôi có thể giúp gì cho bạn hôm nay?</p>
                                     <div className="flex flex-wrap gap-2 justify-center">
-                                        {["Xin chào", "Gợi ý", "Xem thêm"].map((s) => (
+                                        {["Xin chào", "Gợi ý"].map((s) => (
                                             <button
                                                 key={s}
                                                 onClick={() => sendMessage(s)}
