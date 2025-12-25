@@ -1,6 +1,7 @@
 import Footer from "./components/client/Footer";
 import Navbar from "./components/client/Navbar";
 import { Outlet } from "react-router-dom";
+import { ChatWidget } from "@/features/chatbot";
 
 export default function ClientLayout() {
   return (
@@ -8,6 +9,7 @@ export default function ClientLayout() {
       <Navbar />
       <Outlet />
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
