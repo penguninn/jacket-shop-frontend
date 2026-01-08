@@ -16,6 +16,7 @@ import PosPage from "@/features/pos/pages/PosPage";
 import RequireAuth from "./RequireAuth";
 import PaymentMethods from "@/features/payment-methods/pages/PaymentMethodsPage";
 import Inventories from "@/features/product-variants/pages/InventoriesPage";
+import Reviews from "@/features/reviews/pages/AdminReviewsPage";
 
 export default function AdminRoutes() {
   return (
@@ -110,6 +111,15 @@ export default function AdminRoutes() {
           element={
             <RequireAuth roles={["ADMIN"]}>
               <Inventories />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="reviews"
+          element={
+            <RequireAuth roles={["ADMIN"]}>
+              <Reviews />
             </RequireAuth>
           }
         />
