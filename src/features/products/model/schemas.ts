@@ -55,35 +55,6 @@ export const productSchema = z.object({
   minPrice: z.number().nullish().transform((v) => v ?? 0),
   maxPrice: z.number().nullish().transform((v) => v ?? 0),
 
-  // Nested attribute arrays from API
-  colors: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    hexCode: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
-  sizes: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
-  materials: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),

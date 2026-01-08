@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// --- Location Schemas ---
-
 export const provinceSchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -26,8 +24,6 @@ export type Province = z.infer<typeof provinceSchema>;
 export type District = z.infer<typeof districtSchema>;
 export type Ward = z.infer<typeof wardSchema>;
 
-// --- Address Schemas ---
-
 export const addressRequestSchema = z.object({
     addressLine: z.string({ message: "Address line is required" })
         .min(1, "Address line cannot be empty")
@@ -48,7 +44,7 @@ export const addressRequestSchema = z.object({
 export const addressResponseSchema = z.object({
     id: z.number(),
     addressLine: z.string(),
-    ward: wardSchema, // Use the defined schema
+    ward: wardSchema,
     district: districtSchema,
     province: provinceSchema,
     isDefault: z.boolean().nullable().optional(),

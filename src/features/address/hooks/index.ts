@@ -15,7 +15,7 @@ export const useProvinces = () => {
     return useQuery({
         queryKey: KEYS.PROVINCES,
         queryFn: addressApi.getProvinces,
-        staleTime: Infinity, // Location data rarely changes
+        staleTime: Infinity,
     });
 };
 
