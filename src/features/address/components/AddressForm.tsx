@@ -56,18 +56,11 @@ export function AddressForm({ defaultValues, onSubmit, isLoading, initialData }:
     const { data: districts, isLoading: loadingDistricts } = useDistricts(provinceId || null);
     const { data: wards, isLoading: loadingWards } = useWards(districtId || null);
 
-    // Reset dependent fields when parent fields change
     useEffect(() => {
         if (provinceId && initialData?.province.id !== provinceId) {
-            // Only reset if it's a user change, not initial load
-            // Actually, checking against initialData is tricky if initialData is static.
-            // Better logic: If districtId is set, check if it belongs to current province?
-            // Or just simpler: logic inside the Select onChange handler is better than useEffect for user interactions.
-            // But react-hook-form Select integration wraps the onChange.
         }
     }, [provinceId]);
 
-    // We handle resets in the render's onValueChange to separate user action from data loading.
 
     return (
         <Form {...form}>
@@ -112,11 +105,7 @@ export function AddressForm({ defaultValues, onSubmit, isLoading, initialData }:
                                     onValueChange={(value) => {
                                         const pid = Number(value);
                                         field.onChange(pid);
-                                        // Reset child fields
-                                        form.setValue("districtId", 0); // 0 or undefined, but 0 might fail schema if required positive? Schema says number. 
-                                        // Ideally undefined but Select value expects string.
-                                        // Zod expect number.
-                                        // Let's set to undefined but force cast if needed or handle in form state.
+                                        form.setValue("districtId", 0);
                                         form.resetField("districtId");
                                         form.resetField("wardId");
                                     }}

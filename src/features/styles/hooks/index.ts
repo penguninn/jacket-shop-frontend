@@ -8,6 +8,7 @@ import {
     updateStyleStatus,
     bulkUpdateStyleStatus,
     bulkDeleteStyles,
+    importStyles,
     type GetStylesParams,
 } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -100,6 +101,17 @@ export function useBulkDeleteStyles(options?: BaseMutationOptions) {
     const queryClient = useQueryClient();
     return useGlobalMutation({
         mutationFn: bulkDeleteStyles,
+        setError: options?.setError,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["styles"] });
+        },
+    });
+}
+
+export function useImportStyles(options?: BaseMutationOptions) {
+    const queryClient = useQueryClient();
+    return useGlobalMutation({
+        mutationFn: importStyles,
         setError: options?.setError,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["styles"] });

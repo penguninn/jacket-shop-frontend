@@ -2,6 +2,7 @@ import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
 import {
     productVariantSchema,
     productVariantsResponseSchema,
+    importResultSchema,
     type ProductVariantFilterParams,
     type CreateProductVariantInput,
     type UpdateProductVariantInput,
@@ -11,6 +12,7 @@ import {
     type StockAdjustmentInput,
 } from "../model/schemas";
 import { z } from "zod";
+import { axiosPrivate } from "@/shared/api/axios.private";
 
 
 const ENDPOINTS = Object.freeze({
@@ -175,3 +177,18 @@ export async function checkStock(variantId: number, quantity: number) {
         z.boolean()
     );
 }
+
+// Import product variants from Excel file
+export async function importProductVariants(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosPrivate.post("/product-variants/import", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return importResultSchema.parse(response.data.data);
+}
+

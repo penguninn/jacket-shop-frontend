@@ -8,13 +8,14 @@ const KEYS = {
     DISTRICTS: (provinceId: number) => ["districts", provinceId],
     WARDS: (districtId: number) => ["wards", districtId],
     ADDRESSES: ["addresses"],
+    USER_ADDRESSES: (userId: number) => ["addresses", "user", userId],
 };
 
 export const useProvinces = () => {
     return useQuery({
         queryKey: KEYS.PROVINCES,
         queryFn: addressApi.getProvinces,
-        staleTime: Infinity, // Location data rarely changes
+        staleTime: Infinity,
     });
 };
 
@@ -43,6 +44,14 @@ export const useAddresses = () => {
     });
 };
 
+export const useUserAddresses = (userId: number | null) => {
+    return useQuery({
+        queryKey: KEYS.USER_ADDRESSES(userId!),
+        queryFn: () => addressApi.getByUserId(userId!),
+        enabled: !!userId,
+    });
+};
+
 export const useCreateAddress = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -53,6 +62,21 @@ export const useCreateAddress = () => {
         },
         onError: () => {
             toast.error("Failed to create address");
+        },
+    });
+};
+
+export const useCreateUserAddress = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, data }: { userId: number; data: AddressRequest }) =>
+            addressApi.createForUser(userId, data),
+        onSuccess: (_, { userId }) => {
+            toast.success("Address created for customer successfully");
+            queryClient.invalidateQueries({ queryKey: KEYS.USER_ADDRESSES(userId) });
+        },
+        onError: () => {
+            toast.error("Failed to create customer address");
         },
     });
 };
@@ -68,6 +92,21 @@ export const useUpdateAddress = () => {
         },
         onError: () => {
             toast.error("Failed to update address");
+        },
+    });
+};
+
+export const useUpdateUserAddress = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, addressId, data }: { userId: number; addressId: number; data: AddressRequest }) =>
+            addressApi.updateForUser(userId, addressId, data),
+        onSuccess: (_, { userId }) => {
+            toast.success("Customer address updated successfully");
+            queryClient.invalidateQueries({ queryKey: KEYS.USER_ADDRESSES(userId) });
+        },
+        onError: () => {
+            toast.error("Failed to update customer address");
         },
     });
 };

@@ -18,7 +18,6 @@ export const ORDER_STATUS = {
 export const ORDER_TYPE = {
     ONLINE: 'ONLINE',
     POS_INSTORE: 'POS_INSTORE',
-    POS_DELIVERY: 'POS_DELIVERY',
 } as const;
 
 export const PAYMENT_STATUS = {
@@ -39,13 +38,26 @@ export const orderStatusSchema = z.enum([
 export const orderTypeSchema = z.enum([
     'ONLINE',
     'POS_INSTORE',
-    'POS_DELIVERY',
 ]);
 
 export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'REFUNDED']);
 
+// Admin update request schemas
+export const updatePaymentRequestSchema = z.object({
+    paymentMethodId: z.number().optional(),
+    paymentStatus: paymentStatusSchema,
+});
+
+export const shippingInfoRequestSchema = z.object({
+    carrierName: z.string(),
+    carrierServiceName: z.string(),
+    shippingFee: z.number(),
+});
+
 export const orderDetailSchema = z.object({
     id: z.number().optional(),
+    productId: z.number().optional(),
+    productVariantId: z.number().optional(),
     productName: z.string(),
     sku: z.string(),
     size: z.string(),
@@ -54,6 +66,8 @@ export const orderDetailSchema = z.object({
     image: z.string().nullable().optional(),
     thumbnail: z.string().nullable().optional(),
     price: z.number(),
+    originalPrice: z.number().nullable().optional(),
+    discountPercentage: z.number().nullable().optional(),
     quantity: z.number(),
     subtotal: z.number(),
 });
@@ -62,32 +76,55 @@ export const orderSchema = z.object({
     id: z.number(),
     orderCode: z.string(),
     orderType: orderTypeSchema,
-    customerName: z.string(),
-    customerPhone: z.string().optional(),
-    totalProducts: z.number().optional(),
-    totalAmount: z.number().optional(),
-    total: z.number(),
-    subtotal: z.number(),
-    shippingFee: z.number(),
-    discount: z.number().nullable().optional(),
-    couponCode: z.string().nullable().optional(),
 
-    status: orderStatusSchema,
+    // Customer info
+    userId: z.number().nullable().optional(),
+    customerName: z.string().nullable().optional(),
+    customerPhone: z.string().nullable().optional(),
+
+    // Staff info (for POS orders)
+    staffId: z.number().nullable().optional(),
+    staffName: z.string().nullable().optional(),
+
+    // Shipping recipient (may differ from customer)
+    shippingRecipientName: z.string().nullable().optional(),
+    shippingRecipientPhone: z.string().nullable().optional(),
+
+    // Shipping address
+    shippingAddressLine: z.string().nullable().optional(),
+    shippingProvinceCode: z.string().nullable().optional(),
+    shippingDistrictCode: z.string().nullable().optional(),
+    shippingWardCode: z.string().nullable().optional(),
+    shippingProvinceName: z.string().nullable().optional(),
+    shippingDistrictName: z.string().nullable().optional(),
+    shippingWardName: z.string().nullable().optional(),
+
+    // Payment info
+    paymentMethodId: z.number().nullable().optional(),
+    paymentMethodName: z.string().nullable().optional(),
     paymentStatus: paymentStatusSchema,
-    paymentMethodName: z.string().optional(),
+    transactionId: z.string().nullable().optional(),
+    paymentDate: z.string().nullable().optional(),
 
-    shippingAddressLine: z.string().optional(),
-    shippingProvinceName: z.string().optional(),
-    shippingDistrictName: z.string().optional(),
-
-    shippingWardName: z.string().optional(),
-
+    // Shipping carrier
     carrierName: z.string().nullable().optional(),
-    carrierCode: z.string().nullable().optional(),
+    carrierServiceName: z.string().nullable().optional(),
+    shippingFee: z.number(),
 
+    // Pricing
+    couponCode: z.string().nullable().optional(),
+    discount: z.number().nullable().optional(),
+    subtotal: z.number(),
+    total: z.number(),
+    totalAmount: z.number().optional(), // Alias for total
+    totalProducts: z.number().optional(),
+
+    // Status
+    status: orderStatusSchema,
     note: z.string().nullable().optional(),
-    createdAt: z.string(), // Backend sends Instant, likely serialized as string
+    createdAt: z.string(),
 
+    // Order items
     details: z.array(orderDetailSchema).optional(),
 });
 
@@ -123,6 +160,8 @@ export type OrderDetail = z.infer<typeof orderDetailSchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type OrderFilterParams = z.infer<typeof orderFilterParamsSchema>;
 export type OrdersResponse = z.infer<typeof ordersResponseSchema>;
+export type UpdatePaymentRequest = z.infer<typeof updatePaymentRequestSchema>;
+export type ShippingInfoRequest = z.infer<typeof shippingInfoRequestSchema>;
 
 export const orderItemRequestSchema = z.object({
     productVariantId: z.number(),

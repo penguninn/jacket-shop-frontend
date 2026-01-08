@@ -11,8 +11,8 @@ export const useCart = () => {
     return useQuery({
         queryKey: CART_KEYS.all,
         queryFn: cartApi.getCart,
-        retry: false, // Don't retry if auth fails (e.g. 401)
-        staleTime: 1000 * 60, // 1 minute
+        retry: false,
+        staleTime: 1000 * 60,
     });
 };
 

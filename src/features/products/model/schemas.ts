@@ -55,35 +55,6 @@ export const productSchema = z.object({
   minPrice: z.number().nullish().transform((v) => v ?? 0),
   maxPrice: z.number().nullish().transform((v) => v ?? 0),
 
-  // Nested attribute arrays from API
-  colors: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    hexCode: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
-  sizes: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
-  materials: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().optional(),
-    status: statusSchema,
-    createdAt: z.string().optional(),
-    updatedAt: z.string().optional(),
-  })).optional().default([]),
-
   status: statusSchema,
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
@@ -185,3 +156,13 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type UpdateProductStatusInput = z.infer<typeof updateProductStatusSchema>;
 export type BulkUpdateStatusProductInput = z.infer<typeof bulkUpdateStatusProductSchema>;
 export type BulkDeleteProductInput = z.infer<typeof bulkDeleteProductSchema>;
+
+// Import result schema (matches backend ImportResult)
+export const importResultSchema = z.object({
+  totalRows: z.number(),
+  successCount: z.number(),
+  errorCount: z.number(),
+  errorDetails: z.array(z.string()),
+});
+
+export type ImportResult = z.infer<typeof importResultSchema>;

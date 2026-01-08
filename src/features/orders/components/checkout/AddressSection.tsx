@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
-import { useAddresses, useCreateAddress } from "@/features/address/hooks";
+import { useAddresses, useCreateAddress, useUpdateAddress } from "@/features/address/hooks";
 import type { AddressResponse } from "@/features/address/model";
 import { AddressDialog } from "@/features/address/components/AddressDialog";
 import { Badge } from "@/shared/ui/badge";
@@ -16,7 +16,9 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
     const { data: addresses } = useAddresses();
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<AddressResponse | undefined>(undefined);
     const createAddress = useCreateAddress();
+    const updateAddress = useUpdateAddress();
 
     useEffect(() => {
         if (!selectedAddress && addresses && addresses.length > 0) {
@@ -24,6 +26,16 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
             onSelectAddress(defaultAddr);
         }
     }, [addresses, selectedAddress, onSelectAddress]);
+
+    const handleEdit = (address: AddressResponse) => {
+        setEditingAddress(address);
+        setIsCreateOpen(true);
+    };
+
+    const handleCreate = () => {
+        setEditingAddress(undefined);
+        setIsCreateOpen(true);
+    };
 
     return (
         <div className="bg-white p-6 shadow-sm border border-gray-200 rounded-sm">
@@ -91,6 +103,7 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
                                             <Button
                                                 variant="ghost"
                                                 className="text-blue-500 h-auto p-0 hover:bg-transparent"
+                                                onClick={() => handleEdit(addr)}
                                             >
                                                 Update
                                             </Button>
@@ -103,9 +116,7 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
                             <Button
                                 variant="outline"
                                 className="w-full mt-4 flex items-center gap-2"
-                                onClick={() => {
-                                    setIsCreateOpen(true);
-                                }}
+                                onClick={handleCreate}
                             >
                                 <span className="text-lg">+</span> Add New Address
                             </Button>
@@ -115,14 +126,24 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
                     <AddressDialog
                         open={isCreateOpen}
                         onOpenChange={setIsCreateOpen}
+                        initialData={editingAddress}
                         onSubmit={(data) => {
-                            createAddress.mutate(data, {
-                                onSuccess: () => {
-                                    setIsCreateOpen(false);
-                                }
-                            });
+                            if (editingAddress) {
+                                updateAddress.mutate({ id: editingAddress.id, data }, {
+                                    onSuccess: () => {
+                                        setIsCreateOpen(false);
+                                        setEditingAddress(undefined);
+                                    }
+                                });
+                            } else {
+                                createAddress.mutate(data, {
+                                    onSuccess: () => {
+                                        setIsCreateOpen(false);
+                                    }
+                                });
+                            }
                         }}
-                        isLoading={createAddress.isPending}
+                        isLoading={createAddress.isPending || updateAddress.isPending}
                     />
                 </div>
             </div>

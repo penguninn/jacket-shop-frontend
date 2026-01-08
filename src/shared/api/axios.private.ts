@@ -62,7 +62,6 @@ async function refreshTokenRequest(): Promise<string> {
   }
 }
 
-// RESPONSE INTERCEPTOR: Handle 401 & Refresh
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {

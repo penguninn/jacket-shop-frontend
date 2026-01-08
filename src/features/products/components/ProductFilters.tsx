@@ -221,23 +221,22 @@ export function ProductFilters({
 
             {/* Price */}
             <FilterSection
-                title="Price"
+                title="Price (VNĐ)"
                 isOpen={openSections.price}
                 onToggle={() => toggleSection('price')}
             >
                 <div className="px-1 pt-2">
                     <Slider
-                        defaultValue={[50, 200]}
+                        defaultValue={[0, 5000000]}
                         value={priceRange}
-                        max={500}
-                        step={1}
+                        max={5000000}
+                        step={10000}
                         minStepsBetweenThumbs={1}
                         onValueChange={(value) => setPriceRange(value)}
                         className="my-6"
                     />
                     <div className="flex items-center gap-4">
                         <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-xs">$</span>
                             <Input
                                 type="number"
                                 className="pl-6 h-9 text-sm font-medium rounded-lg border-gray-200 focus-visible:ring-black"
@@ -246,7 +245,6 @@ export function ProductFilters({
                             />
                         </div>
                         <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-xs">$</span>
                             <Input
                                 type="number"
                                 className="pl-6 h-9 text-sm font-medium rounded-lg border-gray-200 focus-visible:ring-black"

@@ -1,5 +1,6 @@
 import { useCart } from "@/features/cart/hooks";
 import { formatCurrency } from "@/shared/utils/format";
+import { Badge } from "@/shared/ui/badge";
 
 export function CheckoutProducts() {
     const { data: cart } = useCart();
@@ -23,19 +24,29 @@ export function CheckoutProducts() {
             {cart.items.map((item) => {
                 const variant = item.productVariant;
 
-                const price = variant.salePrice ?? variant.price;
-                const subtotal = price * item.quantity;
+                const originalPrice = variant.price;
+                const salePrice = variant.salePrice;
+                const isOnSale = salePrice !== null && salePrice !== undefined && salePrice < originalPrice;
+                const displayPrice = isOnSale ? salePrice : originalPrice;
+                const subtotal = displayPrice * item.quantity;
 
                 return (
                     <div key={item.id} className="border-b pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
 
                         <div className="flex items-center text-sm">
                             <div className="w-[50%] flex gap-4">
-                                <img
-                                    src={variant.image || "/placeholder.png"}
-                                    alt={variant.sku || "Product"}
-                                    className="w-16 h-16 object-cover border rounded-sm"
-                                />
+                                <div className="relative">
+                                    <img
+                                        src={variant.image || "/placeholder.png"}
+                                        alt={variant.sku || "Product"}
+                                        className="w-16 h-16 object-cover border rounded-sm"
+                                    />
+                                    {isOnSale && (
+                                        <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5">
+                                            Sale
+                                        </Badge>
+                                    )}
+                                </div>
                                 <div className="pr-4">
                                     <p className="line-clamp-2 mb-1">{variant.sku}</p>
                                     <p className="text-gray-500 text-xs">
@@ -44,13 +55,31 @@ export function CheckoutProducts() {
                                 </div>
                             </div>
                             <div className="w-[15%] text-center">
-                                {formatCurrency(price)}
+                                <div className="flex flex-col items-center">
+                                    <span className={isOnSale ? "text-red-600 font-medium" : ""}>
+                                        {formatCurrency(displayPrice)}
+                                    </span>
+                                    {isOnSale && (
+                                        <span className="text-xs text-gray-400 line-through">
+                                            {formatCurrency(originalPrice)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div className="w-[15%] text-center">
                                 {item.quantity}
                             </div>
-                            <div className="w-[20%] text-right font-medium text-red-500">
-                                {formatCurrency(subtotal)}
+                            <div className="w-[20%] text-right">
+                                <div className="flex flex-col items-end">
+                                    <span className={`font-medium ${isOnSale ? "text-red-600" : "text-red-500"}`}>
+                                        {formatCurrency(subtotal)}
+                                    </span>
+                                    {isOnSale && (
+                                        <span className="text-xs text-gray-400 line-through">
+                                            {formatCurrency(originalPrice * item.quantity)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -59,3 +88,4 @@ export function CheckoutProducts() {
         </div>
     );
 }
+

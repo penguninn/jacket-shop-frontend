@@ -48,8 +48,8 @@ const materialSchema = z.object({
 export const productVariantSchema = z.object({
     id: z.number(),
     sku: z.string().nullable().optional(),
-    productId: z.number().optional(), // Added from API
-    product: productSchema.optional(), // Added for relation
+    productId: z.number().optional(),
+    product: productSchema.optional(),
 
     size: sizeSchema,
     color: colorSchema,
@@ -162,3 +162,13 @@ export type UpdateProductVariantStatusInput = z.infer<typeof updateProductVarian
 export type BulkUpdateStatusProductVariantInput = z.infer<typeof bulkUpdateStatusProductVariantSchema>;
 export type BulkDeleteProductVariantInput = z.infer<typeof bulkDeleteProductVariantSchema>;
 export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;
+
+// Import result schema (matches backend ImportResult)
+export const importResultSchema = z.object({
+    totalRows: z.number(),
+    successCount: z.number(),
+    errorCount: z.number(),
+    errorDetails: z.array(z.string()),
+});
+
+export type ImportResult = z.infer<typeof importResultSchema>;

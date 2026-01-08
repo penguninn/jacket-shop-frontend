@@ -46,6 +46,7 @@ export default function Home() {
     size: 4,
     sortBy: "createdAt",
     sortDir: "DESC",
+    status: ["ACTIVE"],
   });
 
   const { data: topSelling } = usePublicProducts({
@@ -53,12 +54,14 @@ export default function Home() {
     size: 4,
     sortBy: "soldCount",
     sortDir: "DESC",
+    status: ["ACTIVE"],
   });
 
   const { data: featured } = usePublicProducts({
     page: 0,
     size: 4,
     isFeatured: true,
+    status: ["ACTIVE"],
   });
 
   return (
@@ -77,19 +80,19 @@ export default function Home() {
         <ProductSection
           title="New Arrivals"
           products={newArrivals?.contents || []}
-          viewAllUrl="/search?sortBy=createdAt&sortDir=DESC"
+          viewAllUrl="/search?sortBy=createdAt&sortDir=DESC&status=ACTIVE"
         />
 
         <ProductSection
           title="Top Selling"
           products={topSelling?.contents || []}
-          viewAllUrl="/search?sortBy=soldCount&sortDir=DESC"
+          viewAllUrl="/search?sortBy=soldCount&sortDir=DESC&status=ACTIVE"
         />
 
         <ProductSection
           title="Featured Products"
           products={featured?.contents || []}
-          viewAllUrl="/search?isFeatured=true"
+          viewAllUrl="/search?isFeatured=true&status=ACTIVE"
         />
       </div>
     </div>

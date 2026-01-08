@@ -1,17 +1,12 @@
 import {
   Award,
   BadgePercent,
-  Home,
-  Inbox,
-  RotateCcw,
   Shirt,
   ShoppingBag,
   ShoppingCart,
   Sliders,
   Sparkles,
   Star,
-  Tag,
-  Truck,
   User,
   Wallet,
   Warehouse,
@@ -32,22 +27,6 @@ import {
 
 const sidebarGroups = [
   {
-    label: "Application",
-    items: [
-      {
-        title: "Home",
-        url: "/dashboard",
-        icon: Home,
-      },
-      {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-        badge: 24,
-      },
-    ],
-  },
-  {
     label: "Orders / Payments",
     items: [
       {
@@ -59,16 +38,6 @@ const sidebarGroups = [
         title: "Sell",
         url: "/dashboard/pos",
         icon: ShoppingCart,
-      },
-      {
-        title: "Returns",
-        url: "/dashboard/returns",
-        icon: RotateCcw,
-      },
-      {
-        title: "Shipping Methods",
-        url: "/dashboard/shipping-methods",
-        icon: Truck,
       },
       {
         title: "Payment Methods",
@@ -124,11 +93,6 @@ const sidebarGroups = [
         title: "Coupons",
         url: "/dashboard/coupons",
         icon: BadgePercent,
-      },
-      {
-        title: "Sales",
-        url: "/dashboard/sales",
-        icon: Tag,
       },
     ],
   },

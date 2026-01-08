@@ -6,11 +6,13 @@ import {
     type OrderFilterParams,
     type OrdersResponse,
     type CreateOrderRequest,
+    type OrderHistoryResponse,
+    type UpdatePaymentRequest,
+    type ShippingInfoRequest,
     ordersResponseSchema,
     orderSchema,
     orderArraySchema,
     orderHistoryResponseSchema,
-    type OrderHistoryResponse
 } from "../model/schemas";
 
 // --- Admin Endpoints ---
@@ -101,4 +103,36 @@ export async function requestReturn(id: number, reason: string): Promise<Order> 
 
 export async function reorder(id: number): Promise<void> {
     return httpPrivateTyped.post<void>(`/orders/${id}/reorder`, {}, z.any());
+}
+
+// --- Admin Endpoints (Additional) ---
+
+/**
+ * Approve a return request
+ * POST /api/orders/{id}/return/approve
+ */
+export async function approveReturn(id: number): Promise<Order> {
+    return httpPrivateTyped.post<Order>(`/admin/orders/${id}/return/approve`, {}, orderSchema);
+}
+
+/**
+ * Update order shipping information
+ * PUT /api/admin/orders/{id}/shipping-info
+ */
+export async function updateOrderShipping(
+    id: number,
+    data: ShippingInfoRequest
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/shipping-info`, data, orderSchema);
+}
+
+/**
+ * Update order payment information
+ * PUT /api/admin/orders/{id}/payment-status
+ */
+export async function updateOrderPayment(
+    id: number,
+    data: UpdatePaymentRequest
+): Promise<Order> {
+    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/payment-status`, data, orderSchema);
 }

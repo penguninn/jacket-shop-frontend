@@ -48,6 +48,13 @@ export const addressApi = {
         );
     },
 
+    getByUserId: async (userId: number) => {
+        return httpPrivateTyped.get<AddressResponse[]>(
+            `${CRUD_PREFIX}/user/${userId}`,
+            z.array(addressResponseSchema)
+        );
+    },
+
     create: async (data: AddressRequest) => {
         return httpPrivateTyped.post<AddressResponse>(
             `${CRUD_PREFIX}`,
@@ -56,9 +63,25 @@ export const addressApi = {
         );
     },
 
+    createForUser: async (userId: number, data: AddressRequest) => {
+        return httpPrivateTyped.post<AddressResponse>(
+            `${CRUD_PREFIX}/user/${userId}`,
+            data,
+            addressResponseSchema
+        );
+    },
+
     update: async (id: number, data: AddressRequest) => {
         return httpPrivateTyped.put<AddressResponse>(
             `${CRUD_PREFIX}/${id}`,
+            data,
+            addressResponseSchema
+        );
+    },
+
+    updateForUser: async (userId: number, addressId: number, data: AddressRequest) => {
+        return httpPrivateTyped.put<AddressResponse>(
+            `${CRUD_PREFIX}/user/${userId}/${addressId}`,
             data,
             addressResponseSchema
         );

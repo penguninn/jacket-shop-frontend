@@ -29,7 +29,7 @@ export const saleRequestSchema = z.object({
     saleEndDate: z.string().min(1, "End date is required"),
     discountPercentage: z.coerce
         .number()
-        .min(0, "Discount must be at least 0%")
+        .min(1, "Discount must be at least 1%")
         .max(100, "Discount cannot exceed 100%"),
 }).refine((data) => {
     const start = new Date(data.saleStartDate);

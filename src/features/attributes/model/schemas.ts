@@ -217,3 +217,13 @@ export type UpdateMaterialInput = z.infer<typeof updateMaterialSchema>;
 export type UpdateMaterialStatusInput = z.infer<typeof updateMaterialStatusSchema>;
 export type BulkUpdateStatusMaterialInput = z.infer<typeof bulkUpdateStatusMaterialSchema>;
 export type BulkDeleteMaterialInput = z.infer<typeof bulkDeleteMaterialSchema>;
+
+// Import result schema (matches backend ImportResult)
+export const importResultSchema = z.object({
+  totalRows: z.number(),
+  successCount: z.number(),
+  errorCount: z.number(),
+  errorDetails: z.array(z.string()),
+});
+
+export type ImportResult = z.infer<typeof importResultSchema>;

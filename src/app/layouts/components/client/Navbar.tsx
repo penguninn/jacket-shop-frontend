@@ -59,7 +59,7 @@ export default function Navbar() {
                 <Link to="/user/account/profile">My account</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/orders">My purchase</Link>
+                <Link to="/user/purchase">My purchase</Link>
               </DropdownMenuItem>
 
               {(hasRole("ADMIN") || hasRole("STAFF")) && (

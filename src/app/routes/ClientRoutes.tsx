@@ -15,9 +15,9 @@ import Forbidden from "@/pages/Forbidden";
 import NotFound from "@/pages/NotFound";
 import UserLayout from "@/app/layouts/UserLayout";
 import ChangePassword from "@/features/auth/pages/ChangePasswordPage";
-import MyVouchers from "@/features/coupons/pages/MyVouchersPage";
 import Purchase from "@/features/orders/pages/PurchasePage";
-import { ChatbotPage } from "@/features/chatbot";
+import PaymentSuccessPage from "@/features/payos/pages/PaymentSuccessPage";
+import PaymentCancelPage from "@/features/payos/pages/PaymentCancelPage";
 
 
 export default function ClientRoutes() {
@@ -47,6 +47,10 @@ export default function ClientRoutes() {
           }
         />
 
+        {/* PayOS Payment Callback Routes */}
+        <Route path="payment-success/:orderCode" element={<PaymentSuccessPage />} />
+        <Route path="payment-cancel/:orderCode" element={<PaymentCancelPage />} />
+
         <Route
           path="user"
           element={
@@ -59,7 +63,6 @@ export default function ClientRoutes() {
           <Route path="account/address" element={<Address />} />
           <Route path="account/change-password" element={<ChangePassword />} />
           <Route path="purchase" element={<Purchase />} />
-          <Route path="coupons" element={<MyVouchers />} />
           <Route index element={<Navigate to="account/profile" replace />} />
         </Route>
 
@@ -94,3 +97,4 @@ export default function ClientRoutes() {
     </Routes>
   );
 }
+

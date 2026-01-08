@@ -1,10 +1,11 @@
 
 import { Button } from "@/shared/ui/button";
 import type { Order } from "@/features/orders/model/schemas";
-import { Truck } from "lucide-react";
+import { Truck, CreditCard } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
 import { useCancelUserOrder, useReceiveOrder, useReorder } from "@/features/orders/hooks";
 import { toast } from "sonner";
+import { Badge } from "@/shared/ui/badge";
 import {
     Dialog,
     DialogClose,
@@ -19,6 +20,13 @@ import {
 interface PurchaseOrderItemProps {
     order: Order;
 }
+
+// Payment status badge config
+const paymentStatusConfig = {
+    PAID: { label: "Paid", variant: "default" as const, className: "bg-green-500 hover:bg-green-500" },
+    UNPAID: { label: "Unpaid", variant: "destructive" as const, className: "bg-red-500 hover:bg-red-500" },
+    REFUNDED: { label: "Refunded", variant: "secondary" as const, className: "bg-gray-500 hover:bg-gray-500" },
+};
 
 export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
     const cancelOrder = useCancelUserOrder();
@@ -46,6 +54,8 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
         });
     };
 
+    const paymentStatusInfo = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.UNPAID;
+
     return (
         <div className="bg-white rounded-sm shadow-sm mb-4">
             {/* Header */}
@@ -54,6 +64,12 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                     <span className="font-semibold">{order.customerName}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
+                    {/* Payment Status Badge */}
+                    <Badge className={paymentStatusInfo.className}>
+                        <CreditCard className="w-3 h-3 mr-1" />
+                        {paymentStatusInfo.label}
+                    </Badge>
+
                     {order.status === "SHIPPING" && (
                         <div className="flex items-center gap-1 text-green-500">
                             <Truck className="w-4 h-4" /> <span>Shipping</span>
@@ -82,7 +98,6 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                             <div className="text-sm mt-1">x{detail.quantity}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                            {/* Original price logic can be added if available in schema */}
                             <span className="text-[#FF6900] font-medium">
                                 {formatCurrency(detail.price)}
                             </span>
@@ -96,7 +111,7 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                 <div className="flex justify-end items-center gap-2 mb-6">
                     <span className="text-sm text-gray-800">Order Total:</span>
                     <span className="text-xl font-medium text-[#FF6900]">
-                        {formatCurrency(order.totalAmount)}
+                        {formatCurrency(order.total)}
                     </span>
                 </div>
 
@@ -124,10 +139,6 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                                 Buy Again
                             </Button>
                         )}
-
-                        <Button variant="outline" className="min-w-[150px] font-normal text-gray-600">
-                            Contact Seller
-                        </Button>
 
                         {(order.status === "PENDING" || order.status === "CONFIRMED") && (
                             <Dialog>
@@ -160,3 +171,4 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
         </div>
     );
 }
+

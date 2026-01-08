@@ -121,3 +121,11 @@ export type UpdateCouponInput = z.infer<typeof updateCouponSchema>;
 export type UpdateCouponStatusInput = z.infer<typeof updateCouponStatusSchema>;
 export type BulkUpdateStatusCouponInput = z.infer<typeof bulkUpdateStatusCouponSchema>;
 export type BulkDeleteCouponInput = z.infer<typeof bulkDeleteCouponSchema>;
+
+// Validation request schema (matches backend CouponValidateRequest)
+export const validateCouponInputSchema = z.object({
+    code: z.string().min(1, "Coupon code is required"),
+    orderAmount: z.number().positive("Order amount must be positive"),
+});
+
+export type ValidateCouponInput = z.infer<typeof validateCouponInputSchema>;

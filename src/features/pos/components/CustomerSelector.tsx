@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, User as UserIcon, X, Plus, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, User as UserIcon, Plus, Loader2 } from "lucide-react";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { useUsers, useCreateUser } from "@/features/users/hooks";
 import { useRoles } from "@/features/roles/hooks";
@@ -28,39 +28,74 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
 import { usePosStore } from "../hooks/usePosState";
+import { useUpdatePosDraftCustomer } from "../hooks/usePosApi";
 import type { User } from "@/features/users/model/schemas";
 import { toast } from "sonner";
 
 export function CustomerSelector() {
-    const { tabs, activeTabId, setCustomer } = usePosStore();
+    // Correct store usage
+    const { currentDraft, setCurrentDraft } = usePosStore();
+    const { mutate: updateCustomer, isPending: isUpdating } = useUpdatePosDraftCustomer();
 
-    // Find active tab safely
-    const activeTab = tabs.find((t) => t.id === activeTabId);
-    const selectedCustomer = activeTab?.customer || null;
+    // Derived state
+    const selectedCustomerName = currentDraft?.customerName;
+    const selectedCustomerPhone = currentDraft?.customerPhone;
+    const selectedUserId = currentDraft?.userId;
 
     const [open, setOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearch = useDebounce(searchTerm, 300);
 
-    // Increase size to get "all" customers
     const { data: usersData, isLoading } = useUsers({
         search: debouncedSearch,
         page: 0,
-        size: 1000,
+        size: 20, // Increase if needed
         sortDir: "DESC",
         sortBy: "createdAt",
     });
 
     const handleSelect = (user: User) => {
-        setCustomer(user);
-        setOpen(false);
-        setSearchTerm("");
+        if (!currentDraft) {
+            toast.error("Please create a draft first");
+            return;
+        }
+
+        updateCustomer({
+            id: currentDraft.id,
+            data: {
+                userId: user.id,
+                customerName: user.fullName,
+                customerPhone: user.phone,
+            }
+        }, {
+            onSuccess: (updatedDraft) => {
+                setCurrentDraft(updatedDraft);
+                setOpen(false);
+                setSearchTerm("");
+                toast.success("Customer updated");
+            },
+            onError: (error: any) => {
+                toast.error("Failed to update customer", {
+                    description: error.response?.data?.message
+                });
+            }
+        });
     };
 
-    const handleClear = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCustomer(null);
-    };
+
+
+    if (!currentDraft) {
+        return (
+            <div className="flex flex-col gap-2 p-4 bg-background border rounded-lg shadow-sm opacity-50 pointer-events-none">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                    <UserIcon className="h-4 w-4" /> Customer
+                </h3>
+                <div className="h-9 border rounded-md bg-muted flex items-center px-3 text-sm text-muted-foreground">
+                    Select a draft to continue
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-2 p-4 bg-background border rounded-lg shadow-sm">
@@ -78,17 +113,24 @@ export function CustomerSelector() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={open}
-                            className="w-full justify-between"
+                            className="flex-1 min-w-0 justify-between"
+                            disabled={isUpdating}
                         >
-                            {selectedCustomer ? (
+                            {selectedUserId ? (
                                 <span className="flex items-center gap-2 truncate">
-                                    <span className="font-medium">{selectedCustomer.fullName}</span>
-                                    <span className="text-muted-foreground text-xs">({selectedCustomer.phone || selectedCustomer.username})</span>
+                                    <span className="font-medium">{selectedCustomerName}</span>
+                                    <span className="text-muted-foreground text-xs">({selectedCustomerPhone})</span>
                                 </span>
                             ) : (
-                                <span className="text-muted-foreground">Select customer...</span>
+                                <span className="text-muted-foreground">
+                                    {selectedCustomerName || "Walk-in Customer"}
+                                </span>
                             )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            {isUpdating ? (
+                                <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin" />
+                            ) : (
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            )}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0" align="start">
@@ -103,17 +145,6 @@ export function CustomerSelector() {
                                     {isLoading ? "Searching..." : "No customer found."}
                                 </CommandEmpty>
                                 <CommandGroup>
-                                    <CommandItem
-                                        value="walk-in"
-                                        onSelect={() => {
-                                            setCustomer(null);
-                                            setOpen(false);
-                                        }}
-                                        className="cursor-pointer font-semibold"
-                                    >
-                                        <UserIcon className="mr-2 h-4 w-4" />
-                                        Walk-in Customer
-                                    </CommandItem>
                                     {usersData?.contents.map((user) => (
                                         <CommandItem
                                             key={user.id}
@@ -124,7 +155,7 @@ export function CustomerSelector() {
                                             <Check
                                                 className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    selectedCustomer?.id === user.id ? "opacity-100" : "opacity-0"
+                                                    selectedUserId === user.id ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
                                             <div className="flex flex-col">
@@ -138,24 +169,12 @@ export function CustomerSelector() {
                         </Command>
                     </PopoverContent>
                 </Popover>
-
-                {selectedCustomer && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleClear}
-                        title="Clear customer"
-                        className="shrink-0"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                )}
             </div>
 
             {/* Customer Details Minimal View */}
-            {selectedCustomer && (
+            {selectedUserId && (
                 <div className="text-xs text-muted-foreground mt-1 px-1">
-                    <p>Phone: {selectedCustomer.phone || "N/A"}</p>
+                    <p>Phone: {selectedCustomerPhone || "N/A"}</p>
                 </div>
             )}
         </div>
@@ -178,9 +197,7 @@ function QuickCreateCustomerDialog({ onCustomerCreated }: { onCustomerCreated: (
             return;
         }
 
-        // Find "Customer" role or default to first role
-        // Ideally we should have a reliable way to get customer role ID
-        // Note: roles is Role[], not { contents: Role[] } based on schema
+        // Find "Customer" role
         const roleList = Array.isArray(roles) ? roles : (roles as any)?.contents || [];
         const customerRole = roleList.find((r: any) => r.name.toLowerCase().includes('customer')) || roleList[0];
 
@@ -206,19 +223,19 @@ function QuickCreateCustomerDialog({ onCustomerCreated }: { onCustomerCreated: (
                 setPhone("");
             },
             onError: (error: any) => {
-                // Should rely on global error handler, but showing toast here for clarity if needed
-                // console.error(error);
+                toast.error("Failed to create user", {
+                    description: error.response?.data?.message
+                });
             }
         });
     };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            {/* Using a small icon button to trigger */}
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOpen(true)} title="Quick Create Customer">
                 <Plus className="h-4 w-4" />
             </Button>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Quick Create Customer</DialogTitle>
                 </DialogHeader>

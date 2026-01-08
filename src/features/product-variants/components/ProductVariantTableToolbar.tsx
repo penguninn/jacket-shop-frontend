@@ -1,12 +1,15 @@
 
+import { useRef } from "react";
 import type { Table } from "@tanstack/react-table";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { X } from "lucide-react";
+import { X, Upload, Loader2 } from "lucide-react";
 import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
 import { useColors, useSizes, useMaterials } from "@/features/attributes/hooks";
 import { useMemo } from "react";
+import { useImportProductVariants } from "../hooks";
+import { toast } from "sonner";
 
 const statusOptions = [
     { label: "Active", value: "ACTIVE" },
@@ -19,6 +22,8 @@ interface Props<TData> {
 
 export function ProductVariantTableToolbar<TData>({ table }: Props<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { mutate: importVariants, isPending: isImporting } = useImportProductVariants();
 
     // Fetch filter options data
     const { data: colorsData } = useColors({ page: 0, size: 100 });
@@ -52,6 +57,31 @@ export function ProductVariantTableToolbar<TData>({ table }: Props<TData>) {
             })) ?? [],
         [materialsData]
     );
+
+    const handleImportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        importVariants(file, {
+            onSuccess: (result) => {
+                toast.success("Import Completed", {
+                    description: `Success: ${result.successCount}, Errors: ${result.errorCount}`,
+                });
+                if (result.errorDetails.length > 0) {
+                    console.warn("Import errors:", result.errorDetails);
+                }
+            },
+        });
+
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
 
     return (
         <div className="flex items-center justify-between">
@@ -108,7 +138,30 @@ export function ProductVariantTableToolbar<TData>({ table }: Props<TData>) {
                     </Button>
                 )}
             </div>
-            <DataTableViewOptions table={table} />
+            <div className="flex items-center gap-2">
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    className="hidden"
+                    onChange={handleFileChange}
+                />
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={handleImportClick}
+                    disabled={isImporting}
+                >
+                    {isImporting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    Import Excel
+                </Button>
+                <DataTableViewOptions table={table} />
+            </div>
         </div>
     );
 }

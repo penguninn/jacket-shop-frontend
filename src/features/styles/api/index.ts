@@ -1,6 +1,7 @@
 import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
-import { styleSchema, stylesResponseSchema, type CreateStyleInput, type UpdateStyleInput, type UpdateStyleStatusInput } from "../model/schemas";
+import { styleSchema, stylesResponseSchema, importResultSchema, type CreateStyleInput, type UpdateStyleInput, type UpdateStyleStatusInput } from "../model/schemas";
 import z from "zod";
+import { axiosPrivate } from "@/shared/api/axios.private";
 
 type SortDirection = "asc" | "desc";
 const DEFAULT_SORT_BY = "createdAt";
@@ -110,4 +111,18 @@ export async function bulkUpdateStyleStatus(ids: number[], status: string) {
 // Bulk delete styles
 export async function bulkDeleteStyles(ids: number[]) {
     await httpPrivateTyped.post(`/styles/bulk/delete`, { ids }, z.void());
+}
+
+// Import styles from Excel file
+export async function importStyles(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosPrivate.post("/styles/import", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return importResultSchema.parse(response.data.data);
 }

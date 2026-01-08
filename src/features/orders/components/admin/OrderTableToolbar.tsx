@@ -1,7 +1,7 @@
 import { type Table } from "@tanstack/react-table";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { Search, X, QrCode, Plus, CalendarIcon } from "lucide-react";
+import { Search, X, CalendarIcon } from "lucide-react";
 import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
@@ -18,7 +18,6 @@ interface Props<TData> {
 const typeOptions = [
     { label: "Online", value: ORDER_TYPE.ONLINE },
     { label: "POS In-Store", value: ORDER_TYPE.POS_INSTORE },
-    { label: "POS Delivery", value: ORDER_TYPE.POS_DELIVERY },
 ];
 
 export function OrderTableToolbar<TData>({ table }: Props<TData>) {
@@ -75,7 +74,6 @@ export function OrderTableToolbar<TData>({ table }: Props<TData>) {
                         </Popover>
                     </div>
 
-
                     {isFiltered && (
                         <Button
                             variant="ghost"
@@ -89,17 +87,6 @@ export function OrderTableToolbar<TData>({ table }: Props<TData>) {
                 </div>
 
                 <div className="flex gap-2">
-                    <Button variant="outline" className="h-8 text-orange-600 border-orange-200 bg-orange-50 hover:bg-orange-100 gap-2">
-                        <QrCode className="w-4 h-4" />
-                        Scan QR
-                    </Button>
-                    <Button className="h-8 bg-orange-500 hover:bg-orange-600 gap-2">
-                        <Plus className="w-4 h-4" />
-                        Create Order
-                    </Button>
-                    <Button variant="outline" className="h-8 text-orange-600 border-orange-200 hover:bg-orange-50 ml-auto">
-                        Export Excel
-                    </Button>
                     <DataTableViewOptions table={table} />
                 </div>
             </div>

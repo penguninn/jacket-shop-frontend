@@ -182,7 +182,7 @@ export function CouponCreateForm() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="value">
-                                    Value * {couponType === "PERCENT" ? "(%)" : "($)"}
+                                    Value * {couponType === "PERCENT" ? "(%)" : "(VNĐ)"}
                                 </Label>
                                 <Input
                                     id="value"
@@ -206,7 +206,7 @@ export function CouponCreateForm() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="minOrderValue">
-                                    Min Order Value ($)
+                                    Min Order Value (VNĐ)
                                 </Label>
                                 <Input
                                     id="minOrderValue"
@@ -226,7 +226,7 @@ export function CouponCreateForm() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="maxDiscount">Max Discount ($)</Label>
+                                <Label htmlFor="maxDiscount">Max Discount (VNĐ)</Label>
                                 <Input
                                     id="maxDiscount"
                                     type="number"

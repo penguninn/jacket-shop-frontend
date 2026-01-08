@@ -8,12 +8,13 @@ import {
     bulkDelete,
     bulkUpdateStatus,
     getCouponByCode,
+    validateCoupon,
     type GetCouponsParams,
 } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
 import type { BaseMutationOptions } from "@/shared/api/types";
-import type { CreateCouponInput, UpdateCouponInput, UpdateCouponStatusInput } from "../model/schemas";
+import type { CreateCouponInput, UpdateCouponInput, UpdateCouponStatusInput, ValidateCouponInput } from "../model/schemas";
 
 export function useCoupons(params: GetCouponsParams) {
     return useQuery({
@@ -33,6 +34,13 @@ export function useCouponDetail(id: number) {
 export function useCouponByCode(options?: BaseMutationOptions) {
     return useGlobalMutation({
         mutationFn: (code: string) => getCouponByCode(code),
+        setError: options?.setError,
+    });
+}
+
+export function useValidateCoupon(options?: BaseMutationOptions) {
+    return useGlobalMutation({
+        mutationFn: (data: ValidateCouponInput) => validateCoupon(data),
         setError: options?.setError,
     });
 }

@@ -74,7 +74,7 @@ export const columns: ColumnDef<Coupon>[] = [
             const value = row.getValue("value") as number;
             return (
                 <div className="font-medium">
-                    {type === "PERCENT" ? `${value}%` : `$${value.toFixed(2)}`}
+                    {type === "PERCENT" ? `${value}%` : `${value.toFixed(2)} VNĐ`}
                 </div>
             );
         },

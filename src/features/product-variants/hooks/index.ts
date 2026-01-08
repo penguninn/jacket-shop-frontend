@@ -12,6 +12,7 @@ import {
     bulkUpdateProductVariantStatus,
     bulkDeleteProductVariants,
     adjustStock,
+    importProductVariants,
 } from "../api";
 import type {
     ProductVariant,
@@ -22,6 +23,7 @@ import type {
     BulkUpdateStatusProductVariantInput,
     BulkDeleteProductVariantInput,
     StockAdjustmentInput,
+    ImportResult,
 } from "../model/schemas";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
@@ -160,3 +162,15 @@ export function useBulkDeleteProductVariants(options?: BaseMutationOptions) {
         setError: options?.setError,
     });
 }
+
+export function useImportProductVariants(options?: BaseMutationOptions) {
+    return useGlobalMutation<ImportResult, File>({
+        mutationFn: importProductVariants,
+        invalidateQueries: [
+            [...productVariantKeys.all] as string[],
+        ],
+        errorContext: "Import Product Variants",
+        setError: options?.setError,
+    });
+}
+
