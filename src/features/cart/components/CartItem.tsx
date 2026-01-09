@@ -16,14 +16,14 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     const updateMutation = useUpdateCartItem();
     const removeMutation = useRemoveCartItem();
 
-    const { productVariant, quantity } = item;
-    const { product, color, size, material, price, salePrice, image, discountPercentage } = productVariant;
-    const productName = product?.name || "Unknown Product";
-    const displayPrice = salePrice ?? price;
-    const imageUrl = image || product?.thumbnail;
-    const isOnSale = (salePrice !== null && salePrice !== undefined && salePrice < price);
+    const { productVariant, quantity, price, originalPrice, discountPercentage } = item;
+    const { color, size, material, image, productName: variantProductName, productId } = productVariant;
 
-    // Local state for quantity input to allow typing
+    const productName = variantProductName || "Unknown Product";
+    const displayPrice = price;
+    const imageUrl = image;
+    const isOnSale = originalPrice > price;
+
     const [localQuantity, setLocalQuantity] = useState<string>(quantity.toString());
 
     useEffect(() => {
@@ -36,7 +36,6 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Allow valid positive numbers or empty string (while typing)
         const val = e.target.value;
         if (val === "" || /^[0-9]+$/.test(val)) {
             setLocalQuantity(val);
@@ -46,10 +45,8 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
     const handleInputBlur = () => {
         const parsed = parseInt(localQuantity);
         if (isNaN(parsed) || parsed < 1) {
-            // Revert to current prop value if invalid
             setLocalQuantity(quantity.toString());
         } else if (parsed !== quantity) {
-            // Commit change
             handleQuantityChange(parsed);
         }
     };
@@ -70,7 +67,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                 {/* Badge for Sale in Sheet */}
                 {isOnSale && (
                     <div className="absolute top-4 left-0 z-10 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-r-sm shadow-sm">
-                        -{discountPercentage ?? Math.round(((price - salePrice) / price) * 100)}%
+                        -{discountPercentage ?? Math.round(((originalPrice - price) / originalPrice) * 100)}%
                     </div>
                 )}
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50">
@@ -90,7 +87,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                                 </span>
                                 {isOnSale && (
                                     <span className="text-[10px] text-gray-400 line-through">
-                                        {formatCurrency(price * quantity)}
+                                        {formatCurrency(originalPrice * quantity)}
                                     </span>
                                 )}
                             </div>
@@ -144,7 +141,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
             {/* Sale Badge */}
             {isOnSale && (
                 <div className="absolute -top-2 -left-2 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                    sale -{discountPercentage ?? Math.round(((price - salePrice) / price) * 100)}%
+                    sale -{discountPercentage ?? Math.round(((originalPrice - price) / originalPrice) * 100)}%
                 </div>
             )}
 
@@ -171,7 +168,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
             <div className="flex flex-1 flex-col justify-between pt-1 pb-1 pr-8">
                 <div>
                     <div className="flex justify-between items-start">
-                        <Link to={`/products/${product?.id}`} className="text-lg font-bold text-gray-900 hover:underline">
+                        <Link to={`/products/${productId}`} className="text-lg font-bold text-gray-900 hover:underline">
                             {productName}
                         </Link>
                     </div>
@@ -186,7 +183,7 @@ export function CartItem({ item, className, issheet = false }: CartItemProps) {
                         </span>
                         {isOnSale && (
                             <span className="text-sm text-gray-400 line-through">
-                                {formatCurrency(price)}
+                                {formatCurrency(originalPrice)}
                             </span>
                         )}
                     </div>

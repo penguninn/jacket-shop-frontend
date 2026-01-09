@@ -27,7 +27,6 @@ export default function ClientRoutes() {
         <Route index element={<Home />} />
 
         <Route path="search" element={<Search />} />
-        <Route path="chat" element={<ChatbotPage />} />
         <Route path="products/:id" element={<ProductDetail />} />
 
         <Route
