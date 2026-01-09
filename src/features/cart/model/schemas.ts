@@ -1,33 +1,27 @@
 import { z } from "zod";
 import { productVariantSchema } from "@/features/product-variants/model/schemas";
 
-// --- Request Schemas ---
-
 export const cartItemRequestSchema = z.object({
     productVariantId: z.number().min(1, "Product Variant ID is required"),
     quantity: z.number().min(1, "Quantity must be at least 1"),
 });
 
-// --- Response Schemas ---
-
-// Inferred from controller, verify if actual response differs
 export const cartItemResponseSchema = z.object({
-    id: z.number(), // CartItem ID? Or just productVariantId? 
-    // Usually CartItem has its own ID, but sometimes it's mapped differently. 
-    // Based on `updateCartItem(@PathVariable Long itemId)`, it implies a CartItem entity ID.
-    // However, traditionally simple carts might just list variants.
-    // The Controller endpoints uses "items/{itemId}", confirming CartItem entity exists and has ID.
-
+    id: z.number(),
     productVariant: productVariantSchema.extend({
-        product: z.object({
-            id: z.number(),
-            name: z.string(),
-            thumbnail: z.string().nullable().optional(),
-        }).optional(),
+        productName: z.string().optional(),
     }),
     quantity: z.number(),
+    selected: z.boolean(),
 
-    subTotal: z.number().optional(),
+    price: z.number(),
+    originalPrice: z.number(),
+    discountPercentage: z.number(),
+
+    subtotal: z.number(),
+
+    createdAt: z.string(),
+    updatedAt: z.string(),
 });
 
 export const cartValidationResponseSchema = z.object({
@@ -41,7 +35,15 @@ export const cartValidationResponseSchema = z.object({
 });
 
 export const cartResponseSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
     items: z.array(cartItemResponseSchema),
+    totalItems: z.number(),
+    totalPrice: z.number(),
+    selectedItemsCount: z.number(),
+    selectedItemsTotal: z.number(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
 });
 
 export type CartItemResponse = z.infer<typeof cartItemResponseSchema>;

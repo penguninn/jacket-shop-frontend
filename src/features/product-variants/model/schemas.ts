@@ -101,6 +101,7 @@ export const createProductVariantSchema = z.object({
 });
 
 export const updateProductVariantSchema = z.object({
+    id: z.number(),
     price: z.number().min(0),
     costPrice: z.number().min(0),
     quantity: z.number().min(0),
