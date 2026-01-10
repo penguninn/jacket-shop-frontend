@@ -41,10 +41,7 @@ export function CartList() {
 
     const items = cart?.items || [];
 
-    const totalPrice = items.reduce((sum, item) => {
-        const price = item.productVariant.salePrice ?? item.productVariant.price;
-        return sum + price * item.quantity;
-    }, 0);
+    const totalPrice = cart?.totalPrice ?? 0;
 
     // Re-validate coupon when cart data changes (after initial load)
     useEffect(() => {

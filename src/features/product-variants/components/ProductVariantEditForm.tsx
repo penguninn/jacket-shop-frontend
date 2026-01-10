@@ -29,7 +29,6 @@ import { useUpload } from "@/shared/hooks/use-upload";
 
 const FORM_CONFIG = {
     LABELS: {
-
         COLOR: "Color *",
         SIZE: "Size *",
         MATERIAL: "Material *",
@@ -76,6 +75,7 @@ export function ProductVariantEditForm({ open, onOpenChange, variant }: Props) {
     } = useForm<UpdateProductVariantInput>({
         resolver: zodResolver(updateProductVariantSchema),
         defaultValues: {
+            id: variant.id,
             status: variant.status,
             price: variant.price,
             costPrice: variant.costPrice,
@@ -94,6 +94,7 @@ export function ProductVariantEditForm({ open, onOpenChange, variant }: Props) {
     useEffect(() => {
         if (open && variant) {
             reset({
+                id: variant.id,
                 price: variant.price,
                 costPrice: variant.costPrice,
                 quantity: variant.quantity,
