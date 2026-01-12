@@ -245,7 +245,6 @@ export default function OrderDetailPage() {
                   </div>
                   <div>
                     <p className="font-medium">Shipping Carrier</p>
-                    {/* Fallback or specific logic for shipping method name if available, otherwise carrier */}
                     <p className="text-muted-foreground">{order.carrierName || "Standard Shipping"}</p>
                   </div>
                   <div>
@@ -276,23 +275,6 @@ export default function OrderDetailPage() {
                     <tbody>
                       {order.details?.map((item) => (
                         <tr key={item.id || item.sku} className="border-b last:border-0">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              {item.thumbnail && (
-                                <img
-                                  src={item.thumbnail}
-                                  alt={item.productName}
-                                  className="h-10 w-10 rounded-md object-cover border"
-                                />
-                              )}
-                              <div>
-                                <p className="font-medium">{item.productName}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {item.color} / {item.size}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
                           <td className="p-4 text-muted-foreground">{item.sku}</td>
                           <td className="p-4">{formatCurrency(item.price)}</td>
                           <td className="p-4">{item.quantity}</td>
@@ -332,7 +314,7 @@ export default function OrderDetailPage() {
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>{formatCurrency(order.totalAmount ?? order.total)}</span>
+                    <span>{formatCurrency(order.total)}</span>
                   </div>
                 </div>
               </div>

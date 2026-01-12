@@ -1,138 +1,121 @@
-import { z } from "zod";
 import { httpPrivateTyped } from "@/shared/api/http-typed";
-import { format } from "date-fns";
+import z from "zod";
 import {
-    type Order,
-    type OrderFilterParams,
-    type OrdersResponse,
-    type CreateOrderRequest,
-    type OrderHistoryResponse,
-    type UpdatePaymentRequest,
-    type ShippingInfoRequest,
-    ordersResponseSchema,
-    orderSchema,
-    orderArraySchema,
     orderHistoryResponseSchema,
+    orderSchema,
+    ordersResponseSchema,
+    type CreateOrderRequest,
+    type OrderFilterParams,
+    type OrderStatus,
+    type ShippingInfoRequest,
 } from "../model/schemas";
 
-// --- Admin Endpoints ---
+// ==================== READ OPERATIONS ====================
 
-export async function getOrders(params: OrderFilterParams): Promise<OrdersResponse> {
-    const queryParams: any = {
-        ...params,
-        page: params.page - 1,
-    };
-
-    if (params.startDate) {
-        queryParams.startDate = format(params.startDate, "yyyy-MM-dd");
-    }
-    if (params.endDate) {
-        queryParams.endDate = format(params.endDate, "yyyy-MM-dd");
-    }
-
-    return httpPrivateTyped.get<OrdersResponse>("/admin/orders", ordersResponseSchema, {
-        params: queryParams
-    });
+export async function getOrderById(id: number) {
+    const res = await httpPrivateTyped.get(`/orders/${id}`, orderSchema);
+    return res;
 }
 
-export async function getOrderById(id: number): Promise<Order> {
-    return httpPrivateTyped.get<Order>(`/admin/orders/${id}`, orderSchema);
+export async function getAllOrders(params: OrderFilterParams) {
+    const queryParams = new URLSearchParams();
+
+    if (params.orderCode) queryParams.append("orderCode", params.orderCode);
+    if (params.userId) queryParams.append("userId", params.userId.toString());
+    if (params.staffId) queryParams.append("staffId", params.staffId.toString());
+    if (params.status) queryParams.append("status", params.status);
+    if (params.orderType) queryParams.append("orderType", params.orderType);
+    if (params.paymentStatus) queryParams.append("paymentStatus", params.paymentStatus);
+
+    queryParams.append("page", params.page.toString());
+    queryParams.append("size", params.size.toString());
+    if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+    if (params.sortDir) queryParams.append("sortDir", params.sortDir);
+
+    const res = await httpPrivateTyped.get(
+        `/orders?${queryParams.toString()}`,
+        ordersResponseSchema
+    );
+    return res;
 }
 
-export async function confirmOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/confirm`, {}, orderSchema);
+export async function getMyOrders(status?: OrderStatus) {
+    const queryParams = new URLSearchParams();
+    if (status) queryParams.append("status", status);
+
+    const res = await httpPrivateTyped.get(
+        `/orders/my-orders?${queryParams.toString()}`,
+        z.array(orderSchema)
+    );
+    return res;
 }
 
-export async function shipOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/ship`, {}, orderSchema);
+export async function getOrderHistory(id: number) {
+    const res = await httpPrivateTyped.get(
+        `/orders/${id}/history`,
+        z.array(orderHistoryResponseSchema)
+    );
+    return res;
 }
 
-export async function completeOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/complete`, {}, orderSchema);
+// ==================== CREATE OPERATIONS ====================
+
+export async function createOrder(payload: CreateOrderRequest) {
+    const res = await httpPrivateTyped.post("/orders", payload, orderSchema);
+    return res;
 }
 
-export async function cancelOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/cancel`, {}, orderSchema);
+export async function reorder(id: number) {
+    await httpPrivateTyped.post(`/orders/${id}/reorder`, null, z.null());
 }
 
-export async function updatePaymentStatus(id: number, status: string): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/payment-status`, {}, orderSchema, {
-        params: { status }
-    });
+// ==================== STATE TRANSITIONS ====================
+
+export async function confirmOrder(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/confirm`, null, orderSchema);
+    return res;
 }
 
-export async function updateShippingInfo(id: number, carrierName: string, carrierCode: string): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/shipping-info`, {}, orderSchema, {
-        params: { carrierName, carrierCode }
-    });
+export async function shipOrder(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/ship`, null, orderSchema);
+    return res;
 }
 
-// --- User Endpoints ---
-
-export async function createOrder(data: CreateOrderRequest): Promise<Order> {
-    return httpPrivateTyped.post<Order>("/orders", data, orderSchema);
+export async function completeOrder(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/complete`, null, orderSchema);
+    return res;
 }
 
-export async function getMyOrders(status?: string): Promise<Order[]> {
-    return httpPrivateTyped.get<Order[]>("/orders/me", orderArraySchema, {
-        params: { status }
-    });
+export async function receiveOrder(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/receive`, null, orderSchema);
+    return res;
 }
 
-export async function getUserOrderById(id: number): Promise<Order> {
-    return httpPrivateTyped.get<Order>(`/orders/${id}`, orderSchema);
+export async function cancelOrder(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/cancel`, null, orderSchema);
+    return res;
 }
 
-export async function getOrderHistory(id: number): Promise<OrderHistoryResponse[]> {
-    return httpPrivateTyped.get<OrderHistoryResponse[]>(`/orders/${id}/history`, z.array(orderHistoryResponseSchema));
+// ==================== RETURN OPERATIONS ====================
+
+export async function requestReturn(id: number, reason: string) {
+    const queryParams = new URLSearchParams({ reason });
+    const res = await httpPrivateTyped.post(
+        `/orders/${id}/return?${queryParams.toString()}`,
+        null,
+        orderSchema
+    );
+    return res;
 }
 
-export async function cancelUserOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/orders/${id}/cancel`, {}, orderSchema);
+export async function approveReturn(id: number) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/return/approve`, null, orderSchema);
+    return res;
 }
 
-export async function receiveOrder(id: number): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/orders/${id}/receive`, {}, orderSchema);
-}
+// ==================== UPDATE OPERATIONS ====================
 
-export async function requestReturn(id: number, reason: string): Promise<Order> {
-    return httpPrivateTyped.post<Order>(`/orders/${id}/return`, reason, orderSchema, {
-        headers: { "Content-Type": "text/plain" }
-    });
-}
-
-export async function reorder(id: number): Promise<void> {
-    return httpPrivateTyped.post<void>(`/orders/${id}/reorder`, {}, z.any());
-}
-
-// --- Admin Endpoints (Additional) ---
-
-/**
- * Approve a return request
- * POST /api/orders/{id}/return/approve
- */
-export async function approveReturn(id: number): Promise<Order> {
-    return httpPrivateTyped.post<Order>(`/admin/orders/${id}/return/approve`, {}, orderSchema);
-}
-
-/**
- * Update order shipping information
- * PUT /api/admin/orders/{id}/shipping-info
- */
-export async function updateOrderShipping(
-    id: number,
-    data: ShippingInfoRequest
-): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/shipping-info`, data, orderSchema);
-}
-
-/**
- * Update order payment information
- * PUT /api/admin/orders/{id}/payment-status
- */
-export async function updateOrderPayment(
-    id: number,
-    data: UpdatePaymentRequest
-): Promise<Order> {
-    return httpPrivateTyped.put<Order>(`/admin/orders/${id}/payment-status`, data, orderSchema);
+export async function updateShippingInfo(id: number, payload: ShippingInfoRequest) {
+    const res = await httpPrivateTyped.put(`/orders/${id}/shipping`, payload, orderSchema);
+    return res;
 }

@@ -2,10 +2,10 @@
 import { cn } from "@/shared/lib/utils";
 import { ScrollArea, ScrollBar } from "@/shared/ui/scroll-area";
 
-import { ORDER_STATUS } from "../../model";
+import { ORDER_STATUS, type OrderStatus } from "../../model";
 
 const STATUS_TABS = [
-    { id: "all", label: "ALL" },
+    { id: ORDER_STATUS.ALL, label: "ALL" },
     { id: ORDER_STATUS.PENDING, label: "PENDING" },
     { id: ORDER_STATUS.CONFIRMED, label: "CONFIRMED" },
     { id: ORDER_STATUS.SHIPPING, label: "DELIVERING" },
@@ -15,8 +15,8 @@ const STATUS_TABS = [
 ];
 
 interface OrderStatsTabsProps {
-    activeTab: string;
-    onTabChange: (tabId: string) => void;
+    activeTab: OrderStatus;
+    onTabChange: (tabId: OrderStatus) => void;
 }
 
 export function OrderStatsTabs({ activeTab, onTabChange }: OrderStatsTabsProps) {

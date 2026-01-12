@@ -11,7 +11,7 @@ export default function PurchasePage() {
     const getStatusFromTab = (tab: string) => {
         switch (tab) {
             case "to_pay":
-                return "PENDING"; // Assuming PENDING implies waiting for payment/procesing
+                return "PENDING";
             case "to_ship":
                 return "CONFIRMED";
             case "to_receive":
