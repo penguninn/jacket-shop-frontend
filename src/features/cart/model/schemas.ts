@@ -8,9 +8,7 @@ export const cartItemRequestSchema = z.object({
 
 export const cartItemResponseSchema = z.object({
     id: z.number(),
-    productVariant: productVariantSchema.extend({
-        productName: z.string().optional(),
-    }),
+    productVariant: productVariantSchema,
     quantity: z.number(),
     selected: z.boolean(),
 

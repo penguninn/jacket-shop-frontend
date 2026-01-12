@@ -1,4 +1,7 @@
 import { z } from "zod";
+import {
+    pageResponseSchema,
+} from "@/shared/api/schemas";
 
 export const addressDtoSchema = z.object({
     district: z.string(),
@@ -6,8 +9,8 @@ export const addressDtoSchema = z.object({
 });
 
 export const parcelSchema = z.object({
-    cod: z.number().optional(), // Long in Java
-    amount: z.number().optional(), // Long in Java
+    cod: z.number().optional(),
+    amount: z.number().optional(),
     width: z.number().optional(),
     height: z.number().optional(),
     length: z.number().optional(),
@@ -31,9 +34,13 @@ export const goshipRateDataSchema = z.object({
     service: z.string(),
     carrier_short_name: z.string().optional(),
     total_fee: z.number(),
-    total_amount: z.number().optional(), // total fee + cod?
-    expected: z.string().optional(), // e.g. "2 - 3 days"
+    total_amount: z.number().optional(),
+    expected: z.string().optional(),
 });
+
+export const goshipRateResponseSchema = pageResponseSchema(goshipRateDataSchema);
 
 export type GoshipRateRequest = z.infer<typeof goshipRateRequestSchema>;
 export type GoshipRateData = z.infer<typeof goshipRateDataSchema>;
+export type GoshipRateResponse = z.infer<typeof goshipRateResponseSchema>;
+

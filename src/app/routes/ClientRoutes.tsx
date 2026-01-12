@@ -47,8 +47,8 @@ export default function ClientRoutes() {
         />
 
         {/* PayOS Payment Callback Routes */}
-        <Route path="payment-success/:orderCode" element={<PaymentSuccessPage />} />
-        <Route path="payment-cancel/:orderCode" element={<PaymentCancelPage />} />
+        <Route path="payment-success/:orderId" element={<PaymentSuccessPage />} />
+        <Route path="payment-cancel/:orderId" element={<PaymentCancelPage />} />
 
         <Route
           path="user"

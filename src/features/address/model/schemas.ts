@@ -3,21 +3,21 @@ import { z } from "zod";
 export const provinceSchema = z.object({
     id: z.number(),
     name: z.string(),
-    goShipId: z.string(),
+    goshipId: z.string(),
 });
 
 export const districtSchema = z.object({
     id: z.number(),
     provinceId: z.number(),
     name: z.string(),
-    goShipId: z.string(),
+    goshipId: z.string(),
 });
 
 export const wardSchema = z.object({
     id: z.number(),
     districtId: z.number(),
     name: z.string(),
-    goShipId: z.string(),
+    goshipId: z.string(),
 });
 
 export type Province = z.infer<typeof provinceSchema>;

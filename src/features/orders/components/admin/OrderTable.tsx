@@ -17,13 +17,15 @@ import { columns } from "./OrderTableColumns";
 import { useOrders } from "../../hooks";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
-import { type OrderFilterParams } from "../../model";
+import type { OrderStatus, OrderType } from "../../model";
+import { ORDER_STATUS, type OrderFilterParams } from "../../model/schemas";
 
 interface OrdersTableProps {
-    status?: string | string[];
+    status?: OrderStatus;
+    orderType?: OrderType;
 }
 
-export function OrderTable({ status }: OrdersTableProps) {
+export function OrderTable({ status, orderType }: OrdersTableProps) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -34,13 +36,13 @@ export function OrderTable({ status }: OrdersTableProps) {
     });
 
     const queryParams: OrderFilterParams = {
-        page: pagination.pageIndex + 1, // API uses 1-based pagination
+        page: pagination.pageIndex,
         size: pagination.pageSize,
         sortBy: sorting[0]?.id,
         sortDir: sorting[0]?.desc ? "DESC" : "ASC",
         orderCode: columnFilters.find((f) => f.id === "orderCode")?.value as string,
-        type: (columnFilters.find((f) => f.id === "orderType")?.value as string[])?.[0]?.toUpperCase(),
-        status: status === 'all' ? undefined : (Array.isArray(status) ? status[0] : status),
+        orderType,
+        status: status === ORDER_STATUS.ALL ? undefined : status,
     };
 
     const { data: response, isLoading, isError } = useOrders(queryParams);

@@ -3,18 +3,19 @@ import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
+import type { GoshipRateData } from "@/features/shipping/model/schemas";
 
 interface CheckoutShippingProps {
-    rates: any[]; // GoshipRateData
-    selectedRate: any | null; // GoshipRateData
-    onSelect: (rate: any) => void;
+    rates: GoshipRateData[];
+    selectedRate: GoshipRateData | null;
+    onSelect: (rate: GoshipRateData) => void;
     isLoading?: boolean;
+    disabled?: boolean;
 }
 
-export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: CheckoutShippingProps) {
+export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading, disabled }: CheckoutShippingProps) {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Auto-select first if none selected
     useEffect(() => {
         if (!selectedRate && rates.length > 0) {
             onSelect(rates[0]);
@@ -53,7 +54,13 @@ export function CheckoutShipping({ rates, selectedRate, onSelect, isLoading }: C
                         <span className="font-bold">{selectedRate?.carrier_name || "Standard"}</span>
                         <Dialog open={isOpen} onOpenChange={setIsOpen}>
                             <DialogTrigger asChild>
-                                <Button variant="ghost" className="text-blue-500 font-medium uppercase text-sm h-auto p-0 hover:bg-transparent hover:text-blue-600">Change</Button>
+                                <Button
+                                    variant="ghost"
+                                    className="text-blue-500 font-medium uppercase text-sm h-auto p-0 hover:bg-transparent hover:text-blue-600"
+                                    disabled={disabled}
+                                >
+                                    Change
+                                </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>

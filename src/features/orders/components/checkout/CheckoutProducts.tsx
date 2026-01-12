@@ -1,9 +1,12 @@
-import { useCart } from "@/features/cart/hooks";
 import { formatCurrency } from "@/shared/utils/format";
 import { Badge } from "@/shared/ui/badge";
+import type { CartResponse } from "@/features/cart/model";
 
-export function CheckoutProducts() {
-    const { data: cart } = useCart();
+export interface CheckoutProductsProps {
+    cart: CartResponse | null | undefined;
+}
+
+export function CheckoutProducts({ cart }: CheckoutProductsProps) {
 
     if (!cart?.items.length) {
         return (
@@ -48,6 +51,7 @@ export function CheckoutProducts() {
                                     )}
                                 </div>
                                 <div className="pr-4">
+                                    <p className="font-medium">{variant.productName}</p>
                                     <p className="line-clamp-2 mb-1">{variant.sku}</p>
                                     <p className="text-gray-500 text-xs">
                                         Variation: {variant.color.name}, {variant.size.name}, {variant.material.name}

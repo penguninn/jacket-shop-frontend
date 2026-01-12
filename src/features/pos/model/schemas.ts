@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { orderItemRequestSchema } from "@/features/orders/model/schemas";
 
-// POS Draft Order Schema (matches backend OrderRequest)
 export const posDraftRequestSchema = z.object({
     orderType: z.enum(['POS_INSTORE']),
 
@@ -16,9 +15,33 @@ export const posDraftRequestSchema = z.object({
     userId: z.number().nullable().optional(),
     customerName: z.string().nullable().optional(),
     customerPhone: z.string().nullable().optional(),
+    customerEmail: z.string().nullable().optional(),
 
     // Discount/Coupon
     couponCode: z.string().nullable().optional(), // Allow null to remove
+
+    // Shipping info (Optional for POS)
+    addressId: z.number().nullable().optional(),
+    shippingRecipientName: z.string().nullable().optional(),
+    shippingRecipientPhone: z.string().nullable().optional(),
+    shippingAddressLine: z.string().nullable().optional(),
+
+    // Address codes
+    shippingProvinceCode: z.string().nullable().optional(),
+    shippingDistrictCode: z.string().nullable().optional(),
+    shippingWardCode: z.string().nullable().optional(),
+
+    // Address names (usually not sent in request but useful for form state)
+    shippingProvinceName: z.string().nullable().optional(),
+    shippingDistrictName: z.string().nullable().optional(),
+    shippingWardName: z.string().nullable().optional(),
+
+    // Carrier
+    shippingFee: z.number().nullable().optional(),
+    carrierName: z.string().nullable().optional(),
+    carrierServiceName: z.string().nullable().optional(),
+    carrierRateId: z.string().nullable().optional(),
+    deliveryTimeEstimate: z.string().nullable().optional(),
 
     // Notes
     note: z.string().nullable().optional(),

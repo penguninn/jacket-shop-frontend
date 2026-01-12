@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { OrderStatsTabs } from "../components/admin/OrderStatsTabs";
-import { OrderTable } from "../components/admin/OrderTable";
+import { OrderStatsTabs } from "../../components/admin/OrderStatsTabs";
+import { OrderTable } from "../../components/admin/OrderTable";
+import type { OrderStatus } from "@/features/orders/model/schemas";
 
 export default function OrderManagementPage() {
-    const [activeTab, setActiveTab] = useState("all");
+    const [activeTab, setActiveTab] = useState<OrderStatus>("PENDING");
 
     return (
         <div className="container mx-auto py-8 flex flex-col gap-4">

@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, User as UserIcon, Plus, Loader2 } from "lucide-react";
-import { useDebounce } from "@/shared/hooks/use-debounce";
-import { useUsers, useCreateUser } from "@/features/users/hooks";
-import { useRoles } from "@/features/roles/hooks";
 import { Button } from "@/shared/ui/button";
 import {
     Command,
@@ -27,64 +24,35 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
-import { usePosStore } from "../hooks/usePosState";
-import { useUpdatePosDraftCustomer } from "../hooks/usePosApi";
-import type { User } from "@/features/users/model/schemas";
-import { toast } from "sonner";
+
+// Dữ liệu giả lập
+const DUMMY_USERS = [
+    { id: 1, fullName: "Nguyen Van A", phone: "0912345678", username: "user_a" },
+    { id: 2, fullName: "Tran Thi B", phone: "0987654321", username: "user_b" },
+    { id: 3, fullName: "Le Van C", phone: "0909090909", username: "user_c" },
+    { id: 4, fullName: "Guest User", phone: "0000000000", username: "guest" },
+];
 
 export function CustomerSelector() {
-    // Correct store usage
-    const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: updateCustomer, isPending: isUpdating } = useUpdatePosDraftCustomer();
+    // Giả lập trạng thái có Draft đang hoạt động
+    const hasDraft = true;
 
-    // Derived state
-    const selectedCustomerName = currentDraft?.customerName;
-    const selectedCustomerPhone = currentDraft?.customerPhone;
-    const selectedUserId = currentDraft?.userId;
-
+    // State UI cục bộ
     const [open, setOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const debouncedSearch = useDebounce(searchTerm, 300);
+    const [selectedUser, setSelectedUser] = useState<typeof DUMMY_USERS[0] | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const { data: usersData, isLoading } = useUsers({
-        search: debouncedSearch,
-        page: 0,
-        size: 20, // Increase if needed
-        sortDir: "DESC",
-        sortBy: "createdAt",
-    });
-
-    const handleSelect = (user: User) => {
-        if (!currentDraft) {
-            toast.error("Please create a draft first");
-            return;
-        }
-
-        updateCustomer({
-            id: currentDraft.id,
-            data: {
-                userId: user.id,
-                customerName: user.fullName,
-                customerPhone: user.phone,
-            }
-        }, {
-            onSuccess: (updatedDraft) => {
-                setCurrentDraft(updatedDraft);
-                setOpen(false);
-                setSearchTerm("");
-                toast.success("Customer updated");
-            },
-            onError: (error: any) => {
-                toast.error("Failed to update customer", {
-                    description: error.response?.data?.message
-                });
-            }
-        });
+    const handleSelect = (user: typeof DUMMY_USERS[0]) => {
+        setIsUpdating(true);
+        // Giả lập delay mạng
+        setTimeout(() => {
+            setSelectedUser(user);
+            setOpen(false);
+            setIsUpdating(false);
+        }, 500);
     };
 
-
-
-    if (!currentDraft) {
+    if (!hasDraft) {
         return (
             <div className="flex flex-col gap-2 p-4 bg-background border rounded-lg shadow-sm opacity-50 pointer-events-none">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
@@ -103,7 +71,7 @@ export function CustomerSelector() {
                 <div className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4" /> Customer
                 </div>
-                <QuickCreateCustomerDialog onCustomerCreated={handleSelect} />
+                <QuickCreateCustomerDialog />
             </h3>
 
             <div className="flex gap-2">
@@ -116,14 +84,14 @@ export function CustomerSelector() {
                             className="flex-1 min-w-0 justify-between"
                             disabled={isUpdating}
                         >
-                            {selectedUserId ? (
+                            {selectedUser ? (
                                 <span className="flex items-center gap-2 truncate">
-                                    <span className="font-medium">{selectedCustomerName}</span>
-                                    <span className="text-muted-foreground text-xs">({selectedCustomerPhone})</span>
+                                    <span className="font-medium">{selectedUser.fullName}</span>
+                                    <span className="text-muted-foreground text-xs">({selectedUser.phone})</span>
                                 </span>
                             ) : (
                                 <span className="text-muted-foreground">
-                                    {selectedCustomerName || "Walk-in Customer"}
+                                    Walk-in Customer
                                 </span>
                             )}
                             {isUpdating ? (
@@ -134,28 +102,23 @@ export function CustomerSelector() {
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0" align="start">
-                        <Command shouldFilter={false}>
-                            <CommandInput
-                                placeholder="Search customer (name, phone)..."
-                                value={searchTerm}
-                                onValueChange={setSearchTerm}
-                            />
+                        {/* Bỏ shouldFilter={false} để Shadcn tự filter local data */}
+                        <Command>
+                            <CommandInput placeholder="Search customer (name, phone)..." />
                             <CommandList>
-                                <CommandEmpty>
-                                    {isLoading ? "Searching..." : "No customer found."}
-                                </CommandEmpty>
+                                <CommandEmpty>No customer found.</CommandEmpty>
                                 <CommandGroup>
-                                    {usersData?.contents.map((user) => (
+                                    {DUMMY_USERS.map((user) => (
                                         <CommandItem
                                             key={user.id}
-                                            value={user.id.toString()}
+                                            value={user.fullName + " " + user.phone} // Value để search hoạt động
                                             onSelect={() => handleSelect(user)}
                                             className="cursor-pointer"
                                         >
                                             <Check
                                                 className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    selectedUserId === user.id ? "opacity-100" : "opacity-0"
+                                                    selectedUser?.id === user.id ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
                                             <div className="flex flex-col">
@@ -172,62 +135,33 @@ export function CustomerSelector() {
             </div>
 
             {/* Customer Details Minimal View */}
-            {selectedUserId && (
+            {selectedUser && (
                 <div className="text-xs text-muted-foreground mt-1 px-1">
-                    <p>Phone: {selectedCustomerPhone || "N/A"}</p>
+                    <p>Phone: {selectedUser.phone}</p>
                 </div>
             )}
         </div>
     );
 }
 
-function QuickCreateCustomerDialog({ onCustomerCreated }: { onCustomerCreated: (user: User) => void }) {
+function QuickCreateCustomerDialog() {
     const [open, setOpen] = useState(false);
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
-
-    const { mutate: createUser, isPending } = useCreateUser();
-    const { data: roles } = useRoles();
+    const [isPending, setIsPending] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setIsPending(true);
 
-        if (!fullName || !phone) {
-            toast.error("Please fill in all fields");
-            return;
-        }
-
-        // Find "Customer" role
-        const roleList = Array.isArray(roles) ? roles : (roles as any)?.contents || [];
-        const customerRole = roleList.find((r: any) => r.name.toLowerCase().includes('customer')) || roleList[0];
-
-        if (!customerRole) {
-            toast.error("No roles found to assign");
-            return;
-        }
-
-        createUser({
-            fullName,
-            phone,
-            username: phone, // Phone as username
-            password: phone, // Phone as password
-            confirmPassword: phone,
-            status: "ACTIVE",
-            roleIds: [customerRole.id],
-        }, {
-            onSuccess: (newUser) => {
-                toast.success("Customer created successfully");
-                onCustomerCreated(newUser);
-                setOpen(false);
-                setFullName("");
-                setPhone("");
-            },
-            onError: (error: any) => {
-                toast.error("Failed to create user", {
-                    description: error.response?.data?.message
-                });
-            }
-        });
+        // Giả lập API call
+        setTimeout(() => {
+            setIsPending(false);
+            setOpen(false);
+            setFullName("");
+            setPhone("");
+            // Logic thêm user vào list cha sẽ nằm ở đây
+        }, 1000);
     };
 
     return (
