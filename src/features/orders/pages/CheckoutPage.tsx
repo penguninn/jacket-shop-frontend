@@ -1,21 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useCart } from "@/features/cart/hooks";
-import { useCreateOrder } from "@/features/orders/hooks";
-import { useCreatePaymentLink } from "@/features/payos/hooks";
-import { toast } from "sonner";
 import { AddressSection } from "@/features/orders/components/checkout/AddressSection";
 import { CheckoutProducts } from "@/features/orders/components/checkout/CheckoutProducts";
 import { CheckoutShipping } from "@/features/orders/components/checkout/CheckoutShipping";
 import { CheckoutPayment } from "@/features/orders/components/checkout/CheckoutPayment";
-import type { AddressResponse } from "@/features/address/model";
 import { Button } from "@/shared/ui/button";
-import { formatCurrency } from "@/shared/utils/format";
-import { useShippingRates } from "@/features/shipping/hooks";
-import { useLocation } from "react-router-dom";
-import { type Coupon } from "@/features/coupons/model";
-import { useValidateCoupon } from "@/features/coupons/hooks";
-import { X, Loader2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import {
     Breadcrumb,
@@ -25,239 +13,183 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb";
-import { usePaymentMethods } from "@/features/payment-methods/hooks";
 
+import { useEffect, useState, useMemo } from "react";
+import type { AddressResponse } from "@/features/address/model";
+import { useCart } from "@/features/cart/hooks";
+import { useValidateCoupon, validateCouponInputSchema, type ValidateCouponInput } from "@/features/coupons";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { formatCurrency } from "@/shared/utils/format";
+import { toast } from "sonner";
+import { useShippingRates } from "@/features/shipping/hooks";
+import type { GoshipRateData, GoshipRateRequest } from "@/features/shipping/model/schemas";
+import { useCreateOrder } from "@/features/orders/hooks";
+import type { PaymentMethod } from "@/features/payment-methods/model";
+import { useCreatePaymentLink } from "@/features/payos/hooks";
 
 export default function CheckoutPage() {
     const navigate = useNavigate();
     const { data: cart } = useCart();
-    const { mutateAsync: createOrder } = useCreateOrder();
-    const { mutateAsync: createPaymentLink } = useCreatePaymentLink();
-    const { mutate: getRates, isPending: isLoadingRates } = useShippingRates();
-
-    // Processing state
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [loadingText, setLoadingText] = useState("");
-
-    const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
-    const [shippingRates, setShippingRates] = useState<any[]>([]);
-    const [selectedRate, setSelectedRate] = useState<any | null>(null);
-    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
     const [note, setNote] = useState("");
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+    const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
+    const [selectedShippingRate, setSelectedShippingRate] = useState<GoshipRateData | null>(null);
+    const [shippingRates, setShippingRates] = useState<GoshipRateData[] | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<{
+        code: string;
+        discount: number;
+        type?: 'PERCENT' | 'AMOUNT';
+    } | null>(null);
 
-    // Fetch payment methods to check type
-    const { data: paymentMethodsData } = usePaymentMethods({
-        page: 0,
-        size: 100,
-        status: ["ACTIVE"],
-        type: ["ONLINE"],
+    // Coupon form
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+    } = useForm<ValidateCouponInput>({
+        resolver: zodResolver(validateCouponInputSchema),
+        defaultValues: {
+            code: "",
+            orderAmount: 0,
+        },
     });
-    const paymentMethods = paymentMethodsData?.contents || [];
-    const selectedPaymentMethod = paymentMethods.find(m => m.id === selectedPaymentMethodId);
-
-    // Coupon State
-    const location = useLocation();
-    const [couponCode, setCouponCode] = useState("");
-    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-    const { mutateAsync: validateCoupon, isPending: isCheckingCoupon } = useValidateCoupon();
 
     useEffect(() => {
-        if (location.state?.appliedCoupon) {
-            setAppliedCoupon(location.state.appliedCoupon);
-            setCouponCode(location.state.appliedCoupon.code);
+        if (cart?.totalPrice !== undefined) {
+            setValue("orderAmount", cart.totalPrice);
         }
-    }, [location.state]);
+    }, [cart?.totalPrice, setValue]);
 
-    // Fetch rates when address changes
-    useEffect(() => {
-        if (selectedAddress && selectedAddress.district && selectedAddress.province) {
-            const payload = {
-                shipment: {
-                    address_from: {
-                        district: "103000",
-                        city: "100000"
-                    },
-                    address_to: {
-                        district: selectedAddress.district.goShipId,
-                        city: selectedAddress.province.goShipId
-                    },
-                    parcel: {
-                        cod: 0,
-                        amount: cart?.items.reduce((sum, item) => sum + ((item.productVariant.salePrice ?? item.productVariant.price) * item.quantity), 0) || 0,
-                        width: 10,
-                        height: 10,
-                        length: 10,
-                        weight: 1000
-                    }
-                }
-            };
-
-            getRates(payload, {
-                onSuccess: (data) => {
-                    setShippingRates(data);
-                    if (data.length > 0) {
-                        setSelectedRate(data[0]);
-                    } else {
-                        setSelectedRate(null);
-                    }
-                },
-                onError: (err) => {
-                    console.error("Failed to fetch rates", err);
-                    toast.error("Shipping Error", { description: "Could not fetch shipping rates" });
-                    setShippingRates([]);
-                    setSelectedRate(null);
-                }
-            });
-        }
-    }, [selectedAddress, cart, getRates]);
-
-    const merchSubtotal = cart?.items.reduce((sum, item) => {
-        const price = item.productVariant.salePrice ?? item.productVariant.price;
-        return sum + (price * item.quantity);
-    }, 0) || 0;
-
-    // Calculate discount
-    let discount = 0;
-    if (appliedCoupon) {
-        if (appliedCoupon.type === "PERCENT") {
-            discount = (merchSubtotal * appliedCoupon.value) / 100;
-            if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
-                discount = appliedCoupon.maxDiscount;
-            }
-        } else {
-            discount = appliedCoupon.value;
-        }
-    }
-    if (discount > merchSubtotal) {
-        discount = merchSubtotal;
-    }
-
-    const shippingFee = selectedRate ? selectedRate.total_fee : 0;
-    const totalPayment = merchSubtotal + shippingFee - discount;
-
-    const handlePlaceOrder = async () => {
-        // Validation
-        if (!selectedAddress) {
-            toast.error("Address Required", {
-                description: "Please select a delivery address.",
-            });
-            return;
-        }
-
-        if (!selectedRate) {
-            toast.error("Shipping Rate Required", {
-                description: "Please select a shipping option.",
-            });
-            return;
-        }
-
-        if (!selectedPaymentMethodId) {
-            toast.error("Payment Method Required", {
-                description: "Please select a payment method.",
-            });
-            return;
-        }
-
-        if (!cart || cart.items.length === 0) {
-            toast.error("Empty Cart", {
-                description: "Your cart is empty.",
-            });
-            return;
-        }
-
-        setIsProcessing(true);
-
-        try {
-            // STEP 1: Create Order
-            setLoadingText("Creating order...");
-            const order = await createOrder({
-                orderType: "ONLINE",
-                paymentMethodId: selectedPaymentMethodId,
-                note: note.trim() || undefined,
-                items: cart.items.map(item => ({
-                    productVariantId: item.productVariant.id,
-                    quantity: item.quantity
-                })),
-                addressId: selectedAddress.id,
-                couponCode: appliedCoupon?.code,
-                carrierName: selectedRate.carrier_name,
-                carrierServiceName: selectedRate.service,
-                shippingFee: selectedRate.total_fee,
-                deliveryTimeEstimate: selectedRate.expected,
-                carrierRateId: selectedRate.id,
-            });
-
-            const orderId = order.id;
-
-            // Check if payment method is QR (requires PayOS)
-            const isQRPayment = selectedPaymentMethod?.code === 'QR';
-
-            if (!isQRPayment) {
-                // COD or other methods: Go directly to order success/history
-                toast.success("Order placed successfully!");
-                navigate("/user/purchase");
-                return;
-            }
-
-            // STEP 2: Create PayOS Payment Link (only for QR payments)
-            setLoadingText("Connecting to payment gateway...");
-            try {
-                const paymentRes = await createPaymentLink(orderId);
-
-                if (paymentRes.checkoutUrl) {
-                    // Redirect to PayOS checkout
-                    window.location.href = paymentRes.checkoutUrl;
-                } else {
-                    throw new Error("No checkout URL received");
-                }
-            } catch (paymentError) {
-                // CRITICAL: Order was created but payment link failed
-                // Must redirect to order details so user can retry payment
-                console.error("Payment link creation failed:", paymentError);
-                toast.error("Payment link failed", {
-                    description: "Order created but payment link failed. Please pay from your order details.",
-                    duration: 5000,
+    const { mutate: validateCoupon, isPending: isValidatingCoupon } = useValidateCoupon();
+    const onSubmitCoupon = (data: ValidateCouponInput) => {
+        validateCoupon(data, {
+            onSuccess: (response) => {
+                setAppliedCoupon({
+                    code: data.code,
+                    discount: response.value,
+                    type: response.type
                 });
-                navigate(`/user/purchase`);
+                toast.success(`Coupon "${data.code}" applied successfully!`);
             }
-
-        } catch (error) {
-            // STEP 1 failed - Order not created, user can retry
-            console.error("Order creation failed:", error);
-            // Error toast is already handled by useCreateOrder hook
-        } finally {
-            setIsProcessing(false);
-            setLoadingText("");
-        }
+        });
     };
-
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) return;
-
-        try {
-            const coupon = await validateCoupon({ code: couponCode, orderAmount: merchSubtotal });
-            setAppliedCoupon(coupon);
-
-            const savedAmount = coupon.type === 'PERCENT'
-                ? (merchSubtotal * (coupon.value / 100))
-                : coupon.value;
-            toast.success("Coupon Applied", {
-                description: `You saved ${formatCurrency(savedAmount)}`,
-            });
-        } catch {
-            // Error is already handled by useGlobalMutation
-        }
-    }
 
     const handleRemoveCoupon = () => {
         setAppliedCoupon(null);
-        setCouponCode("");
+        setValue('code', '');
+        toast.success('Coupon removed');
+    };
+
+    // Shipping rates
+    const { mutate: calculateShippingRates, isPending } = useShippingRates();
+    const goshipRateRequest: GoshipRateRequest | null = useMemo(() => {
+        if (!selectedAddress) return null;
+
+        return {
+            shipment: {
+                address_from: { district: "103000", city: "100000" },
+                address_to: {
+                    district: selectedAddress.district.goshipId.toString(),
+                    city: selectedAddress.province.goshipId.toString(),
+                },
+                parcel: { cod: 0, amount: 0, width: 0, height: 0, length: 0, weight: 0 },
+            },
+        };
+    }, [selectedAddress]);
+
+    useEffect(() => {
+        setShippingRates(null);
+        setSelectedShippingRate(null);
+
+        if (!goshipRateRequest) return;
+
+        calculateShippingRates(goshipRateRequest, {
+            onSuccess: (response) => {
+                setShippingRates(response.contents);
+                if (response.contents?.length > 0) {
+                    setSelectedShippingRate(response.contents[0]);
+                }
+            }
+        });
+    }, [goshipRateRequest, calculateShippingRates]);
+
+    // Summary
+    const summary = useMemo(() => {
+        const subtotal = cart?.totalPrice || 0;
+        const discount = appliedCoupon?.discount || 0;
+        const shippingFee = selectedShippingRate?.total_fee || 0;
+        const total = subtotal - discount + shippingFee;
+
+        return {
+            subtotal,
+            discount,
+            shippingFee,
+            total: Math.max(0, total)
+        };
+    }, [cart?.totalPrice, appliedCoupon?.discount, selectedShippingRate?.total_fee]);
+
+    // Create order
+    const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrder();
+    const { mutate: createPaymentLink, isPending: isCreatingPaymentLink } = useCreatePaymentLink();
+
+    const handlePlaceOrder = () => {
+        if (!cart || !cart.items.length) {
+            toast.error("Cart is empty");
+            return;
+        }
+
+        if (!selectedAddress) {
+            toast.error("Please select a shipping address");
+            return;
+        }
+
+        if (!selectedShippingRate) {
+            toast.error("Please select a shipping method");
+            return;
+        }
+
+        if (!selectedPaymentMethod) {
+            toast.error("Please select a payment method");
+            return;
+        }
+
+        createOrder({
+            orderType: "ONLINE",
+            paymentMethodId: selectedPaymentMethod.id,
+            note: note,
+            couponCode: appliedCoupon?.code,
+            items: cart.items.map((item) => ({
+                productVariantId: item.productVariant.id,
+                quantity: item.quantity,
+            })),
+            addressId: selectedAddress.id,
+            shippingFee: selectedShippingRate?.total_fee,
+            carrierName: selectedShippingRate?.carrier_name,
+            carrierServiceName: selectedShippingRate?.service,
+            carrierRateId: selectedShippingRate?.id,
+            deliveryTimeEstimate: selectedShippingRate?.expected,
+        }, {
+            onSuccess: (order) => {
+                if (selectedPaymentMethod.type === "ONLINE") {
+                    if (selectedPaymentMethod.code === "COD") {
+                        navigate("/user/purchase");
+                    } else if (selectedPaymentMethod.code === "QR") {
+                        createPaymentLink(order.id, {
+                            onSuccess: (paymentLink) => {
+                                window.location.href = paymentLink.checkoutUrl;
+                            }
+                        });
+                    }
+                }
+            }
+        });
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="space-y-8">
-                {/* Breadcrumb */}
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -280,21 +212,17 @@ export default function CheckoutPage() {
 
                 <h1 className="text-4xl font-black uppercase tracking-tight text-black">Checkout</h1>
 
-
                 <div className="space-y-4">
-
                     <AddressSection
                         selectedAddress={selectedAddress}
                         onSelectAddress={setSelectedAddress}
+                        disabled={isCreatingOrder}
                     />
 
                     <div className="bg-white p-6 shadow-sm border border-gray-200 rounded-sm">
-                        <CheckoutProducts />
+                        <CheckoutProducts cart={cart} />
 
-                        {/* Divider */}
                         <div className="my-6 border-b border-dashed"></div>
-
-                        {/* Order Group Footer (Voucher, Message, Shipping) */}
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-4 justify-between border-b pb-6 border-dotted">
                                 <div className="flex items-center gap-2">
@@ -304,41 +232,48 @@ export default function CheckoutPage() {
 
                                 <div className="flex items-center gap-2">
                                     {appliedCoupon ? (
-                                        <div className="flex flex-col items-end gap-1">
-                                            <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                                                <span className="text-xs font-bold text-green-700">{appliedCoupon.code}</span>
-                                                <button onClick={handleRemoveCoupon} className="text-green-600 hover:text-green-800">
-                                                    <X className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                            <span className="text-xs text-green-600">
-                                                {appliedCoupon.type === 'PERCENT' ? (
-                                                    <>
-                                                        Discount {appliedCoupon.value}%
-                                                        {appliedCoupon.maxDiscount && ` (Max ${formatCurrency(appliedCoupon.maxDiscount)})`}
-                                                    </>
-                                                ) : (
-                                                    <>Discount {formatCurrency(appliedCoupon.value)}</>
-                                                )}
+                                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded px-3 py-1">
+                                            <span className="text-sm font-medium text-green-700">
+                                                {appliedCoupon.code}
                                             </span>
+                                            <span className="text-xs text-green-600">
+                                                -{formatCurrency(appliedCoupon.discount)}
+                                            </span>
+                                            <button
+                                                onClick={handleRemoveCoupon}
+                                                className="text-red-500 hover:text-red-700 text-xs ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={isCreatingOrder}
+                                            >
+                                                ✕
+                                            </button>
                                         </div>
                                     ) : (
-                                        <div className="flex gap-2">
-                                            <Input
-                                                className="h-8 text-sm w-32"
-                                                placeholder="Code"
-                                                value={couponCode}
-                                                onChange={(e) => setCouponCode(e.target.value)}
-                                            />
+                                        <form onSubmit={handleSubmit(onSubmitCoupon)} className="flex gap-2">
+                                            <div className="flex flex-col">
+                                                <Input
+                                                    className="h-8 text-sm w-full"
+                                                    placeholder="Enter coupon code"
+                                                    disabled={isValidatingCoupon || isCreatingOrder}
+                                                    {...register("code")}
+                                                />
+                                                {errors.code && (
+                                                    <p className="text-xs text-red-500 mt-1">
+                                                        {errors.code.message}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <input type="hidden" {...register("orderAmount")} />
+
                                             <Button
+                                                type="submit"
                                                 size="sm"
                                                 className="h-8 bg-black hover:bg-black/90"
-                                                onClick={handleApplyCoupon}
-                                                disabled={isCheckingCoupon || !couponCode.trim()}
+                                                disabled={isValidatingCoupon || isCreatingOrder}
                                             >
-                                                Apply
+                                                {isValidatingCoupon ? "Applying..." : "Apply"}
                                             </Button>
-                                        </div>
+                                        </form>
                                     )}
                                 </div>
                             </div>
@@ -348,69 +283,75 @@ export default function CheckoutPage() {
                                     <span className="text-sm">Message:</span>
                                     <input
                                         type="text"
-                                        className="border border-gray-300 rounded-sm px-2 py-1 flex-1 text-sm focus:outline-none focus:border-gray-500"
+                                        className="border border-gray-300 rounded-sm px-2 py-1 flex-1 text-sm focus:outline-none focus:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                         placeholder="Please leave a message..."
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
+                                        disabled={isCreatingOrder}
                                     />
                                 </div>
 
                                 <CheckoutShipping
-                                    rates={shippingRates}
-                                    selectedRate={selectedRate}
-                                    onSelect={setSelectedRate}
-                                    isLoading={isLoadingRates}
+                                    rates={shippingRates || []}
+                                    selectedRate={selectedShippingRate}
+                                    onSelect={setSelectedShippingRate}
+                                    isLoading={isPending}
+                                    disabled={isCreatingOrder}
                                 />
                             </div>
 
                             <div className="flex justify-end items-center gap-4 border-t border-dotted pt-4">
-                                <span className="text-sm text-gray-500">Order Total ({cart?.items.length || 0} Item):</span>
-                                <span className="text-xl font-medium text-red-500">{formatCurrency(totalPayment)}</span>
+                                <span className="text-sm text-gray-500">Order Total:</span>
+                                <span className="text-xl font-medium text-red-500">
+                                    {formatCurrency(summary.subtotal)}
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     <CheckoutPayment
-                        selectedMethodId={selectedPaymentMethodId}
-                        onChange={setSelectedPaymentMethodId}
+                        selectedMethod={selectedPaymentMethod}
+                        onChange={setSelectedPaymentMethod}
                         type="ONLINE"
+                        disabled={isCreatingOrder}
                     />
 
                     <div className="bg-white w-full gap-4 flex justify-center items-center p-6 shadow-sm border border-gray-200 rounded-sm sticky bottom-0 z-10 border-t">
                         <div className="flex w-full flex-col gap-2 items-start">
                             <div className="flex justify-between w-full max-w-sm text-sm">
-                                <div className="text-gray-600">Merchandise Subtotal:</div>
-                                <div>{formatCurrency(merchSubtotal)}</div>
+                                <div className="text-gray-600">Subtotal:</div>
+                                <div>{formatCurrency(summary.subtotal)}</div>
                             </div>
-                            {discount > 0 && (
+
+                            {appliedCoupon && (
                                 <div className="flex justify-between w-full max-w-sm text-sm">
                                     <div className="text-gray-600">Coupon Discount:</div>
-                                    <div className="text-red-500">-{formatCurrency(discount)}</div>
+                                    <div className="text-red-500">
+                                        -{formatCurrency(summary.discount)}
+                                    </div>
                                 </div>
                             )}
+
                             <div className="flex justify-between w-full max-w-sm text-sm">
                                 <div className="text-gray-600">Shipping Total:</div>
-                                <div>{formatCurrency(shippingFee)}</div>
+                                <div>{formatCurrency(summary.shippingFee)}</div>
                             </div>
+
                             <div className="flex justify-between w-full max-w-sm text-sm">
                                 <div className="text-gray-600">Total Payment:</div>
-                                <div className="text-2xl font-medium text-red-500">{formatCurrency(totalPayment)}</div>
+                                <div className="text-2xl font-medium text-red-500">
+                                    {formatCurrency(summary.total)}
+                                </div>
                             </div>
                         </div>
+
                         <div className="flex justify-center items-center">
                             <Button
-                                className="bg-[#FF6900] text-white px-10 py-3 h-auto hover:bg-[#F54900] text-lg rounded-[2px] min-w-[200px]"
+                                className="bg-[#FF6900] text-white px-10 py-3 h-auto hover:bg-[#F54900] text-lg rounded-sm min-w-[200px]"
+                                disabled={!cart?.items?.length || isCreatingOrder || isCreatingPaymentLink}
                                 onClick={handlePlaceOrder}
-                                disabled={isProcessing}
                             >
-                                {isProcessing ? (
-                                    <span className="flex items-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                        {loadingText || "Processing..."}
-                                    </span>
-                                ) : (
-                                    "Place Order"
-                                )}
+                                {isCreatingOrder || isCreatingPaymentLink ? "Processing..." : "Place Order"}
                             </Button>
                         </div>
                     </div>

@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "@/app/layouts/AdminLayout";
 import Dashboard from "@/pages/admin/Dashboard";
 import Products from "@/features/products/pages/ProductsPage";
-import Orders from "@/features/orders/pages/admin/OrdersPage";
+import Orders from "@/features/orders/pages/admin/OrderManagementPage";
 import Users from "@/features/users/pages/UsersPage";
 import UserDetail from "@/features/users/pages/UserDetailPage";
 import Brands from "@/features/brands/pages/BrandsPage";

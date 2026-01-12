@@ -13,7 +13,7 @@ export const COUPON_CONSTANTS = Object.freeze({
         REGEX: /^[A-Z0-9_-]+$/,
     },
     DESCRIPTION: {
-        MAX_LENGTH: 255, // Assumed
+        MAX_LENGTH: 255
     },
     SORT_FIELDS: ["id", "code", "validFrom", "validTo", "createdAt", "updatedAt"] as const,
 } as const);
@@ -122,7 +122,6 @@ export type UpdateCouponStatusInput = z.infer<typeof updateCouponStatusSchema>;
 export type BulkUpdateStatusCouponInput = z.infer<typeof bulkUpdateStatusCouponSchema>;
 export type BulkDeleteCouponInput = z.infer<typeof bulkDeleteCouponSchema>;
 
-// Validation request schema (matches backend CouponValidateRequest)
 export const validateCouponInputSchema = z.object({
     code: z.string().min(1, "Coupon code is required"),
     orderAmount: z.number().positive("Order amount must be positive"),

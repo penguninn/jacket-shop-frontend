@@ -1,19 +1,22 @@
 import { z } from "zod";
+import {
+    pageResponseSchema,
+    type BaseFilterParams,
+} from "@/shared/api/schemas";
 
-export const ORDER_STATUS = {
-    PENDING_PAYMENT: 'pending_payment',
-    PAID: 'paid', // kept for compatibility if needed, but backend seems to use PaymentStatus separate from OrderStatus for payment
-    PENDING_CONFIRMATION: 'pending_confirmation', // Note: Check consistency with backend enums
-    PENDING: 'PENDING', // Backend uses PENDING
-    CONFIRMED: 'CONFIRMED', // Backend uses CONFIRMED
-    SHIPPING: 'SHIPPING', // Backend uses SHIPPING
-    COMPLETED: 'COMPLETED', // Backend uses COMPLETED
-    CANCELLED: 'CANCELLED', // Backend uses CANCELLED
-    RETURNED: 'RETURNED', // Backend uses RETURNED
+export const ORDER_CONSTANTS = {
+    SORT_FIELDS: ['createdAt', 'updatedAt', 'confirmedAt', 'processingAt', 'shippedAt', 'completedAt', 'cancelledAt', 'returnedAt'],
 } as const;
 
-// Backend OrderStatus map
-// PENDING, CONFIRMED, SHIPPING, COMPLETED, CANCELLED, RETURNED
+export const ORDER_STATUS = {
+    ALL: 'ALL',
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    SHIPPING: 'SHIPPING',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED',
+    RETURNED: 'RETURNED',
+} as const;
 
 export const ORDER_TYPE = {
     ONLINE: 'ONLINE',
@@ -27,31 +30,32 @@ export const PAYMENT_STATUS = {
 } as const;
 
 export const orderStatusSchema = z.enum([
-    'PENDING',
-    'CONFIRMED',
-    'SHIPPING',
-    'COMPLETED',
-    'CANCELLED',
-    'RETURNED',
+    ORDER_STATUS.ALL,
+    ORDER_STATUS.PENDING,
+    ORDER_STATUS.CONFIRMED,
+    ORDER_STATUS.SHIPPING,
+    ORDER_STATUS.COMPLETED,
+    ORDER_STATUS.CANCELLED,
+    ORDER_STATUS.RETURNED,
 ]);
 
 export const orderTypeSchema = z.enum([
-    'ONLINE',
-    'POS_INSTORE',
+    ORDER_TYPE.ONLINE,
+    ORDER_TYPE.POS_INSTORE,
 ]);
 
-export const paymentStatusSchema = z.enum(['UNPAID', 'PAID', 'REFUNDED']);
-
-// Admin update request schemas
-export const updatePaymentRequestSchema = z.object({
-    paymentMethodId: z.number().optional(),
-    paymentStatus: paymentStatusSchema,
-});
+export const paymentStatusSchema = z.enum([
+    PAYMENT_STATUS.UNPAID,
+    PAYMENT_STATUS.PAID,
+    PAYMENT_STATUS.REFUNDED,
+]);
 
 export const shippingInfoRequestSchema = z.object({
-    carrierName: z.string(),
-    carrierServiceName: z.string(),
-    shippingFee: z.number(),
+    carrierName: z.string().min(1, "Carrier name is required"),
+    carrierServiceName: z.string().min(1, "Carrier service name is required"),
+    carrierRateId: z.string().optional(),
+    deliveryTimeEstimate: z.string().optional(),
+    shippingFee: z.number().optional(),
 });
 
 export const orderDetailSchema = z.object({
@@ -64,9 +68,8 @@ export const orderDetailSchema = z.object({
     color: z.string(),
     material: z.string(),
     image: z.string().nullable().optional(),
-    thumbnail: z.string().nullable().optional(),
-    price: z.number(),
     originalPrice: z.number().nullable().optional(),
+    price: z.number(),
     discountPercentage: z.number().nullable().optional(),
     quantity: z.number(),
     subtotal: z.number(),
@@ -77,20 +80,17 @@ export const orderSchema = z.object({
     orderCode: z.string(),
     orderType: orderTypeSchema,
 
-    // Customer info
     userId: z.number().nullable().optional(),
     customerName: z.string().nullable().optional(),
     customerPhone: z.string().nullable().optional(),
+    customerEmail: z.string().nullable().optional(),
 
-    // Staff info (for POS orders)
     staffId: z.number().nullable().optional(),
     staffName: z.string().nullable().optional(),
 
-    // Shipping recipient (may differ from customer)
     shippingRecipientName: z.string().nullable().optional(),
     shippingRecipientPhone: z.string().nullable().optional(),
 
-    // Shipping address
     shippingAddressLine: z.string().nullable().optional(),
     shippingProvinceCode: z.string().nullable().optional(),
     shippingDistrictCode: z.string().nullable().optional(),
@@ -99,69 +99,46 @@ export const orderSchema = z.object({
     shippingDistrictName: z.string().nullable().optional(),
     shippingWardName: z.string().nullable().optional(),
 
-    // Payment info
     paymentMethodId: z.number().nullable().optional(),
     paymentMethodName: z.string().nullable().optional(),
+    paymentMethodCode: z.string().nullable().optional(),
     paymentStatus: paymentStatusSchema,
     transactionId: z.string().nullable().optional(),
     paymentDate: z.string().nullable().optional(),
 
-    // Shipping carrier
     carrierName: z.string().nullable().optional(),
     carrierServiceName: z.string().nullable().optional(),
-    shippingFee: z.number(),
+    carrierRateId: z.string().nullable().optional(),
+    trackingNumber: z.string().nullable().optional(),
+    deliveryTimeEstimate: z.string().nullable().optional(),
+    shippingFee: z.number().optional(),
 
-    // Pricing
+    couponId: z.number().nullable().optional(),
     couponCode: z.string().nullable().optional(),
     discount: z.number().nullable().optional(),
     subtotal: z.number(),
     total: z.number(),
-    totalAmount: z.number().optional(), // Alias for total
-    totalProducts: z.number().optional(),
 
-    // Status
     status: orderStatusSchema,
     note: z.string().nullable().optional(),
+
     createdAt: z.string(),
+    updatedAt: z.string().optional(),
+    confirmedAt: z.string().nullable().optional(),
+    processingAt: z.string().nullable().optional(),
+    shippedAt: z.string().nullable().optional(),
+    completedAt: z.string().nullable().optional(),
+    cancelledAt: z.string().nullable().optional(),
+    returnedAt: z.string().nullable().optional(),
 
-    // Order items
     details: z.array(orderDetailSchema).optional(),
+
+    canCancel: z.boolean().optional(),
+    canReceive: z.boolean().optional(),
+    canReturn: z.boolean().optional(),
 });
 
-export const orderArraySchema = z.array(orderSchema);
-
-export const orderFilterParamsSchema = z.object({
-    page: z.number().default(1),
-    size: z.number().default(10),
-    orderCode: z.string().optional(),
-    status: z.string().optional(),
-    type: z.string().optional(),
-    paymentStatus: z.string().optional(),
-    userId: z.number().optional(),
-    startDate: z.date().optional(),
-    endDate: z.date().optional(),
-    sortBy: z.string().optional(),
-    sortDir: z.string().optional(),
-});
-
-export const ordersResponseSchema = z.object({
-    contents: z.array(orderSchema), // Backend uses contents for page
-    page: z.number(),
-    size: z.number(),
-    totalElements: z.number(),
-    totalPages: z.number(),
-});
-
-
-export type OrderStatus = z.infer<typeof orderStatusSchema>;
-export type OrderType = z.infer<typeof orderTypeSchema>;
-export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
-export type OrderDetail = z.infer<typeof orderDetailSchema>;
-export type Order = z.infer<typeof orderSchema>;
-export type OrderFilterParams = z.infer<typeof orderFilterParamsSchema>;
-export type OrdersResponse = z.infer<typeof ordersResponseSchema>;
-export type UpdatePaymentRequest = z.infer<typeof updatePaymentRequestSchema>;
-export type ShippingInfoRequest = z.infer<typeof shippingInfoRequestSchema>;
+export const ordersResponseSchema = pageResponseSchema(orderSchema);
 
 export const orderItemRequestSchema = z.object({
     productVariantId: z.number(),
@@ -173,40 +150,59 @@ export const createOrderRequestSchema = z.object({
     paymentMethodId: z.number(),
     note: z.string().optional(),
     couponCode: z.string().optional(),
-    items: z.array(orderItemRequestSchema).min(1, "Order items cannot be empty"),
+    items: z.array(orderItemRequestSchema).min(1, "Items list cannot be empty"),
     userId: z.number().optional(),
-    customerName: z.string().optional(),
-    customerPhone: z.string().optional(),
-    addressId: z.number().optional(), // Made optional to match DTO (though logically required usually, backend DTO has it nullable?) DTO says Long addressId, not @NotNull, but likely needed. Validation said @NotNull on type etc. Let's keep optional in schema but enforce in UI? No, DTO field list: private Long addressId; (not @NotNull). Wait, logic implies it.
-    // Actually, looking at DTO: addressId is just `private Long addressId;`. It might be required for shipping.
-    // Let's make it required in our schema if we want to validte.
-    // Frontend schema:
-    // addressId: z.number(),
-    // But let's follow the DTO fields. Ideally addressId is required for delivery.
-
-    // Shipping fields
+    addressId: z.number(),
+    shippingFee: z.number().optional(),
     carrierName: z.string().optional(),
     carrierServiceName: z.string().optional(),
     carrierRateId: z.string().optional(),
     deliveryTimeEstimate: z.string().optional(),
-    shippingFee: z.number().optional(),
-
-    transactionId: z.string().optional(),
 });
-
-export type OrderItemRequest = z.infer<typeof orderItemRequestSchema>;
-export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 
 export const orderHistoryResponseSchema = z.object({
     id: z.number(),
     orderId: z.number(),
     oldStatus: orderStatusSchema.nullable(),
-    newStatus: orderStatusSchema,
+    newStatus: orderStatusSchema.nullable(),
     oldPaymentStatus: paymentStatusSchema.nullable(),
-    newPaymentStatus: paymentStatusSchema,
+    newPaymentStatus: paymentStatusSchema.nullable(),
     changedByUserId: z.number().nullable(),
+    changedByUserName: z.string().nullable().optional(),
     note: z.string().nullable(),
     createdAt: z.string(),
 });
 
+export interface OrderFilterParams extends Omit<BaseFilterParams, 'status' | 'search'> {
+    orderCode?: string;
+    userId?: number;
+    staffId?: number;
+    status?: OrderStatus;
+    orderType?: OrderType;
+    paymentStatus?: PaymentStatus;
+}
+
+export const orderFilterParamsSchema = z.object({
+    page: z.number().min(0).default(0),
+    size: z.number().min(1).max(100).default(10),
+    sortBy: z.enum(ORDER_CONSTANTS.SORT_FIELDS).default("createdAt"),
+    sortDir: z.enum(["ASC", "DESC"]).default("DESC"),
+    orderCode: z.string().optional(),
+    userId: z.number().optional(),
+    staffId: z.number().optional(),
+    status: orderStatusSchema.optional(),
+    orderType: orderTypeSchema.optional(),
+    paymentStatus: paymentStatusSchema.optional(),
+});
+
+export type Order = z.infer<typeof orderSchema>;
+export type OrderDetail = z.infer<typeof orderDetailSchema>;
+export type OrderStatus = z.infer<typeof orderStatusSchema>;
+export type OrderType = z.infer<typeof orderTypeSchema>;
+export type OrdersResponse = z.infer<typeof ordersResponseSchema>;
 export type OrderHistoryResponse = z.infer<typeof orderHistoryResponseSchema>;
+export type OrderItemRequest = z.infer<typeof orderItemRequestSchema>;
+export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
+
+export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
+export type ShippingInfoRequest = z.infer<typeof shippingInfoRequestSchema>;

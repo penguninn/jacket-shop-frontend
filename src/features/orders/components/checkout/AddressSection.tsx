@@ -10,9 +10,10 @@ import { Separator } from "@/shared/ui/separator";
 interface AddressSectionProps {
     selectedAddress: AddressResponse | null;
     onSelectAddress: (address: AddressResponse) => void;
+    disabled?: boolean;
 }
 
-export function AddressSection({ selectedAddress, onSelectAddress }: AddressSectionProps) {
+export function AddressSection({ selectedAddress, onSelectAddress, disabled }: AddressSectionProps) {
     const { data: addresses } = useAddresses();
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -63,7 +64,11 @@ export function AddressSection({ selectedAddress, onSelectAddress }: AddressSect
                 <div className="flex gap-2">
                     <Dialog open={isSelectionOpen} onOpenChange={setIsSelectionOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="ghost" className="text-blue-500 font-medium hover:text-blue-600 hover:bg-transparent uppercase">
+                            <Button
+                                variant="ghost"
+                                className="text-blue-500 font-medium hover:text-blue-600 hover:bg-transparent uppercase"
+                                disabled={disabled}
+                            >
                                 Change
                             </Button>
                         </DialogTrigger>

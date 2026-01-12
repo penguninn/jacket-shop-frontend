@@ -1,4 +1,3 @@
-import { usePosStore } from "../hooks/usePosState";
 import {
     Table,
     TableBody,
@@ -10,71 +9,40 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
-import { useUpdateDraftItemQuantity, useRemoveItemFromPosDraft } from "../hooks/usePosApi";
-import { toast } from "sonner";
+
+// Dữ liệu giả để hiển thị UI
+const DUMMY_ITEMS = [
+    {
+        id: 1,
+        productName: "Classic Cotton T-Shirt",
+        image: null,
+        color: "White",
+        size: "L",
+        material: "Cotton",
+        sku: "TSH-001-WH-L",
+        price: 350000,
+        originalPrice: null, // Không giảm giá
+        quantity: 2,
+        subtotal: 700000,
+    },
+    {
+        id: 2,
+        productName: "Slim Fit Jeans",
+        image: null,
+        color: "Blue",
+        size: "32",
+        material: "Denim",
+        sku: "JNS-002-BL-32",
+        price: 450000,
+        originalPrice: 600000, // Có giảm giá
+        discountPercentage: 25,
+        quantity: 1,
+        subtotal: 450000,
+    }
+];
 
 export function PosCartTable() {
-    const { currentDraft, setCurrentDraft } = usePosStore();
-
-    const { mutate: updateQuantity } = useUpdateDraftItemQuantity();
-    const { mutate: removeItem } = useRemoveItemFromPosDraft();
-
-    if (!currentDraft) {
-        return (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-                <div className="text-center">
-                    <p className="text-lg font-medium">No active draft</p>
-                    <p className="text-sm mt-1">Click "New Draft" to start</p>
-                </div>
-            </div>
-        );
-    }
-
-    const items = currentDraft.details || [];
-
-    const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
-        if (!currentDraft) return;
-
-        updateQuantity({
-            draftId: currentDraft.id,
-            itemId,
-            quantity: newQuantity
-        }, {
-            onSuccess: (updatedDraft) => {
-                setCurrentDraft(updatedDraft);
-            },
-            onError: (error: any) => {
-                toast.error("Failed to update quantity", {
-                    description: error.response?.data?.message
-                });
-            }
-        });
-    };
-
-    const handleRemoveItem = (itemId: number) => {
-        if (!currentDraft) return;
-
-        removeItem({
-            draftId: currentDraft.id,
-            itemId
-        }, {
-            onSuccess: (updatedDraft) => {
-                setCurrentDraft(updatedDraft);
-                toast.success("Item removed");
-            }
-        });
-    };
-
-    if (items.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-                <div className="text-center">
-                    <p className="text-lg font-medium">Cart is empty</p>
-                    <p className="text-sm mt-1">Add products to start</p>
-                </div>
-            </div>
-        );
-    }
+    const items = DUMMY_ITEMS;
 
     return (
         <div className="flex flex-col h-full">
@@ -91,12 +59,9 @@ export function PosCartTable() {
                 </TableHeader>
                 <TableBody>
                     {items.map((item) => {
-                        // Use backend-provided originalPrice and discountPercentage
-                        const originalPrice = (item as any).originalPrice;
-                        const discountPercentage = (item as any).discountPercentage;
-                        const isOnSale = originalPrice !== undefined && originalPrice !== null && originalPrice > item.price;
-                        const originalSubtotal = isOnSale ? originalPrice * item.quantity : null;
-                        const discountPercent = discountPercentage ? Math.round(discountPercentage) : (isOnSale ? Math.round(((originalPrice - item.price) / originalPrice) * 100) : 0);
+                        // Logic hiển thị giả lập
+                        const isOnSale = item.originalPrice !== null && item.originalPrice > item.price;
+                        const originalSubtotal = isOnSale ? item.originalPrice! * item.quantity : 0;
 
                         return (
                             <TableRow key={item.id}>
@@ -115,7 +80,7 @@ export function PosCartTable() {
                                         )}
                                         {isOnSale && (
                                             <div className="absolute -top-0.5 -left-0.5 bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-br-sm shadow-sm">
-                                                -{discountPercent}%
+                                                -{item.discountPercentage}%
                                             </div>
                                         )}
                                     </div>
@@ -143,7 +108,7 @@ export function PosCartTable() {
                                         </span>
                                         {isOnSale && (
                                             <span className="text-xs text-muted-foreground line-through">
-                                                {formatCurrency(originalPrice)}
+                                                {formatCurrency(item.originalPrice!)}
                                             </span>
                                         )}
                                     </div>
@@ -154,7 +119,6 @@ export function PosCartTable() {
                                             variant="outline"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => handleUpdateQuantity(item.id!, item.quantity - 1)}
                                             disabled={item.quantity <= 1}
                                         >
                                             <Minus className="h-4 w-4" />
@@ -164,7 +128,6 @@ export function PosCartTable() {
                                             variant="outline"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => handleUpdateQuantity(item.id!, item.quantity + 1)}
                                         >
                                             <Plus className="h-4 w-4" />
                                         </Button>
@@ -175,15 +138,15 @@ export function PosCartTable() {
                                         <span className={`font-semibold ${isOnSale ? "text-red-600" : ""}`}>
                                             {formatCurrency(item.subtotal)}
                                         </span>
-                                        {isOnSale && originalSubtotal && (
-                                            <span className="text-xs text-muted-foreground line-through">
-                                                {formatCurrency(originalSubtotal)}
-                                            </span>
-                                        )}
                                         {isOnSale && (
-                                            <span className="text-[10px] text-green-600 font-medium">
-                                                Save {formatCurrency(originalSubtotal! - item.subtotal)}
-                                            </span>
+                                            <>
+                                                <span className="text-xs text-muted-foreground line-through">
+                                                    {formatCurrency(originalSubtotal)}
+                                                </span>
+                                                <span className="text-[10px] text-green-600 font-medium">
+                                                    Save {formatCurrency(originalSubtotal - item.subtotal)}
+                                                </span>
+                                            </>
                                         )}
                                     </div>
                                 </TableCell>
@@ -192,7 +155,6 @@ export function PosCartTable() {
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        onClick={() => handleRemoveItem(item.id!)}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
