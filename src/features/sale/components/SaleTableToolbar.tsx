@@ -1,10 +1,9 @@
 import { type Table } from "@tanstack/react-table";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { X, Plus } from "lucide-react";
+import { X } from "lucide-react";
 import { DataTableViewOptions } from "@/shared/components/data-table/DataTableViewOptions";
-import { useState } from "react";
-import { SaleFormDialog } from "./SaleFormDialog";
+import { DataTableFacetedFilter } from "@/shared/components/data-table/DataTableFacetedFilter";
 import { type SaleResponse } from "../model/schemas";
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 
 export function SaleTableToolbar({ table }: Props) {
     const isFiltered = table.getState().columnFilters.length > 0;
-    const [showCreateDialog, setShowCreateDialog] = useState(false);
 
     return (
         <div className="flex items-center justify-between">
@@ -26,6 +24,16 @@ export function SaleTableToolbar({ table }: Props) {
                     }
                     className="h-8 w-[150px] lg:w-[250px]"
                 />
+                {table.getColumn("status") && (
+                    <DataTableFacetedFilter
+                        column={table.getColumn("status")}
+                        title="Status"
+                        options={[
+                            { label: "Active", value: "ACTIVE" },
+                            { label: "Inactive", value: "INACTIVE" },
+                        ]}
+                    />
+                )}
                 {isFiltered && (
                     <Button
                         variant="ghost"
@@ -38,17 +46,8 @@ export function SaleTableToolbar({ table }: Props) {
                 )}
             </div>
             <div className="flex items-center gap-2">
-                <Button
-                    className="h-8 ml-2"
-                    onClick={() => setShowCreateDialog(true)}
-                >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Sale
-                </Button>
                 <DataTableViewOptions table={table} />
             </div>
-
-            <SaleFormDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
         </div>
     );
 }

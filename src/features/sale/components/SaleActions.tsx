@@ -7,13 +7,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, XCircle, CheckCircle } from "lucide-react";
 
 import { type SaleResponse } from "../model/schemas";
-import { deleteSale } from "../api";
+import { bulkUpdateSalesStatus } from "../api";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { useState } from "react";
 import { SaleFormDialog } from "./SaleFormDialog";
 
@@ -23,20 +22,20 @@ interface SaleActionsProps {
 
 export function SaleActions({ sale }: SaleActionsProps) {
     const queryClient = useQueryClient();
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
 
-    const deleteMutation = useMutation({
-        mutationFn: deleteSale,
-        onSuccess: () => {
-            toast.success("Sale removed successfully");
+    const updateStatusMutation = useMutation({
+        mutationFn: (status: "ACTIVE" | "INACTIVE") => bulkUpdateSalesStatus([sale.id], status),
+        onSuccess: (_, status) => {
+            toast.success(`Sale ${status === "ACTIVE" ? "activated" : "deactivated"} successfully`);
             queryClient.invalidateQueries({ queryKey: ["sales"] });
-            setShowDeleteDialog(false);
         },
         onError: () => {
-            toast.error("Failed to remove sale");
+            toast.error("Failed to update sale status");
         },
     });
+
+    const isInactive = sale.status === "INACTIVE";
 
     return (
         <>
@@ -52,32 +51,34 @@ export function SaleActions({ sale }: SaleActionsProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                         <Pencil className="mr-2 h-4 w-4" />
-                        Edit Sale
+                        Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="text-red-600 focus:text-red-600"
-                    >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Remove Sale
-                    </DropdownMenuItem>
+
+                    {isInactive ? (
+                        <DropdownMenuItem
+                            onClick={() => updateStatusMutation.mutate("ACTIVE")}
+                        >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Activate
+                        </DropdownMenuItem>
+                    ) : (
+                        <DropdownMenuItem
+                            onClick={() => updateStatusMutation.mutate("INACTIVE")}
+                        >
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Deactivate
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <ConfirmDialog
-                open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
-                title="Remove Sale"
-                description={`Are you sure you want to remove the sale "${sale.name}"? This action cannot be undone.`}
-                onConfirm={() => deleteMutation.mutate(sale.id)}
-                isLoading={deleteMutation.isPending}
-            />
-
-            <SaleFormDialog
-                open={showEditDialog}
-                onOpenChange={setShowEditDialog}
-                sale={sale}
-            />
+            {showEditDialog && (
+                <SaleFormDialog
+                    open={showEditDialog}
+                    onOpenChange={setShowEditDialog}
+                    sale={sale}
+                />
+            )}
         </>
     );
 }

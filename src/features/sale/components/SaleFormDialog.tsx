@@ -40,7 +40,7 @@ import {
     PopoverTrigger,
 } from "@/shared/ui/popover";
 import { useProductVariants } from "@/features/product-variants/hooks";
-import { Badge } from "@/shared/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 
 
 interface SaleFormDialogProps {
@@ -63,6 +63,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
             saleStartDate: "",
             saleEndDate: "",
             discountPercentage: 0,
+            status: "ACTIVE",
         },
     });
 
@@ -72,16 +73,17 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
 
     const { data: variantsData, isLoading: isLoadingVariants } = useProductVariants({
         page: 0,
-        size: 50, // Fetch more to facilitate selection
+        size: 50,
         search: debouncedSearch,
+        enabled: open,
     });
 
     const variants = variantsData?.contents ?? [];
-    const selectedVariantIds = form.watch("productVariantIds");
+    const selectedVariantIds = form.watch("productVariantIds") || [];
 
     // Handle variant selection toggling
     const toggleVariant = (variantId: number) => {
-        const currentIds = form.getValues("productVariantIds");
+        const currentIds = form.getValues("productVariantIds") || [];
         if (currentIds.includes(variantId)) {
             form.setValue("productVariantIds", currentIds.filter(id => id !== variantId), { shouldValidate: true });
         } else {
@@ -91,7 +93,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
 
     // Remove variant tag
     const removeVariant = (variantId: number) => {
-        const currentIds = form.getValues("productVariantIds");
+        const currentIds = form.getValues("productVariantIds") || [];
         form.setValue("productVariantIds", currentIds.filter(id => id !== variantId), { shouldValidate: true });
     };
 
@@ -105,6 +107,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                     saleStartDate: sale.startDate ? new Date(sale.startDate).toISOString().slice(0, 16) : "",
                     saleEndDate: sale.endDate ? new Date(sale.endDate).toISOString().slice(0, 16) : "",
                     discountPercentage: sale.discountPercentage || 0,
+                    status: sale.status as "ACTIVE" | "INACTIVE" || "ACTIVE",
                 });
             } else {
                 form.reset({
@@ -114,6 +117,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                     saleStartDate: "",
                     saleEndDate: "",
                     discountPercentage: 0,
+                    status: "ACTIVE",
                 });
             }
         }
@@ -126,8 +130,15 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
             queryClient.invalidateQueries({ queryKey: ["sales"] });
             onOpenChange(false);
         },
-        onError: () => {
-            toast.error("Failed to create sale");
+        onError: (error) => {
+            console.error("Failed to create sale:", error);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const errData = (error as any)?.response?.data;
+            if (errData && errData.message) {
+                toast.error(`Failed to create sale: ${errData.message}`);
+            } else {
+                toast.error("Failed to create sale");
+            }
         },
     });
 
@@ -144,20 +155,64 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
     });
 
     const onSubmit = (data: SaleRequest) => {
-        const payload = {
-            ...data,
-            saleStartDate: new Date(data.saleStartDate).toISOString(),
-            saleEndDate: new Date(data.saleEndDate).toISOString(),
+        // Map form fields to DTO fields
+        const payload: any = {
+            name: data.name,
+            description: data.description,
+            discountPercentage: data.discountPercentage,
+            startDate: new Date(data.saleStartDate).toISOString(),
+            endDate: new Date(data.saleEndDate).toISOString(),
+            status: data.status,
         };
 
         if (isEdit && sale) {
             updateMutation.mutate({ id: sale.id, data: payload });
         } else {
+            payload.productVariantIds = data.productVariantIds;
             createMutation.mutate(payload);
         }
     };
 
     const isPending = createMutation.isPending || updateMutation.isPending;
+
+    const getVariantInfo = (id: number) => {
+        const saleVariant = sale?.variants?.find((v) => v.variantId === id);
+        if (saleVariant) {
+            return {
+                name: saleVariant.productName,
+                sku: saleVariant.sku,
+                image: saleVariant.image,
+                price: saleVariant.originalPrice,
+                salePrice: saleVariant.salePrice,
+                sub: `Variant: ${id}`,
+            };
+        }
+        const searchVariant = variants.find((v) => v.id === id);
+        if (searchVariant) {
+            // @ts-ignore
+            const price = searchVariant.price ?? 0;
+            const discount = form.watch("discountPercentage") || 0;
+            const salePrice = price * (1 - discount / 100);
+
+            return {
+                // @ts-ignore
+                name: searchVariant.product?.name || `Product ID: ${searchVariant.productId}`,
+                sku: searchVariant.sku,
+                // @ts-ignore
+                image: searchVariant.product?.thumbnail || "",
+                price: price,
+                salePrice: salePrice,
+                // @ts-ignore
+                sub: `${searchVariant.color?.name || ''} - ${searchVariant.size?.name || ''}`,
+            };
+        }
+        return null;
+    };
+
+    const formatCurrency = (val?: number | null) => {
+        if (val === undefined || val === null) return "N/A";
+        return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,7 +221,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                     <DialogTitle>{isEdit ? "Edit Sale" : "Create New Sale"}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update sale details and attached variants."
+                            ? "Update sale details."
                             : "Create a new sale campaign and assign variants."}
                     </DialogDescription>
                 </DialogHeader>
@@ -231,119 +286,190 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                             />
                         </div>
 
-                        <FormField
-                            control={form.control}
-                            name="discountPercentage"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Discount Percentage (%)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            {...field}
-                                            onChange={e => field.onChange(e.target.valueAsNumber)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="discountPercentage"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Percentage (%)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                {...field}
+                                                onChange={e => field.onChange(e.target.valueAsNumber)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Status</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="ACTIVE">Active</SelectItem>
+                                                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
                         <FormField
                             control={form.control}
                             name="productVariantIds"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel>Variants</FormLabel>
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {field.value.map((id) => (
-                                            <Badge key={id} variant="secondary" className="pl-2 pr-1 py-1">
-                                                ID: {id}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-4 w-4 ml-1 rounded-full p-0 hover:bg-muted-foreground/20"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        removeVariant(id);
-                                                    }}
-                                                >
-                                                    <X className="h-3 w-3" />
-                                                </Button>
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={openCombobox}
-                                                    className={cn(
-                                                        "w-full justify-between",
-                                                        !field.value.length && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {field.value.length
-                                                        ? `${field.value.length} variants selected`
-                                                        : "Select variants..."}
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[400px] p-0" align="start">
-                                            <Command shouldFilter={false}>
-                                                <CommandInput
-                                                    placeholder="Search variant by SKU or product name..."
-                                                    value={searchQuery}
-                                                    onValueChange={setSearchQuery}
-                                                />
-                                                <CommandList>
-                                                    {isLoadingVariants ? (
-                                                        <div className="py-6 text-center text-sm text-muted-foreground">
-                                                            Loading variants...
+                                    <FormLabel>Variants ({field.value?.length || 0})</FormLabel>
+
+                                    <div className="border rounded-md p-2 space-y-2 max-h-[300px] overflow-y-auto bg-muted/10">
+                                        {field.value && field.value.length > 0 ? (
+                                            field.value.map((id) => {
+                                                const info = getVariantInfo(id);
+                                                return (
+                                                    <div key={id} className="flex items-center gap-3 p-2 bg-background rounded border shadow-sm">
+                                                        {info?.image ? (
+                                                            <img
+                                                                src={info.image}
+                                                                alt={info.name || "Product"}
+                                                                className="h-12 w-12 rounded object-cover border"
+                                                            />
+                                                        ) : (
+                                                            <div className="h-12 w-12 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                                                                No Img
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-medium text-sm truncate" title={info?.name || ""}>
+                                                                {info?.name || `Variant #${id}`}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground flex gap-2">
+                                                                <span className="font-mono bg-muted px-1 rounded text-[10px]">{info?.sku || "NO-SKU"}</span>
+                                                                <span>{info?.sub}</span>
+                                                            </div>
                                                         </div>
-                                                    ) : (
-                                                        <>
-                                                            <CommandEmpty>No variant found.</CommandEmpty>
-                                                            <CommandGroup>
-                                                                {variants.map((variant) => {
-                                                                    const isSelected = selectedVariantIds.includes(variant.id);
-                                                                    return (
-                                                                        <CommandItem
-                                                                            key={variant.id}
-                                                                            value={String(variant.id)}
-                                                                            onSelect={() => toggleVariant(variant.id)}
-                                                                        >
-                                                                            <Check
-                                                                                className={cn(
-                                                                                    "mr-2 h-4 w-4",
-                                                                                    isSelected
-                                                                                        ? "opacity-100"
-                                                                                        : "opacity-0"
-                                                                                )}
-                                                                            />
-                                                                            <div className="flex flex-col">
-                                                                                <span className="font-medium">
-                                                                                    {variant.sku || `Variant #${variant.id}`}
-                                                                                </span>
-                                                                                <span className="text-xs text-muted-foreground">
-                                                                                    Color: {variant.color?.name} | Size: {variant.size?.name}
-                                                                                </span>
-                                                                            </div>
-                                                                        </CommandItem>
-                                                                    );
-                                                                })}
-                                                            </CommandGroup>
-                                                        </>
-                                                    )}
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
+
+                                                        <div className="text-right text-sm">
+                                                            {info?.price !== undefined && (
+                                                                <div className="text-muted-foreground line-through text-xs">
+                                                                    {formatCurrency(info.price)}
+                                                                </div>
+                                                            )}
+                                                            <div className="font-bold text-red-600">
+                                                                {formatCurrency(info?.salePrice)}
+                                                            </div>
+                                                        </div>
+
+                                                        {!isEdit && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    removeVariant(id);
+                                                                }}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="text-center py-8 text-muted-foreground text-sm">
+                                                No variants selected.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {!isEdit && (
+                                        <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={openCombobox}
+                                                        className={cn(
+                                                            "w-full justify-between",
+                                                            (!field.value || !field.value.length) && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        Add more variants...
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[400px] p-0" align="start">
+                                                <Command shouldFilter={false}>
+                                                    <CommandInput
+                                                        placeholder="Search variant by SKU or product name..."
+                                                        value={searchQuery}
+                                                        onValueChange={setSearchQuery}
+                                                    />
+                                                    <CommandList>
+                                                        {isLoadingVariants ? (
+                                                            <div className="py-6 text-center text-sm text-muted-foreground">
+                                                                Loading variants...
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <CommandEmpty>No variant found.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    {variants.map((variant) => {
+                                                                        const isSelected = selectedVariantIds.includes(variant.id);
+                                                                        return (
+                                                                            <CommandItem
+                                                                                key={variant.id}
+                                                                                value={String(variant.id)}
+                                                                                onSelect={() => toggleVariant(variant.id)}
+                                                                            >
+                                                                                <Check
+                                                                                    className={cn(
+                                                                                        "mr-2 h-4 w-4",
+                                                                                        isSelected
+                                                                                            ? "opacity-100"
+                                                                                            : "opacity-0"
+                                                                                    )}
+                                                                                />
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="font-medium">
+                                                                                        {variant.sku || `Variant #${variant.id}`}
+                                                                                    </span>
+                                                                                    <span className="text-xs text-muted-foreground">
+                                                                                        {/* @ts-ignore */}
+                                                                                        {variant.product?.name ? `${variant.product.name} - ` : ""}
+                                                                                        Color: {variant.color?.name} | Size: {variant.size?.name}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </CommandItem>
+                                                                        );
+                                                                    })}
+                                                                </CommandGroup>
+                                                            </>
+                                                        )}
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}

@@ -10,6 +10,7 @@ import {
   User,
   Wallet,
   Warehouse,
+  Tag,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -25,7 +26,19 @@ import {
   SidebarMenuItem,
 } from "@/shared/ui/sidebar";
 
-const sidebarGroups = [
+interface SidebarItem {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  badge?: string;
+}
+
+interface SidebarGroup {
+  label: string;
+  items: SidebarItem[];
+}
+
+const sidebarGroups: SidebarGroup[] = [
   {
     label: "Orders / Payments",
     items: [
@@ -93,6 +106,11 @@ const sidebarGroups = [
         title: "Coupons",
         url: "/dashboard/coupons",
         icon: BadgePercent,
+      },
+      {
+        title: "Sales",
+        url: "/dashboard/sales",
+        icon: Tag,
       },
     ],
   },
