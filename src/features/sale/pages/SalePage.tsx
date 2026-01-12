@@ -1,18 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllSales } from "../api";
 import { SaleTable } from "../components/SaleTable";
-import { useState } from "react";
-import { SaleFormDialog } from "../components/SaleFormDialog";
+import { useState, useCallback } from "react";
+import { SaleCreateDialog } from "../components/SaleCreateDialog";
 import { Button } from "@/shared/ui/button";
 import { Plus } from "lucide-react";
+import type { SaleFilterParams } from "../model/schemas";
 
 export default function SalePage() {
     const [showCreateDialog, setShowCreateDialog] = useState(false);
+    const [filters, setFilters] = useState<Partial<SaleFilterParams>>({
+        page: 0,
+        size: 50,
+        sortDir: "DESC",
+        sortBy: "createdAt",
+    });
 
     const { data, isLoading } = useQuery({
-        queryKey: ["sales"],
-        queryFn: () => getAllSales({ page: 0, size: 50, sortDir: "DESC", sortBy: "createdAt" }),
+        queryKey: ["sales", filters],
+        queryFn: () => getAllSales(filters as SaleFilterParams),
     });
+
+    const handleFilterChange = useCallback((newFilters: {
+        minDiscount?: number;
+        maxDiscount?: number;
+        fromDate?: string;
+        toDate?: string;
+    }) => {
+        setFilters(prev => ({
+            ...prev,
+            ...newFilters,
+        }));
+    }, []);
 
     return (
         <div className="container mx-auto py-8">
@@ -29,10 +48,14 @@ export default function SalePage() {
                 </Button>
             </div>
 
-            <SaleTable data={data?.contents ?? []} isLoading={isLoading} />
+            <SaleTable
+                data={data?.contents ?? []}
+                isLoading={isLoading}
+                onFilterChange={handleFilterChange}
+            />
 
             {showCreateDialog && (
-                <SaleFormDialog
+                <SaleCreateDialog
                     open={showCreateDialog}
                     onOpenChange={setShowCreateDialog}
                 />

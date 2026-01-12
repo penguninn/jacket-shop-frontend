@@ -25,6 +25,7 @@ export const saleResponseSchema = z.object({
 
 
 export const saleRequestSchema = z.object({
+    id: z.number().optional(),
     productVariantIds: z.array(z.number()).min(1, "At least one variant is required").optional(), // Optional for update
     name: z.string().min(1, "Name is required").max(255, "Name is too long"),
     description: z.string().max(500, "Description is too long").optional(),

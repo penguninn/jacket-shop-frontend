@@ -14,7 +14,7 @@ import { bulkUpdateSalesStatus } from "../api";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { SaleFormDialog } from "./SaleFormDialog";
+import { SaleEditDialog } from "./SaleEditDialog";
 
 interface SaleActionsProps {
     sale: SaleResponse;
@@ -29,6 +29,9 @@ export function SaleActions({ sale }: SaleActionsProps) {
         onSuccess: (_, status) => {
             toast.success(`Sale ${status === "ACTIVE" ? "activated" : "deactivated"} successfully`);
             queryClient.invalidateQueries({ queryKey: ["sales"] });
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            queryClient.invalidateQueries({ queryKey: ["product-variants"] });
+            queryClient.invalidateQueries({ queryKey: ["cart"] });
         },
         onError: () => {
             toast.error("Failed to update sale status");
@@ -73,7 +76,7 @@ export function SaleActions({ sale }: SaleActionsProps) {
             </DropdownMenu>
 
             {showEditDialog && (
-                <SaleFormDialog
+                <SaleEditDialog
                     open={showEditDialog}
                     onOpenChange={setShowEditDialog}
                     sale={sale}

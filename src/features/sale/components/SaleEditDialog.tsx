@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { type SaleResponse, saleRequestSchema, type SaleRequest } from "../model/schemas";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createSale, updateSale } from "../api";
+import { updateSale } from "../api";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
@@ -43,15 +43,14 @@ import { useProductVariants } from "@/features/product-variants/hooks";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 
 
-interface SaleFormDialogProps {
+interface SaleEditDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    sale?: SaleResponse;
+    sale: SaleResponse;
 }
 
-export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps) {
+export function SaleEditDialog({ open, onOpenChange, sale }: SaleEditDialogProps) {
     const queryClient = useQueryClient();
-    const isEdit = !!sale;
 
     const form = useForm<SaleRequest>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,62 +90,34 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
         }
     };
 
-    // Remove variant tag
+    // Remove variant
     const removeVariant = (variantId: number) => {
         const currentIds = form.getValues("productVariantIds") || [];
         form.setValue("productVariantIds", currentIds.filter(id => id !== variantId), { shouldValidate: true });
     };
 
     useEffect(() => {
-        if (open) {
-            if (sale) {
-                form.reset({
-                    name: sale.name || "",
-                    description: sale.description || "",
-                    productVariantIds: sale.variants?.map(v => v.variantId) || [],
-                    saleStartDate: sale.startDate ? new Date(sale.startDate).toISOString().slice(0, 16) : "",
-                    saleEndDate: sale.endDate ? new Date(sale.endDate).toISOString().slice(0, 16) : "",
-                    discountPercentage: sale.discountPercentage || 0,
-                    status: sale.status as "ACTIVE" | "INACTIVE" || "ACTIVE",
-                });
-            } else {
-                form.reset({
-                    name: "",
-                    description: "",
-                    productVariantIds: [],
-                    saleStartDate: "",
-                    saleEndDate: "",
-                    discountPercentage: 0,
-                    status: "ACTIVE",
-                });
-            }
+        if (open && sale) {
+            form.reset({
+                name: sale.name || "",
+                description: sale.description || "",
+                productVariantIds: sale.variants?.map(v => v.variantId) || [],
+                saleStartDate: sale.startDate ? new Date(sale.startDate).toISOString().slice(0, 16) : "",
+                saleEndDate: sale.endDate ? new Date(sale.endDate).toISOString().slice(0, 16) : "",
+                discountPercentage: sale.discountPercentage || 0,
+                status: sale.status as "ACTIVE" | "INACTIVE" || "ACTIVE",
+            });
         }
     }, [open, sale, form]);
-
-    const createMutation = useMutation({
-        mutationFn: createSale,
-        onSuccess: () => {
-            toast.success("Sale created successfully");
-            queryClient.invalidateQueries({ queryKey: ["sales"] });
-            onOpenChange(false);
-        },
-        onError: (error) => {
-            console.error("Failed to create sale:", error);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const errData = (error as any)?.response?.data;
-            if (errData && errData.message) {
-                toast.error(`Failed to create sale: ${errData.message}`);
-            } else {
-                toast.error("Failed to create sale");
-            }
-        },
-    });
 
     const updateMutation = useMutation({
         mutationFn: updateSale,
         onSuccess: () => {
             toast.success("Sale updated successfully");
             queryClient.invalidateQueries({ queryKey: ["sales"] });
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            queryClient.invalidateQueries({ queryKey: ["product-variants"] });
+            queryClient.invalidateQueries({ queryKey: ["cart"] });
             onOpenChange(false);
         },
         onError: () => {
@@ -155,35 +126,32 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
     });
 
     const onSubmit = (data: SaleRequest) => {
-        // Map form fields to DTO fields
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const payload: any = {
+            id: sale.id,
             name: data.name,
             description: data.description,
             discountPercentage: data.discountPercentage,
             startDate: new Date(data.saleStartDate).toISOString(),
             endDate: new Date(data.saleEndDate).toISOString(),
             status: data.status,
+            productVariantIds: data.productVariantIds,
         };
-
-        if (isEdit && sale) {
-            updateMutation.mutate({ id: sale.id, data: payload });
-        } else {
-            payload.productVariantIds = data.productVariantIds;
-            createMutation.mutate(payload);
-        }
+        updateMutation.mutate({ id: sale.id, data: payload });
     };
 
-    const isPending = createMutation.isPending || updateMutation.isPending;
-
+    // Get variant info - first check from sale.variants (existing), then from search results
     const getVariantInfo = (id: number) => {
         const saleVariant = sale?.variants?.find((v) => v.variantId === id);
         if (saleVariant) {
+            const discount = form.watch("discountPercentage") || 0;
+            const salePrice = (saleVariant.originalPrice || 0) * (1 - discount / 100);
             return {
                 name: saleVariant.productName,
                 sku: saleVariant.sku,
                 image: saleVariant.image,
                 price: saleVariant.originalPrice,
-                salePrice: saleVariant.salePrice,
+                salePrice: salePrice,
                 sub: `Variant: ${id}`,
             };
         }
@@ -218,11 +186,9 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Sale" : "Create New Sale"}</DialogTitle>
+                    <DialogTitle>Edit Sale</DialogTitle>
                     <DialogDescription>
-                        {isEdit
-                            ? "Update sale details."
-                            : "Create a new sale campaign and assign variants."}
+                        Update sale details and manage variants.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -313,7 +279,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Status</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select status" />
@@ -330,6 +296,7 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                             />
                         </div>
 
+                        {/* Variants Section - Editable */}
                         <FormField
                             control={form.control}
                             name="productVariantIds"
@@ -376,19 +343,17 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                                                             </div>
                                                         </div>
 
-                                                        {!isEdit && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    removeVariant(id);
-                                                                }}
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                removeVariant(id);
+                                                            }}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
                                                     </div>
                                                 );
                                             })
@@ -399,77 +364,76 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                                         )}
                                     </div>
 
-                                    {!isEdit && (
-                                        <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                        variant="outline"
-                                                        role="combobox"
-                                                        aria-expanded={openCombobox}
-                                                        className={cn(
-                                                            "w-full justify-between",
-                                                            (!field.value || !field.value.length) && "text-muted-foreground"
-                                                        )}
-                                                    >
-                                                        Add more variants...
-                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[400px] p-0" align="start">
-                                                <Command shouldFilter={false}>
-                                                    <CommandInput
-                                                        placeholder="Search variant by SKU or product name..."
-                                                        value={searchQuery}
-                                                        onValueChange={setSearchQuery}
-                                                    />
-                                                    <CommandList>
-                                                        {isLoadingVariants ? (
-                                                            <div className="py-6 text-center text-sm text-muted-foreground">
-                                                                Loading variants...
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <CommandEmpty>No variant found.</CommandEmpty>
-                                                                <CommandGroup>
-                                                                    {variants.map((variant) => {
-                                                                        const isSelected = selectedVariantIds.includes(variant.id);
-                                                                        return (
-                                                                            <CommandItem
-                                                                                key={variant.id}
-                                                                                value={String(variant.id)}
-                                                                                onSelect={() => toggleVariant(variant.id)}
-                                                                            >
-                                                                                <Check
-                                                                                    className={cn(
-                                                                                        "mr-2 h-4 w-4",
-                                                                                        isSelected
-                                                                                            ? "opacity-100"
-                                                                                            : "opacity-0"
-                                                                                    )}
-                                                                                />
-                                                                                <div className="flex flex-col">
-                                                                                    <span className="font-medium">
-                                                                                        {variant.sku || `Variant #${variant.id}`}
-                                                                                    </span>
-                                                                                    <span className="text-xs text-muted-foreground">
-                                                                                        {/* @ts-ignore */}
-                                                                                        {variant.product?.name ? `${variant.product.name} - ` : ""}
-                                                                                        Color: {variant.color?.name} | Size: {variant.size?.name}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </CommandItem>
-                                                                        );
-                                                                    })}
-                                                                </CommandGroup>
-                                                            </>
-                                                        )}
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
+                                    {/* Variant Picker */}
+                                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={openCombobox}
+                                                    className={cn(
+                                                        "w-full justify-between",
+                                                        (!field.value || !field.value.length) && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    Add more variants...
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[400px] p-0" align="start">
+                                            <Command shouldFilter={false}>
+                                                <CommandInput
+                                                    placeholder="Search variant by SKU or product name..."
+                                                    value={searchQuery}
+                                                    onValueChange={setSearchQuery}
+                                                />
+                                                <CommandList>
+                                                    {isLoadingVariants ? (
+                                                        <div className="py-6 text-center text-sm text-muted-foreground">
+                                                            Loading variants...
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <CommandEmpty>No variant found.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {variants.map((variant) => {
+                                                                    const isSelected = selectedVariantIds.includes(variant.id);
+                                                                    return (
+                                                                        <CommandItem
+                                                                            key={variant.id}
+                                                                            value={String(variant.id)}
+                                                                            onSelect={() => toggleVariant(variant.id)}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    isSelected
+                                                                                        ? "opacity-100"
+                                                                                        : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium">
+                                                                                    {variant.sku || `Variant #${variant.id}`}
+                                                                                </span>
+                                                                                <span className="text-xs text-muted-foreground">
+                                                                                    {/* @ts-ignore */}
+                                                                                    {variant.product?.name ? `${variant.product.name} - ` : ""}
+                                                                                    Color: {variant.color?.name} | Size: {variant.size?.name}
+                                                                                </span>
+                                                                            </div>
+                                                                        </CommandItem>
+                                                                    );
+                                                                })}
+                                                            </CommandGroup>
+                                                        </>
+                                                    )}
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -483,11 +447,11 @@ export function SaleFormDialog({ open, onOpenChange, sale }: SaleFormDialogProps
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={isPending}>
-                                {isPending && (
+                            <Button type="submit" disabled={updateMutation.isPending}>
+                                {updateMutation.isPending && (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 )}
-                                {isEdit ? "Update Sale" : "Create Sale"}
+                                Update Sale
                             </Button>
                         </div>
                     </form>

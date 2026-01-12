@@ -26,9 +26,15 @@ import { X, CheckCircle, XCircle } from "lucide-react";
 interface Props {
     data: SaleResponse[];
     isLoading: boolean;
+    onFilterChange?: (filters: {
+        minDiscount?: number;
+        maxDiscount?: number;
+        fromDate?: string;
+        toDate?: string;
+    }) => void;
 }
 
-export function SaleTable({ data, isLoading }: Props) {
+export function SaleTable({ data, isLoading, onFilterChange }: Props) {
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -68,6 +74,9 @@ export function SaleTable({ data, isLoading }: Props) {
             toast.success("Sales status updated successfully");
             setRowSelection({});
             queryClient.invalidateQueries({ queryKey: ["sales"] });
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            queryClient.invalidateQueries({ queryKey: ["product-variants"] });
+            queryClient.invalidateQueries({ queryKey: ["cart"] });
         },
         onError: () => {
             toast.error("Failed to update sales status");
@@ -88,7 +97,7 @@ export function SaleTable({ data, isLoading }: Props) {
 
     return (
         <div className="space-y-4">
-            <SaleTableToolbar table={table} />
+            <SaleTableToolbar table={table} onFilterChange={onFilterChange} />
 
             {selectedRows.length > 0 && (
                 <Alert>
