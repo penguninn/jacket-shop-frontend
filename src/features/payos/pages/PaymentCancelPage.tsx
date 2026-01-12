@@ -5,10 +5,9 @@ import { Button } from "@/shared/ui/button";
 import { useCancelPayOSOrder } from "@/features/payos/hooks";
 
 export default function PaymentCancelPage() {
-    const { orderCode } = useParams<{ orderCode: string }>();
+    const { orderId } = useParams<{ orderId: string }>();
     const [searchParams] = useSearchParams();
 
-    const payosOrderCode = searchParams.get("orderCode"); // PayOS orderCode from query params
     const status = searchParams.get("status");
 
     const [isCancelling, setIsCancelling] = useState(true);
@@ -18,8 +17,7 @@ export default function PaymentCancelPage() {
     const { mutateAsync: cancelPayOSOrder } = useCancelPayOSOrder();
 
     useEffect(() => {
-        // Use payosOrderCode from query params (this is the order ID that PayOS returns)
-        const orderIdToCanel = payosOrderCode ? parseInt(payosOrderCode, 10) : null;
+        const orderIdToCanel = orderId ? parseInt(orderId, 10) : null;
 
         if (!orderIdToCanel) {
             setIsCancelling(false);
@@ -28,7 +26,6 @@ export default function PaymentCancelPage() {
 
         const cancelOrder = async () => {
             try {
-                // Call backend API to cancel the order in database
                 await cancelPayOSOrder(orderIdToCanel);
                 setCancelled(true);
             } catch (error) {
@@ -40,9 +37,8 @@ export default function PaymentCancelPage() {
         };
 
         cancelOrder();
-    }, [payosOrderCode, cancelPayOSOrder]);
+    }, [orderId, cancelPayOSOrder]);
 
-    // Loading state
     if (isCancelling) {
         return (
             <div className="min-h-[70vh] flex items-center justify-center">
@@ -82,7 +78,7 @@ export default function PaymentCancelPage() {
                     {cancelError
                         ? cancelError
                         : cancelled
-                            ? `Your order #${orderCode} has been cancelled successfully.`
+                            ? `Your order #${orderId} has been cancelled successfully.`
                             : "The payment transaction was cancelled."
                     }
                 </p>
@@ -90,7 +86,7 @@ export default function PaymentCancelPage() {
                 <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left space-y-3">
                     <div className="flex justify-between">
                         <span className="text-gray-500">Order Code</span>
-                        <span className="font-semibold text-gray-900">{orderCode}</span>
+                        <span className="font-semibold text-gray-900">{orderId}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-gray-500">Status</span>

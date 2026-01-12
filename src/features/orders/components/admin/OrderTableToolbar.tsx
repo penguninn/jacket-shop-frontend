@@ -48,7 +48,6 @@ export function OrderTableToolbar<TData>({ table }: Props<TData>) {
                         />
                     )}
 
-                    {/* Date Filters - Visual only for now as table filter implementation is complex without backend range support */}
                     <div className="flex items-center gap-2">
                         <Popover>
                             <PopoverTrigger asChild>

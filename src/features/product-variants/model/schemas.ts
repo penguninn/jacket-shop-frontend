@@ -4,9 +4,6 @@ import {
     pageResponseSchema,
     type BaseFilterParams,
 } from "@/shared/api/schemas";
-import { productSchema } from "@/features/products/model/schemas";
-
-
 
 export const PRODUCT_VARIANT_CONSTANTS = {
     SKU: {
@@ -49,22 +46,20 @@ export const productVariantSchema = z.object({
     id: z.number(),
     sku: z.string().nullable().optional(),
     productId: z.number().optional(),
-    product: productSchema.optional(),
+    productName: z.string().optional(),
 
     size: sizeSchema,
     color: colorSchema,
     material: materialSchema,
-    price: z.number(),
-    costPrice: z.number(),
 
     quantity: z.number(),
     reservedQuantity: z.number().nullish().transform((v) => v ?? 0),
     availableQuantity: z.number().nullish().transform((v) => v ?? 0),
-
     soldCount: z.number().nullish().transform((v) => v ?? 0),
     returnCount: z.number().nullish().transform((v) => v ?? 0),
 
-    // New API Fields
+    price: z.number(),
+    costPrice: z.number(),
     salePrice: z.number().nullable().optional(),
     discountPercentage: z.number().nullable().optional(),
 

@@ -1,9 +1,9 @@
-
 import { Button } from "@/shared/ui/button";
 import type { Order } from "@/features/orders/model/schemas";
-import { Truck, CreditCard } from "lucide-react";
+import { Truck, CreditCard, Banknote } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
-import { useCancelUserOrder, useReceiveOrder, useReorder } from "@/features/orders/hooks";
+import { useCancelOrder, useReceiveOrder, useReorder } from "@/features/orders/hooks";
+import { useCreatePaymentLink } from "@/features/payos/hooks";
 import { toast } from "sonner";
 import { Badge } from "@/shared/ui/badge";
 import {
@@ -29,27 +29,25 @@ const paymentStatusConfig = {
 };
 
 export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
-    const cancelOrder = useCancelUserOrder();
+    const cancelOrder = useCancelOrder();
     const receiveOrder = useReceiveOrder();
     const reorder = useReorder();
+    const { mutate: createPaymentLink, isPending: isCreatingPaymentLink } = useCreatePaymentLink();
 
     const handleCancel = () => {
         cancelOrder.mutate(order.id, {
-            onSuccess: () => toast.success("Order cancelled successfully"),
             onError: (error) => toast.error("Failed to cancel order: " + error.message),
         });
     };
 
     const handleReceive = () => {
         receiveOrder.mutate(order.id, {
-            onSuccess: () => toast.success("Order received successfully"),
             onError: (error) => toast.error("Failed to confirm receipt: " + error.message),
         });
     };
 
     const handleReorder = () => {
         reorder.mutate(order.id, {
-            onSuccess: () => toast.success("Reorder items added to cart"),
             onError: (error) => toast.error("Failed to reorder: " + error.message),
         });
     };
@@ -64,6 +62,12 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                     <span className="font-semibold">{order.customerName}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
+                    {/* Payment Method */}
+                    <div className="flex items-center gap-1 text-gray-600 border-r pr-2 mr-2">
+                        <Banknote className="w-4 h-4" />
+                        <span>{order.paymentMethodName || "Payment"}</span>
+                    </div>
+
                     {/* Payment Status Badge */}
                     <Badge className={paymentStatusInfo.className}>
                         <CreditCard className="w-3 h-3 mr-1" />
@@ -85,11 +89,6 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
             <div>
                 {order.details?.map((detail) => (
                     <div key={detail.id} className="flex p-4 border-b last:border-b-0 gap-4">
-                        <img
-                            src={detail.thumbnail || detail.image || "https://placehold.co/100"}
-                            alt={detail.productName}
-                            className="w-20 h-20 object-cover border rounded-sm"
-                        />
                         <div className="flex-1">
                             <h3 className="text-base mb-1 line-clamp-2">{detail.productName}</h3>
                             <div className="text-gray-500 text-sm">
@@ -164,6 +163,21 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
+                        )}
+                        {(order.paymentStatus === "UNPAID" && order.paymentMethodCode === "QR" && order.status !== "CANCELLED" && order.status !== "COMPLETED") && (
+                            <Button
+                                onClick={() => {
+                                    createPaymentLink(order.id, {
+                                        onSuccess: (paymentLink) => {
+                                            window.location.href = paymentLink.checkoutUrl;
+                                        }
+                                    });
+                                }}
+                                disabled={isCreatingPaymentLink}
+                                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[150px]"
+                            >
+                                {isCreatingPaymentLink ? "Processing..." : "Pay Now"}
+                            </Button>
                         )}
                     </div>
                 </div>

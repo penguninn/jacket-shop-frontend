@@ -2,19 +2,18 @@ import { useState } from "react";
 import { Ticket, X, Loader2 } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { usePosStore } from "../hooks/usePosState";
-import { useUpdatePosDraftCoupon } from "../hooks/usePosApi";
-import { toast } from "sonner";
 import { formatCurrency } from "@/shared/utils/format";
 
 export function CouponSection() {
-    // Correct store and hook usage
-    const { currentDraft, setCurrentDraft } = usePosStore();
-    const { mutate: updateCoupon, isPending: isUpdating } = useUpdatePosDraftCoupon();
+    // Giả lập trạng thái có Draft
+    const hasDraft = true;
 
-    const [code, setCode] = useState("");
+    // State UI cục bộ
+    const [inputCode, setInputCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    if (!currentDraft) {
+    if (!hasDraft) {
         return (
             <div className="bg-background border rounded-lg shadow-sm p-4 space-y-4 opacity-50 pointer-events-none">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
@@ -24,45 +23,30 @@ export function CouponSection() {
         );
     }
 
-    const appliedCouponCode = currentDraft.couponCode;
-    const discount = currentDraft.discount || 0;
+    const handleApply = () => {
+        if (!inputCode.trim()) return;
 
-    const handleApply = async () => {
-        if (!code.trim()) return;
+        setIsUpdating(true);
 
-        // Pass coupon code to backend via query param
-        updateCoupon({
-            id: currentDraft.id,
-            couponCode: code.trim().toUpperCase()
-        }, {
-            onSuccess: (updated) => {
-                setCurrentDraft(updated);
-                toast.success("Coupon applied");
-                setCode("");
-            },
-            onError: (error: any) => {
-                toast.error("Failed to apply coupon", {
-                    description: error.response?.data?.message || "Invalid coupon or conditions not met"
-                });
-            }
-        });
+        // Giả lập API call delay
+        setTimeout(() => {
+            setAppliedCoupon({
+                code: inputCode.trim().toUpperCase(),
+                discount: 50000 // Giả lập giảm 50k
+            });
+            setIsUpdating(false);
+        }, 600);
     };
 
     const handleRemove = () => {
-        updateCoupon({
-            id: currentDraft.id,
-            couponCode: null // Sending null to remove coupon
-        }, {
-            onSuccess: (updated) => {
-                setCurrentDraft(updated);
-                toast.success("Coupon removed");
-            },
-            onError: (error: any) => {
-                toast.error("Failed to remove coupon", {
-                    description: error.response?.data?.message
-                });
-            }
-        });
+        setIsUpdating(true);
+
+        // Giả lập API call delay
+        setTimeout(() => {
+            setAppliedCoupon(null);
+            setInputCode("");
+            setIsUpdating(false);
+        }, 600);
     };
 
     return (
@@ -71,13 +55,13 @@ export function CouponSection() {
                 <Ticket className="h-4 w-4" /> Coupon
             </h3>
 
-            {appliedCouponCode ? (
+            {appliedCoupon ? (
                 <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2 rounded-md">
                     <div className="flex flex-col">
-                        <span className="font-bold text-sm text-emerald-700">{appliedCouponCode}</span>
-                        {discount > 0 && (
+                        <span className="font-bold text-sm text-emerald-700">{appliedCoupon.code}</span>
+                        {appliedCoupon.discount > 0 && (
                             <span className="text-xs text-emerald-600">
-                                Discount: {formatCurrency(discount)}
+                                Discount: {formatCurrency(appliedCoupon.discount)}
                             </span>
                         )}
                     </div>
@@ -94,8 +78,8 @@ export function CouponSection() {
             ) : (
                 <div className="flex gap-2">
                     <Input
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.toUpperCase())}
+                        value={inputCode}
+                        onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                         placeholder="Enter code"
                         className="text-sm h-9"
                         disabled={isUpdating}
@@ -103,7 +87,7 @@ export function CouponSection() {
                     <Button
                         size="sm"
                         onClick={handleApply}
-                        disabled={!code || isUpdating}
+                        disabled={!inputCode || isUpdating}
                         className="h-9"
                     >
                         {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}

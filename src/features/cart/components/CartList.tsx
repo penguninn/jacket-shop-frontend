@@ -131,7 +131,6 @@ export function CartList() {
             }
         } catch (error) {
             console.error("Cart validation failed", error);
-            // Optionally show a toast here
         }
     };
 
