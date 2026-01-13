@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAllReviews } from "../hooks";
+import { useReviews } from "../hooks";
 import { columns } from "../components/AdminReviewColumns";
 import { DataTable } from "@/shared/components/data-table/DataTable";
 import { DataTablePagination } from "@/shared/components/data-table/DataTablePagination";
@@ -17,14 +17,16 @@ export default function AdminReviewsPage() {
 
     // Extract filters
     const ratingFilter = columnFilters.find(f => f.id === 'rating')?.value as string[];
-    const ratingParam = ratingFilter?.length === 1 ? parseInt(ratingFilter[0]) : undefined;
+    // Take the first selected rating if multiple selected, or undefined
+    const ratingParam = ratingFilter?.length ? parseInt(ratingFilter[0]) : undefined;
 
-    const { data: reviewData, isLoading, error } = useAllReviews({
+    const { data: reviewData, isLoading, error } = useReviews({
         page,
         size,
         search: globalFilter || undefined,
         rating: ratingParam,
-        // Backend sort params can be added here
+        sortBy: sorting.length > 0 ? sorting[0].id : 'createdAt',
+        sortDir: sorting.length > 0 ? (sorting[0].desc ? 'DESC' : 'ASC') : 'DESC',
     });
 
     const table = useReactTable({
@@ -52,6 +54,8 @@ export default function AdminReviewsPage() {
         onSortingChange: setSorting,
         manualPagination: true,
         manualFiltering: true,
+        // Manual sorting is required because we sort on backend
+        manualSorting: true,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     });
@@ -63,7 +67,7 @@ export default function AdminReviewsPage() {
 
             {error ? (
                 <div className="bg-red-50 text-red-500 p-4 rounded-md border border-red-200 mb-6">
-                    Error loading reviews. Check if the backend endpoint `GET / api / reviews` exists.
+                    Error loading reviews: {(error as any)?.message || "Unknown error"}
                 </div>
             ) : null}
 

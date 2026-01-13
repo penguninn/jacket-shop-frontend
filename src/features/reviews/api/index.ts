@@ -1,77 +1,51 @@
-import { httpPrivateTyped, httpPublicTyped } from "@/shared/api/http-typed";
+import { httpPrivateTyped } from "@/shared/api/http-typed";
 import {
     reviewSchema,
     reviewsResponseSchema,
     type ReviewFilterParams,
-    type CreateReviewInput
+    type UpdateReviewInput
 } from "../model/schemas";
 import { z } from "zod";
 
-const ENDPOINTS = Object.freeze({
+const ENDPOINTS = {
     REVIEWS: '/reviews',
-    REVIEWS_BY_PRODUCT: (id: number) => `/reviews/product/${id}`,
     REVIEW_BY_ID: (id: number) => `/reviews/${id}`,
-} as const);
+};
 
-export async function createReview(payload: CreateReviewInput) {
-    return await httpPrivateTyped.post(
-        ENDPOINTS.REVIEWS,
-        payload,
-        reviewSchema
-    );
-}
-
-export async function getReviewsByProductId(productId: number, params: ReviewFilterParams) {
+export async function getReviews(params: ReviewFilterParams) {
     const queryParams = new URLSearchParams({
         page: params.page.toString(),
         size: params.size.toString(),
     });
 
-    if (params.sortBy) {
-        queryParams.append('sort', params.sortBy);
-    }
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortDir) queryParams.append('sortDir', params.sortDir);
 
-    return await httpPublicTyped.get(
-        `${ENDPOINTS.REVIEWS_BY_PRODUCT(productId)}?${queryParams.toString()}`,
+    if (params.productId) queryParams.append('productId', params.productId.toString());
+    if (params.userId) queryParams.append('userId', params.userId.toString());
+    if (params.orderId) queryParams.append('orderId', params.orderId.toString());
+    if (params.rating) queryParams.append('rating', params.rating.toString());
+    if (params.minRating) queryParams.append('minRating', params.minRating.toString());
+    if (params.maxRating) queryParams.append('maxRating', params.maxRating.toString());
+
+    return await httpPrivateTyped.get(
+        `${ENDPOINTS.REVIEWS}?${queryParams.toString()}`,
         reviewsResponseSchema
+    );
+}
+
+export async function updateReview(id: number, payload: UpdateReviewInput) {
+    return await httpPrivateTyped.put(
+        ENDPOINTS.REVIEW_BY_ID(id),
+        payload,
+        reviewSchema
     );
 }
 
 export async function deleteReview(id: number) {
     return await httpPrivateTyped.del(
         ENDPOINTS.REVIEW_BY_ID(id),
-        z.null().or(z.any())
-    );
-}
-
-export async function getAllReviews(params: ReviewFilterParams) {
-    const queryParams = new URLSearchParams({
-        page: params.page.toString(),
-        size: params.size.toString(),
-    });
-
-    if (params.search) {
-        queryParams.append('keyword', params.search);
-    }
-
-    if (params.rating !== undefined && params.rating !== null) {
-        queryParams.append('rating', params.rating.toString());
-    }
-
-    // Backend expects 'latest' or 'oldest' specifically for the logic provided by user
-    if (params.sortBy) {
-        queryParams.append('sort', params.sortBy);
-    }
-
-    // Attempting GET /api/reviews or /api/reviews/search depending on if filters exist
-    // IMPORTANT: The base GET /api/reviews endpoint provided by user DOES NOT support sorting params.
-    // The GET /api/reviews/search endpoint DOES support sorting.
-    // So if sortBy is present, we must switch to /search endpoint.
-    const hasFilters = params.search || (params.rating !== undefined && params.rating !== null) || !!params.sortBy;
-    const endpoint = hasFilters ? `${ENDPOINTS.REVIEWS}/search` : ENDPOINTS.REVIEWS;
-
-    return await httpPrivateTyped.get(
-        `${endpoint}?${queryParams.toString()}`,
-        reviewsResponseSchema
+        z.any()
     );
 }

@@ -13,7 +13,7 @@ import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { Badge } from "@/shared/ui/badge";
-import { ReviewsSection } from "@/features/reviews/components/ReviewsSection";
+
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -598,7 +598,7 @@ export default function ProductDetail() {
 
                 {/* Tabs Section (Reviews, FAQs) */}
                 <div className="mb-16">
-                    <Tabs defaultValue="reviews">
+                    <Tabs defaultValue="details">
                         <TabsList className="w-full justify-around border-b rounded-none h-auto p-0 bg-transparent">
                             <TabsTrigger
                                 value="details"
@@ -606,12 +606,14 @@ export default function ProductDetail() {
                             >
                                 Product Details
                             </TabsTrigger>
+                            {/*
                             <TabsTrigger
                                 value="reviews"
                                 className="flex-1 pb-4 rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:shadow-none text-gray-500 font-medium text-lg"
                             >
                                 Rating & Reviews
                             </TabsTrigger>
+                            */}
                         </TabsList>
 
                         <TabsContent value="details" className="pt-8 bg-white rounded-lg">
@@ -660,10 +662,11 @@ export default function ProductDetail() {
                                 </div>
                             </div>
                         </TabsContent>
-
+                        {/* 
                         <TabsContent value="reviews" className="pt-8">
                             <ReviewsSection productId={product.id} ratingCount={product.ratingCount || 0} />
                         </TabsContent>
+                        */}
                     </Tabs>
                 </div>
 
