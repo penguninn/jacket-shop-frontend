@@ -46,6 +46,11 @@ export const productSchema = z.object({
   description: z.string().nullable().optional(),
   thumbnail: z.string().nullable().optional(),
 
+  // Optional relations populated by backend DTOs if requested
+  colors: z.array(z.object({ id: z.number(), name: z.string(), hexCode: z.string().optional() })).optional(),
+  sizes: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
+  materials: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
+
   // New fields from spec
   isFeatured: z.boolean().nullish().transform((v) => v ?? false),
   soldCount: z.number().nullish().transform((v) => v ?? 0),

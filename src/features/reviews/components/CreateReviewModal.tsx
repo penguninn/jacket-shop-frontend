@@ -10,10 +10,11 @@ import { toast } from "sonner";
 
 interface CreateReviewModalProps {
     productId: number;
+    orderId: number;
     trigger?: React.ReactNode;
 }
 
-export function CreateReviewModal({ productId, trigger }: CreateReviewModalProps) {
+export function CreateReviewModal({ productId, orderId, trigger }: CreateReviewModalProps) {
     const [open, setOpen] = useState(false);
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
@@ -29,6 +30,7 @@ export function CreateReviewModal({ productId, trigger }: CreateReviewModalProps
 
         createReview({
             productId,
+            orderId,
             rating,
             comment
         }, {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useReviewsByProduct } from "../hooks";
 import { ReviewItem } from "./ReviewItem";
 import { CreateReviewModal } from "./CreateReviewModal";
@@ -11,6 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/shared/ui/select";
+import { useAuthStore } from "@/app/store/auth";
+import { useMyOrders } from "@/features/orders/hooks";
+import { ORDER_STATUS } from "@/features/orders/model/schemas";
+import type { SortDirection } from "@/shared/api/schemas";
 
 interface ReviewsSectionProps {
     productId: number;
@@ -19,16 +23,35 @@ interface ReviewsSectionProps {
 
 export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) {
     const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = useState("latest");
+    const [sortBy, setSortBy] = useState("");
 
     const { data, isLoading } = useReviewsByProduct(productId, {
         page,
         size: 5,
-        sortBy,
+        sortBy: sortBy.split("_")[0],
+        sortDir: sortBy.split("_")[1] as SortDirection,
     });
 
     const reviews = data?.contents || [];
     const totalPages = data?.totalPages || 0;
+
+    // --- Order Eligibility Logic ---
+    const { user } = useAuthStore();
+    const isAuthenticated = !!user;
+
+    // Fetch orders to check eligibility
+    // We only check confirmed/completed orders
+    const { data: myOrders } = useMyOrders(ORDER_STATUS.COMPLETED);
+
+    // Find if user has purchased this product
+    const validOrder = useMemo(() => {
+        if (!myOrders || !isAuthenticated) return null;
+
+        // Find latest order containing this product
+        return myOrders.find(order =>
+            order.details?.some(detail => detail.productId === productId)
+        );
+    }, [myOrders, productId, isAuthenticated]);
 
     return (
         <div className="pt-8 w-full">
@@ -44,19 +67,28 @@ export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) 
                             <SelectValue placeholder="Latest" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="latest">Latest</SelectItem>
-                            <SelectItem value="oldest">Oldest</SelectItem>
+                            <SelectItem value="createdAt_desc">Latest</SelectItem>
+                            <SelectItem value="createdAt_asc">Oldest</SelectItem>
                         </SelectContent>
                     </Select>
 
-                    <CreateReviewModal
-                        productId={productId}
-                        trigger={
-                            <Button className="rounded-full bg-black text-white hover:bg-black/90 px-6">
-                                Write a Review
-                            </Button>
-                        }
-                    />
+                    {validOrder ? (
+                        <CreateReviewModal
+                            productId={productId}
+                            orderId={validOrder.id}
+                            trigger={
+                                <Button className="rounded-full bg-black text-white hover:bg-black/90 px-6">
+                                    Write a Review
+                                </Button>
+                            }
+                        />
+                    ) : (
+                        isAuthenticated && (
+                            <div className="text-sm text-gray-500 italic px-4">
+                                Buy to review
+                            </div>
+                        )
+                    )}
                 </div>
             </div>
 
@@ -71,7 +103,7 @@ export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) 
                     <p>Be the first to share your thoughts!</p>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-4">
                     {reviews.map((review) => (
                         <ReviewItem key={review.id} review={review} />
                     ))}

@@ -21,7 +21,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/shared/ui/sidebar";
@@ -124,6 +123,7 @@ const sidebarGroups: SidebarGroup[] = [
       },
     ],
   },
+
 ];
 
 export default function AppSidebar() {
@@ -163,9 +163,7 @@ export default function AppSidebar() {
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {item.badge && (
-                      <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                    )}
+
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
