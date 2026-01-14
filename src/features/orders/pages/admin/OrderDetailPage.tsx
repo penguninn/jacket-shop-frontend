@@ -38,7 +38,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
 
 import { format } from "date-fns";
-import { toast } from "sonner"; // Assuming toast usage requires this or from hooks if wrapped
+import { toast } from "sonner";
+import { OrderItemsTable } from "../../components/admin/OrderItemsTable";
+
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -56,9 +58,8 @@ export default function OrderDetailPage() {
 
 
 
-  const handleAction = (mutation: any, successMessage: string) => {
+  const handleAction = (mutation: any) => {
     mutation.mutate(orderId, {
-      onSuccess: () => toast.success(successMessage),
       onError: (error: any) => toast.error(error.message || "Action failed"),
     });
   };
@@ -117,7 +118,7 @@ export default function OrderDetailPage() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>No, keep order</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                      onClick={() => handleAction(cancelMutation)}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Yes, cancel order
@@ -138,7 +139,7 @@ export default function OrderDetailPage() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleAction(confirmMutation, "Order confirmed")}>
+                    <AlertDialogAction onClick={() => handleAction(confirmMutation)}>
                       Yes, confirm order
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -164,7 +165,7 @@ export default function OrderDetailPage() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>No, keep order</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => handleAction(cancelMutation, "Order cancelled")}
+                      onClick={() => handleAction(cancelMutation)}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Yes, cancel order
@@ -185,7 +186,7 @@ export default function OrderDetailPage() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleAction(shipMutation, "Order shipped")}>
+                    <AlertDialogAction onClick={() => handleAction(shipMutation)}>
                       Yes, ship order
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -207,7 +208,7 @@ export default function OrderDetailPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleAction(completeMutation, "Order completed")}>
+                  <AlertDialogAction onClick={() => handleAction(completeMutation)}>
                     Yes, mark delivered
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -255,34 +256,13 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
-                <div className="p-6 border-b">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <Package className="h-4 w-4" /> Order Items
-                  </h3>
-                </div>
-                <div className="p-0">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50">
-                      <tr className="text-left">
-                        <th className="p-4 font-medium">Product</th>
-                        <th className="p-4 font-medium">SKU</th>
-                        <th className="p-4 font-medium">Price</th>
-                        <th className="p-4 font-medium">Qty</th>
-                        <th className="p-4 font-medium text-right">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {order.details?.map((item) => (
-                        <tr key={item.id || item.sku} className="border-b last:border-0">
-                          <td className="p-4 text-muted-foreground">{item.sku}</td>
-                          <td className="p-4">{formatCurrency(item.price)}</td>
-                          <td className="p-4">{item.quantity}</td>
-                          <td className="p-4 text-right font-medium">{formatCurrency(item.subtotal)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="rounded-lg border bg-card text-card-foreground overflow-hidden">
+                <h3 className="font-semibold text-lg flex items-center gap-2 p-2">
+                  <Package className="h-4 w-4" /> Order Items
+                </h3>
+
+                <div className="p-2">
+                  <OrderItemsTable data={order.details || []} />
                 </div>
               </div>
             </div>

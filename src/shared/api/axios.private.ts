@@ -68,6 +68,15 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+
+      const errorCode = (error.response?.data as any)?.errorCode;
+      const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/update-password');
+
+      if (errorCode === ERROR_CODES.AUTH_INVALID_CREDENTIALS && isAuthEndpoint) {
+        return Promise.reject(toProblem(error));
+      }
+
       originalRequest._retry = true;
 
       if (!isRefreshing) {

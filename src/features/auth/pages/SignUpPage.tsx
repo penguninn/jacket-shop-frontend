@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
-import { Lock, Eye, EyeOff, User, Phone, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, User, Phone, AlertCircle, Mail } from "lucide-react";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
@@ -16,12 +16,14 @@ const FORM_CONFIG = {
   SUBTITLE: 'Sign up to start shopping with us',
   LABELS: {
     USERNAME: 'Username',
+    EMAIL: 'Email',
     FULL_NAME: 'Full Name',
     PHONE: 'Phone Number',
     PASSWORD: 'Password',
   },
   PLACEHOLDERS: {
     USERNAME: 'Enter your username',
+    EMAIL: 'Enter your email',
     FULL_NAME: 'Enter your full name',
     PHONE: 'Enter your phone number',
     PASSWORD: 'Create a password',
@@ -46,8 +48,9 @@ const ROUTES = {
 
 const DEFAULT_VALUES: SignUpInput = {
   username: '',
+  email: '',
   fullName: '',
-  phoneNumber: '',
+  phone: '',
   password: '',
 };
 
@@ -246,6 +249,17 @@ export default function SignUpPage() {
             />
 
             <IconInput
+              id="email"
+              label={FORM_CONFIG.LABELS.EMAIL}
+              type="email"
+              icon={Mail}
+              register={register('email')}
+              error={errors.email?.message}
+              placeholder={FORM_CONFIG.PLACEHOLDERS.EMAIL}
+              autoComplete="email"
+            />
+
+            <IconInput
               id="fullName"
               label={FORM_CONFIG.LABELS.FULL_NAME}
               icon={User}
@@ -256,12 +270,12 @@ export default function SignUpPage() {
             />
 
             <IconInput
-              id="phoneNumber"
+              id="phone"
               label={FORM_CONFIG.LABELS.PHONE}
               type="tel"
               icon={Phone}
-              register={register('phoneNumber')}
-              error={errors.phoneNumber?.message}
+              register={register('phone')}
+              error={errors.phone?.message}
               placeholder={FORM_CONFIG.PLACEHOLDERS.PHONE}
               autoComplete="tel"
             />
