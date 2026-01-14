@@ -7,11 +7,13 @@ import {
     logout,
     getMe,
     updateProfile,
+    updatePassword,
 } from "../api";
 import type {
     SignInInput,
     SignUpInput,
     UpdateProfileInput,
+    UpdatePasswordInput,
     SignInResponse,
     SignUpResponse,
     LogoutResponse,
@@ -98,3 +100,12 @@ export function useUpdateProfile(options?: BaseMutationOptions) {
 export const useSignInMutation = useSignIn;
 export const useSignUpMutation = useSignUp;
 export const useLogoutMutation = useLogout;
+
+export function useUpdatePassword(options?: BaseMutationOptions) {
+    return useGlobalMutation<any, UpdatePasswordInput>({
+        mutationFn: updatePassword,
+        successMessage: "Password updated successfully",
+        errorContext: "Update Password",
+        setError: options?.setError,
+    });
+}
