@@ -100,6 +100,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
     useEffect(() => {
         if (open && product) {
             reset({
+                id: product.id,
                 name: product.name,
                 description: product.description || "",
                 brandId: product.brand?.id,
@@ -113,7 +114,7 @@ export function ProductEditForm({ open, onOpenChange, product }: Props) {
 
     const onSubmit = (data: UpdateProductInput) => {
         doUpdateProduct(
-            { id: product.id, data },
+            { id: data.id, data },
             {
                 onSuccess: () => {
                     onOpenChange(false);

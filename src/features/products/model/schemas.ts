@@ -88,6 +88,7 @@ export const createProductSchema = z.object({
 });
 
 export const updateProductSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(

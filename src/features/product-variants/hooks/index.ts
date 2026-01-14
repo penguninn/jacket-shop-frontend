@@ -38,10 +38,12 @@ export const productVariantKeys = {
 } as const;
 
 
-export function useProductVariants(params: ProductVariantFilterParams) {
+export function useProductVariants(params: ProductVariantFilterParams & { enabled?: boolean }) {
+    const { enabled = true, ...filterParams } = params;
     return useQuery({
-        queryKey: productVariantKeys.list(params),
-        queryFn: () => getProductVariants(params),
+        queryKey: productVariantKeys.list(filterParams),
+        queryFn: () => getProductVariants(filterParams),
+        enabled,
     });
 }
 

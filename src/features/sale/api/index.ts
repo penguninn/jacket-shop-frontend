@@ -60,3 +60,33 @@ export async function bulkDeleteSales(ids: number[]) {
         z.null()
     );
 }
+
+export async function bulkUpdateSalesStatus(ids: number[], status: "ACTIVE" | "INACTIVE") {
+    const updatePromises = ids.map(async (id) => {
+        try {
+            const sale = await getSaleById(id);
+            if (!sale) return;
+
+            // Map SaleResponse to SaleUpdateRequest expected by backend
+            const payload = {
+                id: sale.id, // DTO needs ID
+                name: sale.name,
+                description: sale.description,
+                discountPercentage: sale.discountPercentage,
+                startDate: sale.startDate, // Already ISO string from response
+                endDate: sale.endDate,     // Already ISO string from response
+                status: status,
+            };
+
+            // Cast to any because updateSale expects SaleRequest (Form Schema) but we are sending Backend DTO structure
+            // In a strict setup, we should have separate types for Form vs API.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await updateSale({ id, data: payload as any });
+        } catch (error) {
+            console.error(`Failed to update status for sale ${id}`, error);
+            // Continue with others
+        }
+    });
+
+    await Promise.all(updatePromises);
+}

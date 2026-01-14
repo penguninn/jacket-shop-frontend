@@ -14,23 +14,28 @@ export const saleResponseSchema = z.object({
     id: z.number(),
     name: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
-    startDate: z.string().nullable(), // ISO string
-    endDate: z.string().nullable(),   // ISO string
+    startDate: z.string().nullable(), // ISO string from Instant
+    endDate: z.string().nullable(),   // ISO string from Instant
     discountPercentage: z.number().nullable(),
+    status: z.string().nullable().optional(),
     variants: z.array(saleVariantDetailSchema).nullable().optional(),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
 });
 
 
 export const saleRequestSchema = z.object({
-    productVariantIds: z.array(z.number()).min(1, "At least one variant is required"),
-    name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-    description: z.string().max(255, "Description is too long").optional(),
+    id: z.number().optional(),
+    productVariantIds: z.array(z.number()).min(1, "At least one variant is required").optional(), // Optional for update
+    name: z.string().min(1, "Name is required").max(255, "Name is too long"),
+    description: z.string().max(500, "Description is too long").optional(),
     saleStartDate: z.string().min(1, "Start date is required"),
     saleEndDate: z.string().min(1, "End date is required"),
     discountPercentage: z.coerce
         .number()
-        .min(1, "Discount must be at least 1%")
+        .min(0, "Discount must be at least 0%")
         .max(100, "Discount cannot exceed 100%"),
+    status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 }).refine((data) => {
     const start = new Date(data.saleStartDate);
     const end = new Date(data.saleEndDate);
@@ -46,6 +51,7 @@ export const saleFilterSchema = z.object({
     toDate: z.string().optional(),
     minDiscount: z.number().optional(),
     maxDiscount: z.number().optional(),
+    status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
     page: z.number().default(0),
     size: z.number().default(10),
     sortBy: z.string().default("createdAt"),
