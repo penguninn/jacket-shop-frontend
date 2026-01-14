@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from "@/app/store/auth";
 import { useMyOrders } from "@/features/orders/hooks";
 import { ORDER_STATUS } from "@/features/orders/model/schemas";
+import type { SortDirection } from "@/shared/api/schemas";
 
 interface ReviewsSectionProps {
     productId: number;
@@ -22,12 +23,13 @@ interface ReviewsSectionProps {
 
 export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) {
     const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = useState("latest");
+    const [sortBy, setSortBy] = useState("");
 
     const { data, isLoading } = useReviewsByProduct(productId, {
         page,
         size: 5,
-        sortBy,
+        sortBy: sortBy.split("_")[0],
+        sortDir: sortBy.split("_")[1] as SortDirection,
     });
 
     const reviews = data?.contents || [];
@@ -65,8 +67,8 @@ export function ReviewsSection({ productId, ratingCount }: ReviewsSectionProps) 
                             <SelectValue placeholder="Latest" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="latest">Latest</SelectItem>
-                            <SelectItem value="oldest">Oldest</SelectItem>
+                            <SelectItem value="createdAt_desc">Latest</SelectItem>
+                            <SelectItem value="createdAt_asc">Oldest</SelectItem>
                         </SelectContent>
                     </Select>
 
