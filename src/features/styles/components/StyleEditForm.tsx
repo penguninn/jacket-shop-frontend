@@ -45,6 +45,7 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
     } = useForm<UpdateStyleInput>({
         resolver: zodResolver(updateStyleSchema),
         defaultValues: {
+            id: style.id,
             name: style.name,
             description: style.description || "",
             status: style.status,
@@ -59,6 +60,7 @@ export function StyleEditForm({ open, onOpenChange, style }: Props) {
     useEffect(() => {
         if (open && style) {
             reset({
+                id: style.id,
                 name: style.name,
                 description: style.description || "",
                 status: style.status,

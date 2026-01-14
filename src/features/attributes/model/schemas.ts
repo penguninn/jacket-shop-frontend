@@ -70,6 +70,7 @@ export const createColorSchema = z.object({
 });
 
 export const updateColorSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")
@@ -112,6 +113,7 @@ export const createSizeSchema = z.object({
 });
 
 export const updateSizeSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Size cannot be empty")
@@ -150,6 +152,7 @@ export const createMaterialSchema = z.object({
 });
 
 export const updateMaterialSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(ATTRIBUTE_CONSTANTS.NAME.MIN_LENGTH, "Name cannot be empty")

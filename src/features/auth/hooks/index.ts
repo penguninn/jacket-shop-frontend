@@ -8,12 +8,17 @@ import {
     getMe,
     updateProfile,
     updatePassword,
+    forgotPassword,
+    verifyResetToken,
+    resetPassword,
 } from "../api";
 import type {
     SignInInput,
     SignUpInput,
     UpdateProfileInput,
     UpdatePasswordInput,
+    ForgotPasswordInput,
+    ResetPasswordInput,
     SignInResponse,
     SignUpResponse,
     LogoutResponse,
@@ -24,6 +29,7 @@ import type { BaseMutationOptions } from "@/shared/api/types";
 export const authKeys = {
     all: ['auth'] as const,
     me: () => [...authKeys.all, 'me'] as const,
+    verifyToken: (token: string) => [...authKeys.all, 'verify-token', token] as const,
 } as const;
 
 
@@ -93,6 +99,33 @@ export function useUpdateProfile(options?: BaseMutationOptions) {
         ],
         successMessage: "Profile updated successfully",
         errorContext: "Update Profile",
+        setError: options?.setError,
+    });
+}
+
+export function useForgotPassword(options?: BaseMutationOptions) {
+    return useGlobalMutation<any, ForgotPasswordInput>({
+        mutationFn: forgotPassword,
+        successMessage: "If the account exists, a password reset email has been sent",
+        errorContext: "Forgot Password",
+        setError: options?.setError,
+    });
+}
+
+export function useVerifyResetToken(token: string | null) {
+    return useQuery({
+        queryKey: authKeys.verifyToken(token || ''),
+        queryFn: () => verifyResetToken(token!),
+        enabled: !!token,
+        retry: false,
+    });
+}
+
+export function useResetPassword(options?: BaseMutationOptions) {
+    return useGlobalMutation<any, ResetPasswordInput>({
+        mutationFn: resetPassword,
+        successMessage: "Password has been reset successfully",
+        errorContext: "Reset Password",
         setError: options?.setError,
     });
 }

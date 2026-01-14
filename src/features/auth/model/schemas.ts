@@ -86,6 +86,24 @@ export const forgotPasswordSchema = z.object({
         .min(AUTH_VALIDATION.USERNAME.MIN_LENGTH, AUTH_VALIDATION.USERNAME.MESSAGE),
 });
 
+export const resetPasswordSchema = z
+    .object({
+        token: z.string().min(1, "Token is required"),
+        newPassword: z
+            .string()
+            .min(8, "Password must be at least 8 characters")
+            .max(100, "Password must be less than 100 characters")
+            .regex(
+                AUTH_VALIDATION.PASSWORD.PATTERN,
+                AUTH_VALIDATION.PASSWORD.PATTERN_MESSAGE
+            ),
+        confirmPassword: z.string().min(1, "Confirm password is required"),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    });
+
 export const updatePasswordSchema = z
     .object({
         oldPassword: z.string().min(1, "Old password is required"),
@@ -103,6 +121,7 @@ export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 
 export type SignInResponse = z.infer<typeof signInResponseSchema>;

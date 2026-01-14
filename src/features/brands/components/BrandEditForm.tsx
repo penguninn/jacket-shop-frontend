@@ -67,6 +67,7 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
   } = useForm<UpdateBrandInput>({
     resolver: zodResolver(updateBrandSchema),
     defaultValues: {
+      id: brand.id,
       name: "",
       description: "",
       status: "ACTIVE",
@@ -81,6 +82,7 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
   useEffect(() => {
     if (open && brand) {
       reset({
+        id: brand.id,
         name: brand.name,
         description: brand.description || "",
         status: brand.status,
@@ -89,13 +91,13 @@ export function BrandEditForm({ open, onOpenChange, brand }: Props) {
   }, [open, brand, reset]);
 
   const onSubmit = (data: UpdateBrandInput) => {
-    doUpdateBrand(
-      { id: brand.id, data },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-        },
+    doUpdateBrand({
+      id: brand.id, data
+    }, {
+      onSuccess: () => {
+        onOpenChange(false);
       },
+    },
     );
   };
 

@@ -97,9 +97,10 @@ export async function getUserStatistics(id: number) {
 
 // Mutations
 export async function createUser(payload: CreateUserInput) {
+  const { confirmPassword, ...apiPayload } = payload;
   return await httpPrivateTyped.post(
     ENDPOINTS.USERS,
-    payload,
+    apiPayload,
     userSchema
   );
 }

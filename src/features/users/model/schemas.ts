@@ -16,7 +16,7 @@ export const USER_CONSTANTS = Object.freeze({
     MIN_LENGTH: 2,
   },
   PHONE: {
-    REGEX: /^[0-9]{10,15}$/,
+    REGEX: /^0[0-9]{9,14}$/,
   },
   PASSWORD: {
     MIN_LENGTH: 8,
@@ -34,13 +34,18 @@ export const roleSchema = z.object({
 
 export const userSchema = z.object({
   id: z.number(),
-  username: z.string(),
   fullName: z.string(),
-  phone: z.string().nullable(),
+  username: z.string(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  avatar: z.string().nullable().optional(),
   status: statusSchema,
-  roles: z.array(roleSchema),
+  emailVerified: z.boolean().nullable().optional(),
+  phoneVerified: z.boolean().nullable().optional(),
+  lastLoginAt: z.string().nullable().optional(),
   createdAt: z.string().nullable().optional(),
   updatedAt: z.string().nullable().optional(),
+  roles: z.array(roleSchema),
 });
 
 
@@ -71,34 +76,31 @@ export const userStatisticsSchema = z.object({
 
 export const createUserSchema = z
   .object({
+    fullName: z
+      .string()
+      .min(2, "Full name must be at least 2 characters")
+      .max(120, "Full name must be less than 120 characters"),
     username: z
       .string()
-      .min(
-        USER_CONSTANTS.USERNAME.MIN_LENGTH,
-        `Username must be at least ${USER_CONSTANTS.USERNAME.MIN_LENGTH} characters`
-      )
+      .min(6, "Username must be at least 6 characters")
+      .max(50, "Username must be less than 50 characters")
       .regex(
         USER_CONSTANTS.USERNAME.REGEX,
         "Username can only contain letters, numbers, ., -, _"
       ),
-    fullName: z
-      .string()
-      .min(
-        USER_CONSTANTS.FULL_NAME.MIN_LENGTH,
-        `Full name must be at least ${USER_CONSTANTS.FULL_NAME.MIN_LENGTH} characters`
-      ),
-    phone: z
-      .string()
-      .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits"),
-    password: z
-      .string()
-      .min(
-        USER_CONSTANTS.PASSWORD.MIN_LENGTH,
-        `Password must be at least ${USER_CONSTANTS.PASSWORD.MIN_LENGTH} characters`
-      ),
-    confirmPassword: z.string(),
     status: statusSchema,
     roleIds: z.array(z.number()).min(1, "Select at least one role"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be less than 128 characters"),
+    confirmPassword: z.string(),
+    phone: z
+      .string()
+      .regex(USER_CONSTANTS.PHONE.REGEX, "Phone number must start with 0 and have 10-15 digits")
+      .nullable()
+      .optional()
+      .or(z.literal("")),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -108,16 +110,16 @@ export const createUserSchema = z
 export const updateUserSchema = z.object({
   fullName: z
     .string()
-    .min(
-      USER_CONSTANTS.FULL_NAME.MIN_LENGTH,
-      `Full name must be at least ${USER_CONSTANTS.FULL_NAME.MIN_LENGTH} characters`
-    ),
-  phone: z
-    .string()
-    .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits")
-    .or(z.literal("")),
+    .min(2, "Full name must be at least 2 characters")
+    .max(120, "Full name must be less than 120 characters"),
   status: statusSchema,
   roleIds: z.array(z.number()).min(1, "Select at least one role"),
+  phone: z
+    .string()
+    .regex(USER_CONSTANTS.PHONE.REGEX, "Phone number must start with 0 and have 10-15 digits")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
 });
 
 export const updateUserStatusSchema = z.object({

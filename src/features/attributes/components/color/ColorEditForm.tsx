@@ -52,6 +52,7 @@ export function ColorEditForm({ color, children }: Props) {
   } = useForm<UpdateColorInput>({
     resolver: zodResolver(updateColorSchema),
     defaultValues: {
+      id: color.id,
       name: "",
       hexCode: "",
       description: "",
@@ -67,6 +68,7 @@ export function ColorEditForm({ color, children }: Props) {
   useEffect(() => {
     if (open && color) {
       reset({
+        id: color.id,
         name: color.name,
         hexCode: color.hexCode ?? "",
         description: color.description || "",

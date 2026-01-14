@@ -53,6 +53,7 @@ export const createStyleSchema = z.object({
 });
 
 export const updateStyleSchema = z.object({
+    id: z.number(),
     name: z
         .string()
         .min(

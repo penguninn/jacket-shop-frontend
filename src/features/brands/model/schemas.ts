@@ -54,6 +54,7 @@ export const createBrandSchema = z.object({
 });
 
 export const updateBrandSchema = z.object({
+  id: z.number(),
   name: z
     .string()
     .min(

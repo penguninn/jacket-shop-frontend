@@ -2,39 +2,36 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "../model";
-import { forgotPassword } from "../api";
+import { useForgotPassword } from "../hooks";
 import { useState } from "react";
 
 export default function ForgotPasswordPage() {
-    const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors },
     } = useForm<ForgotPasswordInput>({
         resolver: zodResolver(forgotPasswordSchema),
     });
 
-    const onSubmit = async (data: ForgotPasswordInput) => {
-        setIsLoading(true);
-        try {
-            await forgotPassword(data);
-            setIsSuccess(true);
-            toast.success("Password reset instructions sent to your email");
-        } catch (error) {
-            // Error is handled by global interceptor, but we can add specific handling if needed
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
+    const { mutate: forgotPassword, isPending: isLoading } = useForgotPassword({
+        setError: setError as any,
+    });
+
+    const onSubmit = (data: ForgotPasswordInput) => {
+        forgotPassword(data, {
+            onSuccess: () => {
+                setIsSuccess(true);
+            },
+        });
     };
 
     if (isSuccess) {

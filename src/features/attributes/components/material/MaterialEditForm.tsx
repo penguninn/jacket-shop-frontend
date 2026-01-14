@@ -51,6 +51,7 @@ export function MaterialEditForm({ material, children }: Props) {
             name: "",
             description: "",
             status: "ACTIVE",
+            id: material.id,
         },
     });
 
@@ -62,6 +63,7 @@ export function MaterialEditForm({ material, children }: Props) {
     useEffect(() => {
         if (open && material) {
             reset({
+                id: material.id,
                 name: material.name,
                 description: material.description || "",
                 status: material.status,

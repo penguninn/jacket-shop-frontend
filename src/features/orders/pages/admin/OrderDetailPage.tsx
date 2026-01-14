@@ -81,16 +81,16 @@ export default function OrderDetailPage() {
   ].filter(Boolean).join(", ");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 mt-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/orders")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Order {order.orderCode}</h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+          <div className="flex flex-col items-start justify-between">
+            <h1 className="text-xl font-bold tracking-tight">Order {order.orderCode}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{format(new Date(order.createdAt), "PPP p")}</span>
               <span>•</span>
               <Badge variant={getOrderStatusVariant(order.status)}>{order.status}</Badge>
@@ -100,7 +100,7 @@ export default function OrderDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {order.status === "PENDING" && (
+          {order.status === "PENDING" && order.orderType === "ONLINE" && (
             <>
               <AlertDialog>
                 <AlertDialogTrigger asChild>

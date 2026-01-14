@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "@/app/layouts/AdminLayout";
-import Dashboard from "@/pages/admin/Dashboard";
+import { DashboardPage } from "@/features/statistics/pages/DashboardPage";
 import Products from "@/features/products/pages/ProductsPage";
 import Orders from "@/features/orders/pages/admin/OrderManagementPage";
 import Users from "@/features/users/pages/UsersPage";
@@ -28,7 +28,7 @@ export default function AdminRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={<DashboardPage />} />
         <Route path="products" element={<Products />} />
         <Route path="products/:id" element={<ProductVariant />} />
         <Route path="orders" element={<Orders />} />

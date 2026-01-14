@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bell, Home, User } from "lucide-react";
+import { Home, User } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { authStore, useAuthStore } from "@/app/store/auth";
 import { CartSheet } from "@/features/cart/components";
@@ -39,11 +39,7 @@ export default function Navbar() {
           </Link>
         </Button>
 
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-5 w-5 text-zinc-600" />
-        </Button>
-
-        <CartSheet />
+        {user && <CartSheet />}
 
         {/* Auth area */}
         {user ? (

@@ -52,6 +52,7 @@ export function SizeEditForm({ size, children }: Props) {
   } = useForm<UpdateSizeInput>({
     resolver: zodResolver(updateSizeSchema),
     defaultValues: {
+      id: size.id,
       name: "",
       description: "",
       status: "ACTIVE",
@@ -66,6 +67,7 @@ export function SizeEditForm({ size, children }: Props) {
   useEffect(() => {
     if (open && size) {
       reset({
+        id: size.id,
         name: size.name,
         description: size.description || "",
         status: size.status,

@@ -10,6 +10,7 @@ import { CheckoutPage } from "@/features/orders";
 import SignIn from "@/features/auth/pages/SignInPage";
 import SignUp from "@/features/auth/pages/SignUpPage";
 import ForgotPassword from "@/features/auth/pages/ForgotPasswordPage";
+import ResetPassword from "@/features/auth/pages/ResetPasswordPage";
 import RequireAuth from "./RequireAuth";
 import Forbidden from "@/pages/Forbidden";
 import NotFound from "@/pages/NotFound";
@@ -86,6 +87,14 @@ export default function ClientRoutes() {
           element={
             <RequireAuth guestOnly={true}>
               <ForgotPassword />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="reset-password"
+          element={
+            <RequireAuth guestOnly={true}>
+              <ResetPassword />
             </RequireAuth>
           }
         />

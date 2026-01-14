@@ -12,6 +12,7 @@ import {
     type UpdateProfileInput,
     type ForgotPasswordInput,
     type UpdatePasswordInput,
+    type ResetPasswordInput,
 } from "../model";
 
 const ENDPOINTS = Object.freeze({
@@ -19,6 +20,8 @@ const ENDPOINTS = Object.freeze({
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     FORGOT_PASSWORD: '/auth/forgot-password',
+    VERIFY_RESET_TOKEN: '/auth/verify-reset-token',
+    RESET_PASSWORD: '/auth/reset-password',
     UPDATE_PASSWORD: '/auth/update-password',
     ME: '/users/me',
 } as const);
@@ -77,7 +80,25 @@ export async function forgotPassword(payload: ForgotPasswordInput) {
     const response = await httpPublicTyped.post(
         ENDPOINTS.FORGOT_PASSWORD,
         payload,
-        z.object({}).optional()
+        z.any()
+    );
+    return response;
+}
+
+export async function verifyResetToken(token: string) {
+    const response = await httpPublicTyped.get(
+        `${ENDPOINTS.VERIFY_RESET_TOKEN}?token=${token}`,
+        z.boolean()
+    );
+    return response;
+}
+
+export async function resetPassword(payload: ResetPasswordInput) {
+    const { confirmPassword, ...apiPayload } = payload;
+    const response = await httpPublicTyped.post(
+        ENDPOINTS.RESET_PASSWORD,
+        apiPayload,
+        z.any()
     );
     return response;
 }
