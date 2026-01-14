@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ReviewResponse } from "../model/types";
+import type { ReviewResponse } from "../model/schemas";
 import { Button } from "@/shared/ui/button";
 import { Trash2 } from "lucide-react";
 import { useDeleteReview } from "../hooks";
@@ -62,7 +62,7 @@ export const columns: ColumnDef<ReviewResponse>[] = [
     {
         accessorKey: "createdAt",
         header: "Date",
-        cell: ({ row }) => format(new Date(row.original.createdAt), "dd/MM/yyyy HH:mm")
+        cell: ({ row }) => row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy HH:mm") : "N/A"
     },
     {
         id: "actions",

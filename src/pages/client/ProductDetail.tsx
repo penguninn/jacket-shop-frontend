@@ -12,8 +12,9 @@ import { Star, Minus, Plus, Check } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
 import { ProductCard } from "@/features/products/components/ProductCard";
-import { Badge } from "@/shared/ui/badge";
 import { ReviewsSection } from "@/features/reviews/components/ReviewsSection";
+import { Badge } from "@/shared/ui/badge";
+
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -598,7 +599,7 @@ export default function ProductDetail() {
 
                 {/* Tabs Section (Reviews, FAQs) */}
                 <div className="mb-16">
-                    <Tabs defaultValue="reviews">
+                    <Tabs defaultValue="details">
                         <TabsList className="w-full justify-around border-b rounded-none h-auto p-0 bg-transparent">
                             <TabsTrigger
                                 value="details"
