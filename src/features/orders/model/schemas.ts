@@ -146,7 +146,6 @@ export const orderItemRequestSchema = z.object({
 });
 
 export const createOrderRequestSchema = z.object({
-    orderType: orderTypeSchema,
     paymentMethodId: z.number(),
     note: z.string().optional(),
     couponCode: z.string().optional(),
@@ -158,6 +157,14 @@ export const createOrderRequestSchema = z.object({
     carrierServiceName: z.string().optional(),
     carrierRateId: z.string().optional(),
     deliveryTimeEstimate: z.string().optional(),
+});
+
+export const updatePaymentRequestSchema = z.object({
+    paymentMethodId: z.number(),
+    paymentStatus: paymentStatusSchema,
+    transactionId: z.string().optional(),
+    paymentDate: z.string().optional(),
+    note: z.string().optional(),
 });
 
 export const orderHistoryResponseSchema = z.object({
@@ -206,3 +213,4 @@ export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 export type ShippingInfoRequest = z.infer<typeof shippingInfoRequestSchema>;
+export type UpdatePaymentRequest = z.infer<typeof updatePaymentRequestSchema>;
