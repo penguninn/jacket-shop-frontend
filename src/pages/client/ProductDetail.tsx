@@ -12,6 +12,7 @@ import { Star, Minus, Plus, Check } from "lucide-react";
 import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import { ReviewsSection } from "@/features/reviews/components/ReviewsSection";
 import { Badge } from "@/shared/ui/badge";
 
 
@@ -606,14 +607,12 @@ export default function ProductDetail() {
                             >
                                 Product Details
                             </TabsTrigger>
-                            {/*
                             <TabsTrigger
                                 value="reviews"
                                 className="flex-1 pb-4 rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:shadow-none text-gray-500 font-medium text-lg"
                             >
                                 Rating & Reviews
                             </TabsTrigger>
-                            */}
                         </TabsList>
 
                         <TabsContent value="details" className="pt-8 bg-white rounded-lg">
@@ -662,11 +661,10 @@ export default function ProductDetail() {
                                 </div>
                             </div>
                         </TabsContent>
-                        {/* 
+
                         <TabsContent value="reviews" className="pt-8">
                             <ReviewsSection productId={product.id} ratingCount={product.ratingCount || 0} />
                         </TabsContent>
-                        */}
                     </Tabs>
                 </div>
 

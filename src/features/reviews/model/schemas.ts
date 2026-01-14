@@ -17,11 +17,21 @@ export const reviewSchema = z.object({
 
 export const reviewsResponseSchema = pageResponseSchema(reviewSchema);
 
+// Review Create Schema
+export const createReviewSchema = z.object({
+    productId: z.number(),
+    orderId: z.number(),
+    rating: z.number().min(1).max(5),
+    comment: z.string().optional(),
+});
+
 // Review Update Schema (matches Java ReviewUpdateRequest)
 export const updateReviewSchema = z.object({
     rating: z.number().min(1).max(5).optional(),
     comment: z.string().optional(),
 });
+
+export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 
 // Review Filter Schema (matches Java ReviewFilterRequest)
 export interface ReviewFilterParams extends BaseFilterParams {

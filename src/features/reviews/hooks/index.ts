@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getReviews, deleteReview, updateReview } from "../api";
-import type { ReviewFilterParams, UpdateReviewInput, Review } from "../model/schemas";
+import { getReviews, getReviewsByProduct, deleteReview, updateReview, createReview } from "../api";
+import type { ReviewFilterParams, UpdateReviewInput, Review, CreateReviewInput } from "../model/schemas";
 import { useGlobalMutation } from "@/shared/hooks/use-global-mutation";
 import type { BaseMutationOptions } from "@/shared/api/types";
 
@@ -8,12 +8,30 @@ export const reviewKeys = {
     all: ['reviews'] as const,
     lists: () => [...reviewKeys.all, 'list'] as const,
     list: (params: ReviewFilterParams) => [...reviewKeys.lists(), params] as const,
+    product: (productId: number, params: any) => [...reviewKeys.all, 'product', productId, params] as const,
 };
 
 export function useReviews(params: ReviewFilterParams) {
     return useQuery({
         queryKey: reviewKeys.list(params),
         queryFn: () => getReviews(params),
+    });
+}
+
+export function useReviewsByProduct(productId: number, params: Omit<ReviewFilterParams, 'productId'> = { page: 0, size: 10 }) {
+    return useQuery({
+        queryKey: reviewKeys.product(productId, params),
+        queryFn: () => getReviewsByProduct(productId, params),
+    });
+}
+
+export function useCreateReview(options?: BaseMutationOptions) {
+    return useGlobalMutation<Review, CreateReviewInput>({
+        mutationFn: createReview,
+        invalidateQueries: [['reviews']],
+        successMessage: "Review submitted successfully!",
+        errorContext: "Create Review",
+        setError: options?.setError,
     });
 }
 
