@@ -156,7 +156,6 @@ export default function CheckoutPage() {
         }
 
         createOrder({
-            orderType: "ONLINE",
             paymentMethodId: selectedPaymentMethod.id,
             note: note,
             couponCode: appliedCoupon?.code,
@@ -172,16 +171,14 @@ export default function CheckoutPage() {
             deliveryTimeEstimate: selectedShippingRate?.expected,
         }, {
             onSuccess: (order) => {
-                if (selectedPaymentMethod.type === "ONLINE") {
-                    if (selectedPaymentMethod.code === "COD") {
-                        navigate("/user/purchase");
-                    } else if (selectedPaymentMethod.code === "QR") {
-                        createPaymentLink(order.id, {
-                            onSuccess: (paymentLink) => {
-                                window.location.href = paymentLink.checkoutUrl;
-                            }
-                        });
-                    }
+                if (selectedPaymentMethod.code === "QR" && order.total > 0) {
+                    createPaymentLink(order.id, {
+                        onSuccess: (paymentLink) => {
+                            window.location.href = paymentLink.checkoutUrl;
+                        }
+                    });
+                } else {
+                    navigate("/user/purchase");
                 }
             }
         });

@@ -3,46 +3,47 @@ import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { formatCurrency } from "@/shared/utils/format";
 import { cn } from "@/shared/lib/utils";
+import { useCreatePosDraft } from "../hooks";
+import type { Order } from "../model/schemas";
 
-// Dữ liệu giả lập danh sách đơn nháp
-const DUMMY_DRAFTS = [
-    {
-        id: 1,
-        customerName: null, // Khách vãng lai
-        itemCount: 3,
-        total: 1250000,
-        isActive: true, // Tab đang chọn
-    },
-    {
-        id: 2,
-        customerName: "Nguyen Van A",
-        itemCount: 1,
-        total: 350000,
-        isActive: false,
-    },
-    {
-        id: 3,
-        customerName: "Tran Thi B",
-        itemCount: 5,
-        total: 2100000,
-        isActive: false,
-    },
-];
+interface DraftTabsProps {
+    drafts: Order[];
+    activeDraftId: number | null;
+    onSelectDraft: (id: number) => void;
+    isLoading?: boolean;
+}
 
-export function DraftTabs() {
-    // Giả lập trạng thái loading hoặc tạo mới
-    const isCreating = false;
-    const draftList = DUMMY_DRAFTS;
+export function DraftTabs({ drafts, activeDraftId, onSelectDraft, isLoading }: DraftTabsProps) {
+    const { mutate: createDraft, isPending: isCreating } = useCreatePosDraft();
+
+    const handleCreateDraft = () => {
+        createDraft(undefined, {
+            onSuccess: (order) => {
+                onSelectDraft(order.id);
+            }
+        });
+    };
+
+    if (isLoading) {
+        return (
+            <div className="border-b bg-background px-4 py-2">
+                <div className="flex items-center space-x-2">
+                    <div className="h-9 w-24 bg-muted animate-pulse rounded" />
+                    <div className="h-9 w-32 bg-muted animate-pulse rounded" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="border-b bg-background px-4">
             <div className="flex items-center gap-2 overflow-x-auto py-2">
-                {/* New Draft Button */}
                 <Button
                     variant="outline"
                     size="sm"
-                    disabled={isCreating || draftList.length >= 5}
+                    disabled={isCreating || drafts.length >= 5}
                     className="shrink-0"
+                    onClick={handleCreateDraft}
                 >
                     {isCreating ? (
                         <>
@@ -57,20 +58,20 @@ export function DraftTabs() {
                     )}
                 </Button>
 
-                {/* Draft Tabs */}
-                {draftList.length === 0 ? (
+                {drafts.length === 0 ? (
                     <div className="text-sm text-muted-foreground">
                         No drafts. Click "New Draft" to start.
                     </div>
                 ) : (
-                    draftList.map((draft) => (
+                    drafts.map((draft) => (
                         <div
                             key={draft.id}
                             role="button"
                             tabIndex={0}
+                            onClick={() => onSelectDraft(draft.id)}
                             className={cn(
                                 "relative px-4 py-2 rounded-t-lg border border-b-0 shrink-0 transition-colors group cursor-pointer select-none",
-                                draft.isActive
+                                draft.id === activeDraftId
                                     ? "bg-background border-border"
                                     : "bg-muted/50 border-transparent hover:bg-muted"
                             )}
@@ -81,20 +82,19 @@ export function DraftTabs() {
                                         {draft.customerName || "Walk-in Customer"}
                                     </div>
                                     <div className="text-xs text-muted-foreground flex items-center gap-2">
-                                        <span>{draft.itemCount} items</span>
+                                        <span>{(draft.details || []).length} items</span>
                                         <span>•</span>
                                         <span>{formatCurrency(draft.total)}</span>
                                     </div>
                                 </div>
 
-                                {draft.itemCount > 0 && (
+                                {(draft.details || []).length > 0 && (
                                     <Badge variant="secondary" className="text-xs">
-                                        {draft.itemCount}
+                                        {(draft.details || []).length}
                                     </Badge>
                                 )}
                             </div>
 
-                            {/* Close button (Hiện khi hover) */}
                             <button
                                 className={cn(
                                     "absolute right-1 top-1/2 -translate-y-1/2",
@@ -109,10 +109,9 @@ export function DraftTabs() {
                     ))
                 )}
 
-                {/* Draft limit indicator */}
-                {draftList.length > 0 && (
+                {drafts.length > 0 && (
                     <div className="text-xs text-muted-foreground ml-auto">
-                        {draftList.length}/5 drafts
+                        {drafts.length}/5 drafts
                     </div>
                 )}
             </div>

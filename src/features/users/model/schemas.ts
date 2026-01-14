@@ -89,9 +89,7 @@ export const createUserSchema = z
       ),
     phone: z
       .string()
-      .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits")
-      .optional()
-      .or(z.literal("")),
+      .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits"),
     password: z
       .string()
       .min(
@@ -117,7 +115,6 @@ export const updateUserSchema = z.object({
   phone: z
     .string()
     .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits")
-    .optional()
     .or(z.literal("")),
   status: statusSchema,
   roleIds: z.array(z.number()).min(1, "Select at least one role"),

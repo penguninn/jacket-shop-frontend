@@ -83,14 +83,11 @@ export async function forgotPassword(payload: ForgotPasswordInput) {
 }
 
 export async function updatePassword(payload: UpdatePasswordInput) {
-    // Backend expects UpdatePasswordRequest { oldPassword, newPassword }
-    // Frontend UpdatePasswordInput has { oldPassword, newPassword, confirmPassword }
-    // We need to omit confirmPassword
     const { confirmPassword, ...apiPayload } = payload;
     const response = await httpPrivateTyped.post(
         ENDPOINTS.UPDATE_PASSWORD,
         apiPayload,
-        z.object({}).optional()
+        z.null()
     );
     return response;
 }
