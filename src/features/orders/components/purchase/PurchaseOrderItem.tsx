@@ -89,6 +89,7 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
             <div>
                 {order.details?.map((detail) => (
                     <div key={detail.id} className="flex p-4 border-b last:border-b-0 gap-4">
+                        <img src={detail.image || ""} alt={detail.productName} width={50} className="rounded-sm" />
                         <div className="flex-1">
                             <h3 className="text-base mb-1 line-clamp-2">{detail.productName}</h3>
                             <div className="text-gray-500 text-sm">
@@ -164,7 +165,7 @@ export function PurchaseOrderItem({ order }: PurchaseOrderItemProps) {
                                 </DialogContent>
                             </Dialog>
                         )}
-                        {(order.paymentStatus === "UNPAID" && order.paymentMethodCode === "QR" && order.status !== "CANCELLED" && order.status !== "COMPLETED") && (
+                        {(order.paymentStatus === "UNPAID" && order.paymentMethodCode === "QR" && order.status !== "CANCELLED" && order.status !== "COMPLETED" && order.total > 0) && (
                             <Button
                                 onClick={() => {
                                     createPaymentLink(order.id, {

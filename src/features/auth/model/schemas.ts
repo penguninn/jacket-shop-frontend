@@ -4,20 +4,32 @@ import { userSchema } from "@/features/users/model";
 export const AUTH_VALIDATION = {
     USERNAME: {
         MIN_LENGTH: 6,
-        MESSAGE: "Username must be at least 6 characters",
+        MAX_LENGTH: 50,
+        MESSAGE: "Username must be between 6 and 50 characters",
     },
     PASSWORD: {
-        MIN_LENGTH: 6,
-        MESSAGE: "Password must be at least 6 characters",
+        MIN_LENGTH: 1, // NotBlank for login
+        MESSAGE: "Password is required",
+        PATTERN: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/,
+        PATTERN_MESSAGE: "Password must contain at least one uppercase letter, one lowercase letter and one number",
     },
     FULL_NAME: {
-        MIN_LENGTH: 2,
-        MESSAGE: "Full name must be at least 2 characters",
+        MAX_LENGTH: 150,
+        MESSAGE: "Full name must be less than 150 characters",
+        REQUIRED_MESSAGE: "Full name is required",
     },
     PHONE: {
-        MIN_LENGTH: 10,
-        MESSAGE: "Phone must be at least 10 digits",
+        MAX_LENGTH: 15,
+        MESSAGE: "Phone number must be at most 15 characters",
+        PATTERN: /^0\d{9,14}$/,
+        PATTERN_MESSAGE: "Phone number must start with 0 and contain only digits",
+        REQUIRED_MESSAGE: "Phone number is required",
     },
+    EMAIL: {
+        MAX_LENGTH: 255,
+        MESSAGE: "Email must be less than 255 characters",
+        INVALID_MESSAGE: "Email must be valid",
+    }
 } as const;
 
 export const signInResponseSchema = z.object({
@@ -32,31 +44,39 @@ export const logoutResponseSchema = z.null().optional();
 export const signInSchema = z.object({
     username: z
         .string()
-        .min(AUTH_VALIDATION.USERNAME.MIN_LENGTH, AUTH_VALIDATION.USERNAME.MESSAGE),
+        .min(AUTH_VALIDATION.USERNAME.MIN_LENGTH, "Username is required") // backend says NotBlank and Size(6,50). Frontend can enforce min 6.
+        .max(AUTH_VALIDATION.USERNAME.MAX_LENGTH, "Username must be less than 50 characters"),
     password: z
         .string()
-        .min(AUTH_VALIDATION.PASSWORD.MIN_LENGTH, AUTH_VALIDATION.PASSWORD.MESSAGE),
+        .min(1, "Password is required"),
 });
 
 export const signUpSchema = z.object({
     username: z
         .string()
-        .min(AUTH_VALIDATION.USERNAME.MIN_LENGTH, AUTH_VALIDATION.USERNAME.MESSAGE),
+        .min(AUTH_VALIDATION.USERNAME.MIN_LENGTH, AUTH_VALIDATION.USERNAME.MESSAGE)
+        .max(AUTH_VALIDATION.USERNAME.MAX_LENGTH, AUTH_VALIDATION.USERNAME.MESSAGE),
+    email: z.string().email(AUTH_VALIDATION.EMAIL.INVALID_MESSAGE).max(AUTH_VALIDATION.EMAIL.MAX_LENGTH, AUTH_VALIDATION.EMAIL.MESSAGE).optional().or(z.literal('')),
     fullName: z
         .string()
-        .min(AUTH_VALIDATION.FULL_NAME.MIN_LENGTH, AUTH_VALIDATION.FULL_NAME.MESSAGE),
-    phoneNumber: z
+        .min(1, AUTH_VALIDATION.FULL_NAME.REQUIRED_MESSAGE)
+        .max(AUTH_VALIDATION.FULL_NAME.MAX_LENGTH, AUTH_VALIDATION.FULL_NAME.MESSAGE),
+    phone: z
         .string()
-        .min(AUTH_VALIDATION.PHONE.MIN_LENGTH, AUTH_VALIDATION.PHONE.MESSAGE),
+        .min(1, AUTH_VALIDATION.PHONE.REQUIRED_MESSAGE)
+        .max(AUTH_VALIDATION.PHONE.MAX_LENGTH, AUTH_VALIDATION.PHONE.MESSAGE)
+        .regex(AUTH_VALIDATION.PHONE.PATTERN, AUTH_VALIDATION.PHONE.PATTERN_MESSAGE),
     password: z
         .string()
-        .min(AUTH_VALIDATION.PASSWORD.MIN_LENGTH, AUTH_VALIDATION.PASSWORD.MESSAGE),
+        .min(1, "Password is required")
+        .regex(AUTH_VALIDATION.PASSWORD.PATTERN, AUTH_VALIDATION.PASSWORD.PATTERN_MESSAGE),
 });
 
 export const updateProfileSchema = z.object({
     fullName: z
         .string()
-        .min(AUTH_VALIDATION.FULL_NAME.MIN_LENGTH, AUTH_VALIDATION.FULL_NAME.MESSAGE),
+        .min(1, AUTH_VALIDATION.FULL_NAME.REQUIRED_MESSAGE)
+        .max(AUTH_VALIDATION.FULL_NAME.MAX_LENGTH, AUTH_VALIDATION.FULL_NAME.MESSAGE),
 });
 
 

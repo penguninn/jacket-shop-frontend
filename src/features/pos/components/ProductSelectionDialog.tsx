@@ -9,8 +9,13 @@ import {
 import { Plus } from "lucide-react";
 import { ProductSearch } from "./ProductSearch";
 import { useState } from "react";
+import type { Order } from "../model/schemas";
 
-export function ProductSelectionDialog() {
+interface ProductSelectionDialogProps {
+    activeDraft: Order | undefined;
+}
+
+export function ProductSelectionDialog({ activeDraft }: ProductSelectionDialogProps) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -26,7 +31,7 @@ export function ProductSelectionDialog() {
                     <DialogTitle>Select Products</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto min-h-0">
-                    <ProductSearch />
+                    <ProductSearch activeDraft={activeDraft} />
                 </div>
             </DialogContent>
         </Dialog>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, ChevronsUpDown, User as UserIcon, Plus, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Check, ChevronsUpDown, User as UserIcon, Plus, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
     Command,
@@ -24,33 +24,59 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
+import type { Order } from "@/features/pos/model/schemas";
+import { useUsers, useUserDetail, type User, type CreateUserInput, useCreateUser, USER_CONSTANTS } from "@/features/users";
+import { useUpdatePosDraftCustomer } from "../hooks";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { Status } from "@/shared/api/schemas";
+import { z } from "zod";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 
-// Dữ liệu giả lập
-const DUMMY_USERS = [
-    { id: 1, fullName: "Nguyen Van A", phone: "0912345678", username: "user_a" },
-    { id: 2, fullName: "Tran Thi B", phone: "0987654321", username: "user_b" },
-    { id: 3, fullName: "Le Van C", phone: "0909090909", username: "user_c" },
-    { id: 4, fullName: "Guest User", phone: "0000000000", username: "guest" },
-];
+interface CustomerSelectorProps {
+    activeDraft: Order | undefined;
+}
 
-export function CustomerSelector() {
-    // Giả lập trạng thái có Draft đang hoạt động
-    const hasDraft = true;
+export function CustomerSelector({ activeDraft }: CustomerSelectorProps) {
 
-    // State UI cục bộ
+    const hasDraft = activeDraft !== undefined;
     const [open, setOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<typeof DUMMY_USERS[0] | null>(null);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [search, setSearch] = useState("");
+    const { mutate: updatePosDraftCustomer } = useUpdatePosDraftCustomer();
+    const { data: activeUser } = useUserDetail(activeDraft?.userId ?? 0);
+    const { data: users, isLoading } = useUsers({
+        page: 0,
+        size: 10,
+        sortBy: "fullName",
+        sortDir: "ASC",
+        search: search,
+        status: ["ACTIVE"],
+        roles: ["CUSTOMER"]
+    });
 
-    const handleSelect = (user: typeof DUMMY_USERS[0]) => {
-        setIsUpdating(true);
-        // Giả lập delay mạng
-        setTimeout(() => {
-            setSelectedUser(user);
-            setOpen(false);
-            setIsUpdating(false);
-        }, 500);
+    const handleSelect = (user: User) => {
+        if (!activeDraft) return;
+        updatePosDraftCustomer({
+            draftId: activeDraft.id,
+            customerId: user.id
+        }, {
+            onSuccess: () => {
+                setSelectedUser(user);
+                setOpen(false);
+            }
+        });
     };
+
+    useEffect(() => {
+        if (activeDraft?.userId) {
+            if (activeUser) {
+                setSelectedUser(activeUser);
+            }
+        } else {
+            setSelectedUser(null);
+        }
+    }, [activeDraft?.userId, activeUser]);
 
     if (!hasDraft) {
         return (
@@ -82,7 +108,7 @@ export function CustomerSelector() {
                             role="combobox"
                             aria-expanded={open}
                             className="flex-1 min-w-0 justify-between"
-                            disabled={isUpdating}
+                            disabled={isLoading}
                         >
                             {selectedUser ? (
                                 <span className="flex items-center gap-2 truncate">
@@ -91,10 +117,10 @@ export function CustomerSelector() {
                                 </span>
                             ) : (
                                 <span className="text-muted-foreground">
-                                    Walk-in Customer
+                                    Select a customer
                                 </span>
                             )}
-                            {isUpdating ? (
+                            {isLoading ? (
                                 <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin" />
                             ) : (
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -102,16 +128,19 @@ export function CustomerSelector() {
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0" align="start">
-                        {/* Bỏ shouldFilter={false} để Shadcn tự filter local data */}
                         <Command>
-                            <CommandInput placeholder="Search customer (name, phone)..." />
+                            <CommandInput
+                                placeholder="Search customer (name, phone)..."
+                                value={search}
+                                onValueChange={setSearch}
+                            />
                             <CommandList>
                                 <CommandEmpty>No customer found.</CommandEmpty>
                                 <CommandGroup>
-                                    {DUMMY_USERS.map((user) => (
+                                    {users?.contents.map((user) => (
                                         <CommandItem
                                             key={user.id}
-                                            value={user.fullName + " " + user.phone} // Value để search hoạt động
+                                            value={user.fullName + " " + user.phone}
                                             onSelect={() => handleSelect(user)}
                                             className="cursor-pointer"
                                         >
@@ -133,8 +162,6 @@ export function CustomerSelector() {
                     </PopoverContent>
                 </Popover>
             </div>
-
-            {/* Customer Details Minimal View */}
             {selectedUser && (
                 <div className="text-xs text-muted-foreground mt-1 px-1">
                     <p>Phone: {selectedUser.phone}</p>
@@ -144,70 +171,118 @@ export function CustomerSelector() {
     );
 }
 
+const quickCreateCustomerSchema = z.object({
+    fullName: z
+        .string()
+        .min(
+            USER_CONSTANTS.FULL_NAME.MIN_LENGTH,
+            `Full name must be at least ${USER_CONSTANTS.FULL_NAME.MIN_LENGTH} characters`
+        ),
+    phone: z
+        .string()
+        .regex(USER_CONSTANTS.PHONE.REGEX, "Phone must be 10-15 digits"),
+});
+
+type QuickCreateCustomerInput = z.infer<typeof quickCreateCustomerSchema>;
+
 function QuickCreateCustomerDialog() {
     const [open, setOpen] = useState(false);
-    const [fullName, setFullName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [isPending, setIsPending] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsPending(true);
+    const {
+        register,
+        handleSubmit,
+        setError,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<QuickCreateCustomerInput>({
+        resolver: zodResolver(quickCreateCustomerSchema),
+        defaultValues: {
+            fullName: "",
+            phone: "",
+        },
+    });
 
-        // Giả lập API call
-        setTimeout(() => {
-            setIsPending(false);
-            setOpen(false);
-            setFullName("");
-            setPhone("");
-            // Logic thêm user vào list cha sẽ nằm ở đây
-        }, 1000);
-    };
+    const { mutate: createUser } = useCreateUser({ setError: setError as any });
+
+    const onSubmit = useCallback(
+        (data: QuickCreateCustomerInput) => {
+            const transformedData: CreateUserInput = {
+                ...data,
+                username: data.phone,
+                password: data.phone,
+                confirmPassword: data.phone,
+                status: "ACTIVE" as Status,
+                roleIds: [3],
+            };
+            createUser(transformedData, {
+                onSuccess: () => {
+                    setOpen(false);
+                    reset({
+                        fullName: "",
+                        phone: "",
+                    });
+                }
+            });
+        },
+        [createUser, reset]
+    );
+
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOpen(true)} title="Quick Create Customer">
                 <Plus className="h-4 w-4" />
             </Button>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Quick Create Customer</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                <form onSubmit={handleSubmit(onSubmit)} id="create-customer" className="space-y-4 py-4">
+                    {errors.root && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{errors.root.message}</AlertDescription>
+                        </Alert>
+                    )}
+                    <div className="space-y-2">
+                        <Label htmlFor="name">
                             Name
                         </Label>
                         <Input
                             id="name"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            className="col-span-3"
+                            {...register("fullName")}
                             placeholder="Full Name"
                             autoFocus
                         />
+                        {errors.fullName && (
+                            <p className="text-sm text-red-500">{errors.fullName.message}</p>
+                        )}
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="phone" className="text-right">
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">
                             Phone
                         </Label>
                         <Input
                             id="phone"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="col-span-3"
+                            {...register("phone")}
                             placeholder="Phone Number"
                         />
+                        {errors.phone && (
+                            <p className="text-sm text-red-500">{errors.phone.message}</p>
+                        )}
                     </div>
-                    <div className="col-span-4 text-xs text-muted-foreground text-center">
-                        Username and Password will be set to the Phone Number.
-                    </div>
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-muted-foreground">
+                            Username and Password will be set to the Phone Number.
+                        </AlertDescription>
+                    </Alert>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button type="submit" form="create-customer">
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Create
                         </Button>
                     </DialogFooter>
